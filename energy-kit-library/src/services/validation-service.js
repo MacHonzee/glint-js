@@ -31,7 +31,8 @@ class InvalidDtoIn extends Error {
 
 class ValidationService {
   constructor() {
-    this._ajv = new Ajv({allErrors: true});
+    // TODO make allErrors configurable via some DEBUG config
+    this._ajv = new Ajv({allErrors: false});
     addFormats(this._ajv);
   }
 
