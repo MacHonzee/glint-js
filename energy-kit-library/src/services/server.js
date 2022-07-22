@@ -30,8 +30,12 @@ class Server {
   }
 
   _initAppRoot() {
-    // and then we also save root of server
+    // we save root of the server
     process.env.SERVER_ROOT = process.cwd();
+
+    // and we also save root of the library
+    const dirname = path.dirname(import.meta.url.replace('file:///', ''));
+    process.env.KIT_LIB_ROOT = path.join(dirname, '..', '..');
   }
 
   _initDotenv() {
@@ -67,7 +71,7 @@ class Server {
     }
 
     // self-discovery of library middlewares
-    const libMiddlewareFldPath = path.join(import.meta.url.replace('file:///', ''), '..', '..', 'middlewares');
+    const libMiddlewareFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'middlewares');
     const libEntries = fs.readdirSync(libMiddlewareFldPath);
     for (const entry of libEntries) {
       const middlewareClass = (await import('file://' + path.join(libMiddlewareFldPath, entry))).default;

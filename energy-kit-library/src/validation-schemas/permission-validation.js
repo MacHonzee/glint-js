@@ -4,7 +4,7 @@ const PermissionSecretGrantSchema = {
   type: 'object',
   properties: {
     secret: {type: 'string'},
-    identity: {type: 'string'}, // TODO prepare identity format and validate it
+    identity: {format: 'identity'},
     role: {enum: DefaultRoles.privileged},
   },
   required: ['secret', 'identity', 'role'],
@@ -14,7 +14,7 @@ const PermissionSecretGrantSchema = {
 const PermissionGrantSchema = {
   type: 'object',
   properties: {
-    identity: {type: 'string'}, // TODO prepare identity format and validate it
+    identity: {format: 'identity'},
     role: {enum: DefaultRoles.application},
   },
   required: ['identity', 'role'],
@@ -24,7 +24,7 @@ const PermissionGrantSchema = {
 const PermissionRevokeSchema = {
   type: 'object',
   properties: {
-    identity: {type: 'string'}, // TODO prepare identity format and validate it
+    identity: {format: 'identity'},
     role: {enum: DefaultRoles.application},
     all: {type: 'boolean'},
   },
@@ -39,7 +39,7 @@ const PermissionRevokeSchema = {
 const PermissionListSchema = {
   type: 'object',
   properties: {
-    identity: {type: 'string'}, // TODO prepare identity format and validate it
+    identity: {format: 'identity'},
   },
 };
 

@@ -37,10 +37,12 @@ class ValidationService {
   }
 
   async init() {
+    await this._registerFormats();
+
     const appSchemasFldPath = path.join(process.env.SERVER_ROOT, 'app', 'validation-schemas');
     await this._registerFromPath(appSchemasFldPath);
 
-    const libSchemasFldPath = path.join(import.meta.url.replace('file:///', ''), '..', '..', 'validation-schemas');
+    const libSchemasFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'validation-schemas');
     await this._registerFromPath(libSchemasFldPath);
   }
 
@@ -61,6 +63,15 @@ class ValidationService {
     return {
       valid: validationResult,
     };
+  }
+
+  async _registerFormats() {
+    const formatsFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'validation-formats');
+    const entries = await fs.promises.readdir(formatsFldPath);
+    for (const entry of entries) {
+      const format = await import('file://' + path.join(formatsFldPath, entry));
+      this._ajv.addFormat(format.default.name, format.default.format);
+    }
   }
 
   async _registerFromPath(schemasFldPath) {
