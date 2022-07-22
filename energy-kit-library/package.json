@@ -1,0 +1,45 @@
+{
+  "name": "energy-kit-library",
+  "version": "0.1.0",
+  "description": "Core NPM framework-kinda library to handle services in energyKit application.",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@google-cloud/logging-winston": "^5.1.0",
+    "@google-cloud/secret-manager": "^4.0.0",
+    "ajv": "^8.11.0",
+    "ajv-formats": "^2.1.1",
+    "dotenv": "^16.0.1",
+    "express": "5.0.0-beta.1",
+    "lru-cache": "^7.10.2",
+    "mongoose": "^6.4.1",
+    "node-fetch": "^3.2.6",
+    "passport-local-mongoose": "^7.1.2",
+    "winston": "^3.8.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.18.0",
+    "eslint-config-google": "^0.14.0",
+    "jest": "^28.1.1",
+    "nodemon": "^2.0.19"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MacHonzee/energy-kit-library.git"
+  },
+  "keywords": [
+    "electricity",
+    "webapp",
+    "household",
+    "npm"
+  ],
+  "author": "Jan Rudolf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MacHonzee/energy-kit-library/issues"
+  },
+  "homepage": "https://github.com/MacHonzee/energy-kit-library#readme"
+}
