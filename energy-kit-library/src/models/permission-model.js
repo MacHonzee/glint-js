@@ -1,15 +1,18 @@
-import mongoose from 'mongoose';
+import {AbstractModel} from '../services/abstract-model.js';
 
-// TODO rewrite this to same ModelFactory, there is too much unnecessary boilerplate
+class PermissionModel extends AbstractModel {
+  constructor() {
+    super(
+        {identity: {type: String}, role: {type: String}},
+        {timestamps: true},
+    );
+  }
 
-// TODO disable autocreate on indexes for production and make sure that we can init it correctly somehow
-const schema = new mongoose.Schema(
-    {identity: {type: String}, role: {type: String}},
-    {timestamps: true},
-);
-schema.index({identity: 1, role: 1}, {unique: true});
+  static async buildIndexes() {
+    await this.schema.index({identity: 1, role: 1}, {unique: true});
+    return await this.syncIndexes();
+  }
 
-class ModelClass {
   static listByUser(identity) {
     return this.find({identity});
   }
@@ -23,6 +26,4 @@ class ModelClass {
   }
 }
 
-schema.loadClass(ModelClass);
-const Permission = mongoose.model('Permission', schema);
-export default Permission;
+export default new PermissionModel().createModel();

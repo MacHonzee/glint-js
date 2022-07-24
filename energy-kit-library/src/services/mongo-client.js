@@ -21,7 +21,7 @@ class MongoClient {
     this.mongoUri = mongoUri;
 
     try {
-      this.connection = await mongoose.connect(mongoUri);
+      this.connection = await mongoose.connect(mongoUri, {autoIndex: false});
       logger.info(`Successfully connected to database ${mongoUri}`);
     } catch (e) {
       logger.error('Error when connecting to database', e);

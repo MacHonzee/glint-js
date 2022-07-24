@@ -13,6 +13,11 @@ const Mappings = {
     controller: SysRoute.ping.bind(SysRoute),
     roles: [DefaultRoles.public],
   },
+  '/sys/syncIndexes': {
+    method: Post,
+    controller: SysRoute.syncIndexes.bind(SysRoute),
+    roles: [DefaultRoles.admin],
+  },
 
   // permission
   '/permission/secretGrant': {
