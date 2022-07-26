@@ -26,4 +26,4 @@ class PermissionModel extends AbstractModel {
   }
 }
 
-export default new PermissionModel().createModel();
+export default new PermissionModel().createModel('AUTH');

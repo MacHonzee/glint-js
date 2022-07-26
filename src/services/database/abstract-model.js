@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import MongoClient from './mongo-client.js';
 
 const ModelWarehouse = {};
 
@@ -7,10 +8,13 @@ class AbstractModel {
     this.schema = new mongoose.Schema( schema, options );
   }
 
-  createModel() {
+  createModel(connectionKey = 'PRIMARY') {
+    const connection = MongoClient.getConnection(connectionKey);
+
     this.schema.loadClass(this.constructor);
+
     const modelName = this.constructor.name.replace(/Model$/, '');
-    const model = mongoose.model(modelName, this.schema);
+    const model = connection.model(modelName, this.schema);
     ModelWarehouse[modelName] = model;
     return model;
   }

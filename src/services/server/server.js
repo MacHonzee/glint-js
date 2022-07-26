@@ -22,11 +22,15 @@ class Server {
   async _onBeforeStart() {
     this._initAppRoot();
     this._initDotenv();
+
+    // it has to be done first in order to properly load mappings etc
+    await new MongoClient().init();
+    await this._initAuthMongo();
+
     const errorMiddlewares = await this._registerMiddlewares();
     await this._registerRoutes();
     await this._registerErrorMiddlewares(errorMiddlewares);
     await ValidationService.init();
-    await MongoClient.init();
   }
 
   _initAppRoot() {
@@ -47,6 +51,18 @@ class Server {
 
     dotenv.config({path: envPath});
   }
+
+  async _initAuthMongo() {
+    try {
+      await new MongoClient('AUTH').init();
+    } catch (e) {
+      this.logger.warn('Could not connect to AUTH MongoDB.', e);
+    }
+  }
+
+  // async _initModels() {
+  //   for (const [modelName, model] of Object.entries(ModelWarehouse));
+  // }
 
   async _registerRoutes() {
     await RouteRegister.init();
