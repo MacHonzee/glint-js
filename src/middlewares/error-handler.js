@@ -1,4 +1,4 @@
-import LoggerFactory from '../services/logger-factory.js';
+import LoggerFactory from '../services/logging/logger-factory.js';
 
 const logger = LoggerFactory.create('Server.ErrorHandler', 'error');
 

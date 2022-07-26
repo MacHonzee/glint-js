@@ -1,6 +1,6 @@
-import LruCache from './lru-cache.js';
-import RouteRegister from './route-register.js';
-import Permission from '../models/permission-model.js';
+import LruCache from '../utils/lru-cache.js';
+import RouteRegister from '../server/route-register.js';
+import Permission from '../../models/permission-model.js';
 
 const DEFAULT_CACHE = 1000 * 60 * 5;
 

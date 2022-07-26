@@ -1,4 +1,4 @@
-import {AbstractModel} from '../services/abstract-model.js';
+import {AbstractModel} from '../services/database/abstract-model.js';
 
 class PermissionModel extends AbstractModel {
   constructor() {

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import LoggerFactory from './logger-factory.js';
+import LoggerFactory from '../logging/logger-factory.js';
 
 const logger = LoggerFactory.create('Server.MongoClient');
 
@@ -10,7 +10,7 @@ class MongoClient {
   }
 
   async init() {
-    const mongoUri = process.env.MONGO_URI;
+    const mongoUri = process.env.MONGODB_URI;
 
     // TODO needed for cloud sometime later
     // if (!mongoUri) mongoUri = this._resolveMongoSecret();

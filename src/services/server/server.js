@@ -3,10 +3,10 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 
-import LoggerFactory from './logger-factory.js';
+import LoggerFactory from '../logging/logger-factory.js';
 import RouteRegister from './route-register.js';
-import MongoClient from './mongo-client.js';
-import ValidationService from './validation-service.js';
+import MongoClient from '../database/mongo-client.js';
+import ValidationService from '../validation/validation-service.js';
 
 class Server {
   constructor() {
@@ -35,7 +35,7 @@ class Server {
 
     // and we also save root of the library
     const dirname = path.dirname(import.meta.url.replace('file:///', ''));
-    process.env.KIT_LIB_ROOT = path.join(dirname, '..', '..');
+    process.env.KIT_LIB_ROOT = path.join(dirname, '..', '..', '..');
   }
 
   _initDotenv() {

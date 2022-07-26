@@ -1,6 +1,6 @@
 import PermissionModel from '../models/permission-model.js';
-import ValidationService from '../services/validation-service.js';
-import UseCaseError from '../services/use-case-error.js';
+import ValidationService from '../services/validation/validation-service.js';
+import UseCaseError from '../services/server/use-case-error.js';
 import DefaultRoles from '../config/default-roles.js';
 
 const LIST_PRIVILEGED_ROLES = [DefaultRoles.admin, DefaultRoles.authority];

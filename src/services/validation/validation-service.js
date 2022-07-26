@@ -66,7 +66,7 @@ class ValidationService {
   }
 
   async _registerFormats() {
-    const formatsFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'validation-formats');
+    const formatsFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'services', 'validation', 'validation-formats');
     const entries = await fs.promises.readdir(formatsFldPath);
     for (const entry of entries) {
       const format = await import('file://' + path.join(formatsFldPath, entry));

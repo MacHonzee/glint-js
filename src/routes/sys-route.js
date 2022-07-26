@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import {ModelWarehouse} from '../services/abstract-model.js';
+import {ModelWarehouse} from '../services/database/abstract-model.js';
 
 class SysRoute {
   constructor() {

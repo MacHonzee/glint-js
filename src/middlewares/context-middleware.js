@@ -1,5 +1,5 @@
-import UseCaseEnvironment from '../services/use-case-environment.js';
-import RouteRegister from '../services/route-register.js';
+import UseCaseEnvironment from '../services/server/use-case-environment.js';
+import RouteRegister from '../services/server/route-register.js';
 
 class Error404 extends Error {
   constructor(req) {

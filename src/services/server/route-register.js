@@ -1,5 +1,5 @@
 import path from 'path';
-import Mappings from '../config/mappings.js';
+import Mappings from '../../config/mappings.js';
 
 class RouteRegister {
   constructor() {

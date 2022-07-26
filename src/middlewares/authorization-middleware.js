@@ -1,4 +1,4 @@
-import AuthorizationService from '../services/authorization-service.js';
+import AuthorizationService from '../services/authorization/authorization-service.js';
 import DefaultRoles from '../config/default-roles.js';
 
 class AuthorizationError extends Error {
