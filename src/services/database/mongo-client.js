@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 import LoggerFactory from '../logging/logger-factory.js';
 
-const logger = LoggerFactory.create('Server.MongoClient');
 
 class MongoClient {
   constructor(envKey = 'PRIMARY') {
     this.envKey = envKey;
     this.connection = null;
     this.mongoUri = null;
+    this.logger = LoggerFactory.create('Server.MongoClient');
   }
 
   static getConnection(envKey) {
@@ -36,11 +36,11 @@ class MongoClient {
     try {
       this.connection = await mongoose.createConnection(mongoUri, {autoIndex: false});
     } catch (e) {
-      logger.error('Error when connecting to database:', e);
+      this.logger.error('Error when connecting to database:', e);
       throw e;
     }
 
-    logger.info(`Successfully connected to database: ${mongoUri}`);
+    this.logger.info(`Successfully connected to database: ${mongoUri}`);
     MongoClient.connections[this.envKey] = {connection: this.connection, uri: this.mongoUri};
   }
 }

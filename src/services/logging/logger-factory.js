@@ -27,6 +27,10 @@ const consoleFormat = printf((log) => {
   return msg;
 });
 
+function getEnvLogLevelKey(loggerName) {
+  return 'LOG_LEVEL_' + loggerName.replace(/\./g, '_').toUpperCase();
+}
+
 class LoggerFactory {
   constructor() {
     // cache for reusing loggers with same name
@@ -44,10 +48,11 @@ class LoggerFactory {
       ),
     });
 
+    let logLevel = level || process.env[getEnvLogLevelKey(name)] || process.env.LOG_LEVEL_GLOBAL || DEFAULT_LEVEL;
+    logLevel = logLevel.toLowerCase();
+
     const logger = winston.createLogger({
-      // TODO level might need some configurable logic with this priority
-      // 1. argument, 2. name-specific env, 3. global env, 4. DEFAULT_LEVEL const
-      level: level || DEFAULT_LEVEL,
+      level: logLevel,
       transports: [
         consoleTransport,
       ],
