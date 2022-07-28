@@ -2,6 +2,7 @@ import DefaultRoles from './default-roles.js';
 
 import PermissionRoute from '../routes/permission-route.js';
 import SysRoute from '../routes/sys-route.js';
+import UserRoute from '../routes/user-route.js';
 
 const Get = 'get';
 const Post = 'post';
@@ -38,6 +39,28 @@ const Mappings = {
   '/permission/list': {
     method: 'get',
     controller: PermissionRoute.list.bind(PermissionRoute),
+    roles: [DefaultRoles.authenticated],
+  },
+
+  // user
+  '/user/register': {
+    method: Post,
+    controller: UserRoute.register.bind(UserRoute),
+    roles: [DefaultRoles.public],
+  },
+  '/user/login': {
+    method: Post,
+    controller: UserRoute.login.bind(UserRoute),
+    roles: [DefaultRoles.public],
+  },
+  '/user/refreshToken': {
+    method: Post,
+    controller: UserRoute.refreshToken.bind(UserRoute),
+    roles: [DefaultRoles.authenticated],
+  },
+  '/user/logout': {
+    method: Post,
+    controller: UserRoute.logout.bind(UserRoute),
     roles: [DefaultRoles.authenticated],
   },
 };

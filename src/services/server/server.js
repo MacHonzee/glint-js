@@ -2,11 +2,13 @@ import express from 'express';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import cors from 'cors';
 
 import LoggerFactory from '../logging/logger-factory.js';
 import RouteRegister from './route-register.js';
 import MongoClient from '../database/mongo-client.js';
 import ValidationService from '../validation/validation-service.js';
+import AuthenticationService from '../authentication/authentication-service.js';
 
 class Server {
   constructor() {
@@ -31,6 +33,7 @@ class Server {
     await this._registerRoutes();
     await this._registerErrorMiddlewares(errorMiddlewares);
     await ValidationService.init();
+    await AuthenticationService.init(this.app);
   }
 
   _initAppRoot() {
@@ -75,6 +78,8 @@ class Server {
   async _registerMiddlewares() {
     this.app.use(express.json());
     this.app.use(express.urlencoded({extended: true}));
+    this._registerCorsHandler();
+    await AuthenticationService.initCookieParser(this.app);
 
     const middlewares = [];
 
@@ -146,6 +151,24 @@ class Server {
       this.app.use(middleware.process.bind(middleware));
       this.logger.info(`Registered error middleware [${middleware.ORDER}] ${middleware.constructor.name}`);
     }
+  }
+
+  _registerCorsHandler() {
+    const whitelist = process.env.WHITELISTED_DOMAINS?.split(',') || [];
+
+    const corsOptions = {
+      origin: (origin, callback) => {
+        if (!origin || whitelist.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+
+      credentials: true,
+    };
+
+    this.app.use(cors(corsOptions));
   }
 
   async _onAfterStart() {

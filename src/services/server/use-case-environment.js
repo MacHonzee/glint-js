@@ -48,6 +48,14 @@ class UseCaseEnvironment {
   get authorizationResult() {
     return this._authzResult;
   }
+
+  get request() {
+    return this._req;
+  }
+
+  get response() {
+    return this._res;
+  }
 }
 
 export default UseCaseEnvironment;
