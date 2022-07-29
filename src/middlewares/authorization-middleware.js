@@ -1,13 +1,15 @@
 import AuthorizationService from '../services/authorization/authorization-service.js';
 import DefaultRoles from '../config/default-roles.js';
+import UseCaseError from '../services/server/use-case-error.js';
 
-class AuthorizationError extends Error {
+class AuthorizationError extends UseCaseError {
   constructor(authorizationResult) {
-    super();
-    this.message = 'User is not authorized for given route.';
-    this.code = 'energy-kit/userNotAuthorized';
-    this.status = 403;
-    this.params = authorizationResult;
+    super(
+        'User is not authorized for given route.',
+        'userNotAuthorized',
+        authorizationResult,
+        403,
+    );
   }
 }
 
@@ -17,10 +19,15 @@ class AuthorizationMiddleware {
   }
 
   async process(req, res, next) {
+    if (!this._shouldBeAuthorized(req)) {
+      next();
+      return;
+    }
+
     const authorizationResult = await AuthorizationService.authorize(req.ucEnv.uri.useCase, req.ucEnv.session.user);
     req.ucEnv.authorizationResult = authorizationResult;
 
-    if (!authorizationResult.authorized && this._shouldBeAuthorized(req)) {
+    if (!authorizationResult.authorized) {
       throw new AuthorizationError(authorizationResult);
     }
 
@@ -30,7 +37,7 @@ class AuthorizationMiddleware {
   // Authenticated and Public requests can be skipped
   _shouldBeAuthorized(req) {
     const roles = req.ucEnv.mapping.roles || [];
-    return !roles.includes(DefaultRoles.authenticated) && !roles.includes(DefaultRoles.public);
+    return !roles.includes(DefaultRoles.public);
   }
 }
 

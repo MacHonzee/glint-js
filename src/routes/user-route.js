@@ -97,7 +97,6 @@ class UserRoute {
 
   async refreshToken({request, response}) {
     const refreshToken = request.signedCookies?.refreshToken;
-    console.log('-> refreshToken', refreshToken);
     if (!InvalidRefreshToken) throw new InvalidRefreshToken();
 
     // verify that token has been signed with correct secret
@@ -120,7 +119,24 @@ class UserRoute {
     };
   }
 
-  async logout(ucEnv) {}
+  async logout({request, response}) {
+    const refreshToken = request.signedCookies?.refreshToken;
+    if (!InvalidRefreshToken) throw new InvalidRefreshToken();
+
+    // TODO we have to read user from session, which should be injected by middleware
+    const userId = '';
+
+    // delete token from database
+    const user = await UserModel.findById(userId);
+    const tokenIndex = user.refreshTokens.findIndex( (item) => item === refreshToken );
+    user.refreshTokens.splice(tokenIndex);
+    await user.save();
+
+    // and clear cookie of client
+    response.clearCookie('refreshToken', AuthenticationService.COOKIE_OPTIONS);
+
+    return {};
+  }
 
   // method handles common logic for creating new token, creating new refresh token
   // and updating or adding the refreshToken to user

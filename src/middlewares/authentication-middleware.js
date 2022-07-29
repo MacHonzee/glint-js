@@ -1,14 +1,15 @@
 import DefaultRoles from '../config/default-roles.js';
+import AuthenticationService from '../services/authentication/authentication-service.js';
+import UseCaseError from '../services/server/use-case-error.js';
 
-class AuthenticationError extends Error {
-  constructor(url) {
-    super();
-    this.message = 'User is not authenticated for given route';
-    this.code = 'energy-kit/userNotAuthenticated';
-    this.status = 401;
-    this.params = {
-      url,
-    };
+class AuthenticationError extends UseCaseError {
+  constructor(cause) {
+    super(
+        'User is not authenticated.',
+        'userNotAuthenticated',
+        {cause},
+        401,
+    );
   }
 }
 
@@ -18,14 +19,6 @@ class AuthenticationMiddleware {
   }
 
   async process(req, res, next) {
-    // TODO just for test
-    req.ucEnv.session = {
-      user: {
-        identity: '123abc',
-        name: 'Jan Rudolf',
-      },
-    };
-
     if (!this._shouldBeAuthenticated(req)) {
       return next();
     }
@@ -34,13 +27,43 @@ class AuthenticationMiddleware {
       return next();
     }
 
-    // TODO use passport + session to authenticate based on token and cookies
+    let user;
+    try {
+      user = await this._authenticate(req.headers);
+    } catch (e) {
+      throw new AuthenticationError(e);
+    }
+
+    req.ucEnv.session = {
+      user,
+    };
+
     next();
   }
 
   _shouldBeAuthenticated(req) {
     const roles = req.ucEnv.mapping.roles || [];
     return !roles.includes(DefaultRoles.public);
+  }
+
+  // here we call middleware explicitly because we need more control
+  // TODO check if there is a better way
+  async _authenticate(headers) {
+    const fakeRequest = {
+      headers: headers,
+    };
+
+    await new Promise((resolve, reject) => {
+      const fakeResponse = {
+        end(cause) {
+          reject(cause);
+        },
+      };
+
+      AuthenticationService.verifyUser()(fakeRequest, fakeResponse, resolve);
+    });
+
+    return fakeRequest.user;
   }
 }
 

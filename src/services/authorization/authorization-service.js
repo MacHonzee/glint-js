@@ -1,6 +1,7 @@
 import LruCache from '../utils/lru-cache.js';
 import RouteRegister from '../server/route-register.js';
 import Permission from '../../models/permission-model.js';
+import DefaultRoles from '../../config/default-roles.js';
 
 const DEFAULT_CACHE = 1000 * 60 * 5;
 
@@ -21,7 +22,12 @@ class AuthorizationService {
 
     const userRoles = await this.getUserRoles(user);
 
-    const authorized = userRoles.some((userRole) => useCaseRoles.includes(userRole));
+    let authorized;
+    if (useCaseRoles.includes(DefaultRoles.authenticated)) {
+      authorized = true;
+    } else {
+      authorized = userRoles.some((userRole) => useCaseRoles.includes(userRole));
+    }
 
     return {
       authorized,

@@ -56,7 +56,7 @@ const Mappings = {
   '/user/refreshToken': {
     method: Post,
     controller: UserRoute.refreshToken.bind(UserRoute),
-    roles: [DefaultRoles.authenticated],
+    roles: [DefaultRoles.public],
   },
   '/user/logout': {
     method: Post,

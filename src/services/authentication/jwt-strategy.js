@@ -11,10 +11,15 @@ class JwtStrategy {
 
     // TODO check whether it can be async
     function verifyCallback(jwtPayload, done) {
+      console.log('-> jwtPayload', jwtPayload);
+
       // TODO check this whether we need it really
       // Check against the DB only if necessary.
       // This can be avoided if you don't want to fetch user details in each request.
-      UserModel.findOne({_id: jwtPayload._id}, function(err, user) {
+      UserModel.default.findOne({_id: jwtPayload._id}, function(err, user) {
+        console.log('-> user', user);
+        console.log('-> err', err);
+
         if (err) {
           return done(err, false);
         }
