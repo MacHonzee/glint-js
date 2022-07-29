@@ -39,6 +39,10 @@ class AuthenticationService {
     });
   };
 
+  verifyRefreshToken(refreshToken) {
+    return jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+  };
+
   verifyUser() {
     return passport.authenticate('jwt', {session: false});
   }

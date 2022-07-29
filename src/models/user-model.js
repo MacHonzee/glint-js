@@ -41,12 +41,12 @@ class UserModel extends AbstractModel {
     });
   }
 
-  // TODO create user methods
-  // static async buildIndexes() {
-  //   await this.schema.index({identity: 1, role: 1}, {unique: true});
-  //   return await this.syncIndexes();
-  // }
-  //
+  static async buildIndexes() {
+    await this.schema.index({username: 1}, {unique: true});
+    return await this.syncIndexes();
+  }
+
+  // TODO create other user methods
   // static listByUser(identity) {
   //   return this.find({identity});
   // }

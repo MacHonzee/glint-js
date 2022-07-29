@@ -24,6 +24,24 @@ class LoginFailed extends UseCaseError {
   }
 }
 
+class InvalidRefreshToken extends UseCaseError {
+  constructor() {
+    super(
+        'Invalid or missing refreshToken cookie.',
+        'invalidRefreshToken',
+    );
+  }
+}
+
+class RefreshTokenMismatch extends UseCaseError {
+  constructor() {
+    super(
+        'Refresh token has not been matched.',
+        'invalidRefreshToken',
+    );
+  }
+}
+
 class UserRoute {
   constructor() {
     this.logger = LoggerFactory.create('Route.UserRoute');
@@ -49,14 +67,7 @@ class UserRoute {
       throw new RegistrationFailed(e.message);
     }
 
-    // get token and refreshToken, update the refreshToken in DB
-    const token = AuthenticationService.getToken({_id: registeredUser._id});
-    const refreshToken = AuthenticationService.getRefreshToken({_id: registeredUser._id});
-    registeredUser.refreshTokens.push(refreshToken);
-    await registeredUser.save();
-
-    // and return refreshToken in cookies
-    response.cookie('refreshToken', refreshToken, AuthenticationService.COOKIE_OPTIONS);
+    const token = await this._handleUserAndTokens(registeredUser, response);
 
     return {
       token,
@@ -72,14 +83,11 @@ class UserRoute {
 
     // check if authentication was successful and translate it to Http error
     if (error) {
-      console.log('-> error', error);
       throw new LoginFailed(error);
     }
 
-    // get tokens and set the refreshToken cookie up
-    const token = AuthenticationService.getToken({_id: user._id});
-    const refreshToken = AuthenticationService.getRefreshToken({_id: user._id});
-    response.cookie('refreshToken', refreshToken, AuthenticationService.COOKIE_OPTIONS);
+    // TODO we must handle deletion of some old expired tokens
+    const token = await this._handleUserAndTokens(user, response);
 
     return {
       user,
@@ -87,9 +95,49 @@ class UserRoute {
     };
   }
 
-  async refreshToken(ucEnv) {}
+  async refreshToken({request, response}) {
+    const refreshToken = request.signedCookies?.refreshToken;
+    console.log('-> refreshToken', refreshToken);
+    if (!InvalidRefreshToken) throw new InvalidRefreshToken();
+
+    // verify that token has been signed with correct secret
+    const jwtData = AuthenticationService.verifyRefreshToken(refreshToken);
+
+    // find user based on the signed token id
+    const userId = jwtData._id;
+    const user = await UserModel.findOne({_id: userId});
+
+    // verify that the token is saved to given user (could be deleted because of logout)
+    const tokenIndex = user.refreshTokens.findIndex( (item) => item === refreshToken );
+    if (tokenIndex === -1) {
+      throw new RefreshTokenMismatch();
+    }
+
+    const token = await this._handleUserAndTokens(user, response, tokenIndex);
+
+    return {
+      token,
+    };
+  }
 
   async logout(ucEnv) {}
+
+  // method handles common logic for creating new token, creating new refresh token
+  // and updating or adding the refreshToken to user
+  async _handleUserAndTokens(user, response, tokenIndex) {
+    const refreshToken = AuthenticationService.getRefreshToken({_id: user._id});
+    if (tokenIndex != null) {
+      user.refreshTokens[tokenIndex] = refreshToken;
+    } else {
+      user.refreshTokens.push(refreshToken);
+    }
+    await user.save();
+
+    const token = AuthenticationService.getToken({_id: user._id});
+    response.cookie('refreshToken', refreshToken, AuthenticationService.COOKIE_OPTIONS);
+
+    return token;
+  }
 }
 
 export default new UserRoute();
