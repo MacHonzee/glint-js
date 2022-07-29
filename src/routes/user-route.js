@@ -14,6 +14,16 @@ class RegistrationFailed extends UseCaseError {
   }
 }
 
+class LoginFailed extends UseCaseError {
+  constructor(cause) {
+    super(
+        'Login has failed.',
+        'registrationFailed',
+        {cause},
+    );
+  }
+}
+
 class UserRoute {
   constructor() {
     this.logger = LoggerFactory.create('Route.UserRoute');
@@ -54,7 +64,28 @@ class UserRoute {
     };
   }
 
-  async login(ucEnv) {}
+  async login({dtoIn, uri, response}) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    // authenticate based on username and password
+    const {user, error} = await AuthenticationService.login(dtoIn.username, dtoIn.password);
+
+    // check if authentication was successful and translate it to Http error
+    if (error) {
+      console.log('-> error', error);
+      throw new LoginFailed(error);
+    }
+
+    // get tokens and set the refreshToken cookie up
+    const token = AuthenticationService.getToken({_id: user._id});
+    const refreshToken = AuthenticationService.getRefreshToken({_id: user._id});
+    response.cookie('refreshToken', refreshToken, AuthenticationService.COOKIE_OPTIONS);
+
+    return {
+      user,
+      token,
+    };
+  }
 
   async refreshToken(ucEnv) {}
 

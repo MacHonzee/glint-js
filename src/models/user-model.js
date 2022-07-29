@@ -34,6 +34,8 @@ class UserModel extends AbstractModel {
     this.schema.set('toJSON', {
       transform: function(doc, ret, options) {
         delete ret.refreshTokens;
+        delete ret.salt;
+        delete ret.hash;
         return ret;
       },
     });

@@ -42,6 +42,11 @@ class AuthenticationService {
   verifyUser() {
     return passport.authenticate('jwt', {session: false});
   }
+
+  async login(username, password) {
+    const UserModel = await import('../../models/user-model.js');
+    return await UserModel.default.authenticate()(username, password);
+  }
 }
 
 export default new AuthenticationService();

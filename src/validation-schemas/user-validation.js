@@ -9,11 +9,19 @@ const UserRegisterSchema = {
     lastName: {type: 'string'},
     language: {enum: Object.keys(Languages)},
   },
-  required: ['firstName', 'lastName'],
+  required: ['username', 'password', 'firstName', 'lastName'],
   additionalProperties: false,
 };
 
-const UserLoginSchema = {};
+const UserLoginSchema = {
+  type: 'object',
+  properties: {
+    username: {type: 'string'},
+    password: {type: 'string'},
+  },
+  required: ['username', 'password'],
+  additionalProperties: false,
+};
 
 const UserRefreshTokenSchema = {};
 
