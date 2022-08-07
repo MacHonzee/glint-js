@@ -31,18 +31,18 @@ class AuthorizationService {
 
     return {
       authorized,
-      user: user.identity,
+      user: user,
       useCaseRoles,
       userRoles,
     };
   }
 
   async getUserRoles(user) {
-    return await this._cache.fetch(user.identity);
+    return await this._cache.fetch(user);
   }
 
-  async _fetchUserRoles(identity) {
-    const roles = await Permission.listByUser(identity);
+  async _fetchUserRoles(user) {
+    const roles = await Permission.listByUser(user);
     return roles.map((role) => role.role);
   }
 }

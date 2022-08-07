@@ -60,7 +60,7 @@ class AuthenticationMiddleware {
         },
       };
 
-      AuthenticationService.verifyUser()(fakeRequest, fakeResponse, resolve);
+      AuthenticationService.verifyToken()(fakeRequest, fakeResponse, resolve);
     });
 
     return fakeRequest.user;

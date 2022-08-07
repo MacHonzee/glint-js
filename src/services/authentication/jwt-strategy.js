@@ -16,7 +16,7 @@ class JwtStrategy {
       // TODO check this whether we need it really
       // Check against the DB only if necessary.
       // This can be avoided if you don't want to fetch user details in each request.
-      UserModel.default.findOne({_id: jwtPayload._id}, function(err, user) {
+      UserModel.default.findById(jwtPayload._id, function(err, user) {
         console.log('-> user', user);
         console.log('-> err', err);
 

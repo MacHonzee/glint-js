@@ -104,7 +104,7 @@ class UserRoute {
 
     // find user based on the signed token id
     const userId = jwtData._id;
-    const user = await UserModel.findOne({_id: userId});
+    const user = await UserModel.findById(userId);
 
     // verify that the token is saved to given user (could be deleted because of logout)
     const tokenIndex = user.refreshTokens.findIndex( (item) => item === refreshToken );
@@ -119,6 +119,7 @@ class UserRoute {
     };
   }
 
+  // TODO test it that it works
   async logout({request, response}) {
     const refreshToken = request.signedCookies?.refreshToken;
     if (!InvalidRefreshToken) throw new InvalidRefreshToken();

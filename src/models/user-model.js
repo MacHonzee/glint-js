@@ -45,19 +45,6 @@ class UserModel extends AbstractModel {
     await this.schema.index({username: 1}, {unique: true});
     return await this.syncIndexes();
   }
-
-  // TODO create other user methods
-  // static listByUser(identity) {
-  //   return this.find({identity});
-  // }
-  //
-  // static deleteByUser(identity) {
-  //   return this.deleteMany({identity});
-  // }
-  //
-  // static delete(identity, role) {
-  //   return this.deleteOne({identity, role});
-  // }
 }
 
 export default new UserModel().createModel('AUTH');

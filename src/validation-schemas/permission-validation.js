@@ -4,31 +4,31 @@ const PermissionSecretGrantSchema = {
   type: 'object',
   properties: {
     secret: {type: 'string'},
-    identity: {format: 'identity'},
+    user: {format: 'identity'},
     role: {enum: DefaultRoles.privileged},
   },
-  required: ['secret', 'identity', 'role'],
+  required: ['secret', 'user', 'role'],
   additionalProperties: false,
 };
 
 const PermissionGrantSchema = {
   type: 'object',
   properties: {
-    identity: {format: 'identity'},
+    user: {format: 'identity'},
     role: {enum: DefaultRoles.application},
   },
-  required: ['identity', 'role'],
+  required: ['user', 'role'],
   additionalProperties: false,
 };
 
 const PermissionRevokeSchema = {
   type: 'object',
   properties: {
-    identity: {format: 'identity'},
+    user: {format: 'identity'},
     role: {enum: DefaultRoles.application},
     all: {type: 'boolean'},
   },
-  required: ['identity'],
+  required: ['user'],
   anyOf: [
     {required: ['role']},
     {required: ['all']},
@@ -39,7 +39,7 @@ const PermissionRevokeSchema = {
 const PermissionListSchema = {
   type: 'object',
   properties: {
-    identity: {format: 'identity'},
+    user: {format: 'identity'},
   },
 };
 

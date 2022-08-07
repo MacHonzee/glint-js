@@ -1,4 +1,5 @@
 import PermissionModel from '../models/permission-model.js';
+import UserModel from '../models/user-model.js';
 import ValidationService from '../services/validation/validation-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
 import DefaultRoles from '../config/default-roles.js';
@@ -34,11 +35,23 @@ class PermissionSecretNotMatching extends UseCaseError {
   }
 }
 
+class UserNotFound extends UseCaseError {
+  constructor(user) {
+    super(
+        'User with given username was not found.',
+        'userNotFound',
+        {user},
+    );
+  }
+}
+
 class PermissionRoute {
   async grant({dtoIn, uri}) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
-    const permission = await new PermissionModel({identity: dtoIn.identity, role: dtoIn.role}).save();
+    await this._checkUser(dtoIn.user);
+
+    const permission = await new PermissionModel({user: dtoIn.user, role: dtoIn.role}).save();
 
     return {
       permission,
@@ -53,7 +66,9 @@ class PermissionRoute {
 
     if (permissionKey !== dtoIn.secret) throw new PermissionSecretNotMatching(dtoIn.secret);
 
-    const permission = await new PermissionModel({identity: dtoIn.identity, role: dtoIn.role}).save();
+    await this._checkUser(dtoIn.user);
+
+    const permission = await new PermissionModel({user: dtoIn.user, role: dtoIn.role}).save();
 
     return {
       permission,
@@ -65,10 +80,10 @@ class PermissionRoute {
 
     let revoked;
     if (dtoIn.all) {
-      await PermissionModel.deleteByUser(dtoIn.identity);
+      await PermissionModel.deleteByUser(dtoIn.user);
       revoked = 'all';
     } else {
-      await PermissionModel.delete(dtoIn.identity, dtoIn.role);
+      await PermissionModel.delete(dtoIn.user, dtoIn.role);
       revoked = dtoIn.role;
     }
 
@@ -81,16 +96,16 @@ class PermissionRoute {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // set default value
-    if (!dtoIn.identity) dtoIn.identity = session.user.identity;
+    if (!dtoIn.user) dtoIn.user = session.user.user;
 
     // allow listing only of your permissions when you are not "Admin" or "Authority"
     if (authorizationResult.userRoles.length === 1 &&
         !LIST_PRIVILEGED_ROLES.includes(authorizationResult.userRoles[0]) &&
-        dtoIn.identity !== session.user.identity) {
+        dtoIn.user !== session.user.user) {
       throw new CannotLoadRoles(authorizationResult.userRoles);
     }
 
-    const permissions = await PermissionModel.listByUser(dtoIn.identity);
+    const permissions = await PermissionModel.listByUser(dtoIn.user);
 
     return {
       permissions,
@@ -110,6 +125,14 @@ class PermissionRoute {
     }
 
     return permissionKey;
+  }
+
+  async _checkUser(user) {
+    const userObject = await UserModel.findByUsername(user);
+    if (!userObject) {
+      throw new UserNotFound(user);
+    }
+    return userObject;
   }
 }
 

@@ -39,13 +39,13 @@ class AuthenticationService {
     });
   };
 
+  verifyToken() {
+    return passport.authenticate('jwt', {session: false});
+  }
+
   verifyRefreshToken(refreshToken) {
     return jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
   };
-
-  verifyUser() {
-    return passport.authenticate('jwt', {session: false});
-  }
 
   async login(username, password) {
     const UserModel = await import('../../models/user-model.js');
