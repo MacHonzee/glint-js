@@ -29,20 +29,24 @@ class Server {
     await new MongoClient().init();
     await this._initAuthMongo();
 
+    await ValidationService.init();
+    await AuthenticationService.init(this.app);
+
     const errorMiddlewares = await this._registerMiddlewares();
     await this._registerRoutes();
     await this._registerErrorMiddlewares(errorMiddlewares);
-    await ValidationService.init();
-    await AuthenticationService.init(this.app);
   }
 
   _initAppRoot() {
     // we save root of the server
     process.env.SERVER_ROOT = process.cwd();
 
-    // and we also save root of the library
-    const dirname = path.dirname(import.meta.url.replace('file:///', ''));
-    process.env.KIT_LIB_ROOT = path.join(dirname, '..', '..', '..');
+    // and we also save root of the library (dynamically find out nearest package.json)
+    let currentDirname = path.dirname(import.meta.url.replace('file:///', ''));
+    while (!fs.existsSync(path.join(currentDirname, 'package.json'))) {
+      currentDirname = path.join(currentDirname, '..');
+    }
+    process.env.KIT_LIB_ROOT = path.resolve(currentDirname);
   }
 
   _initDotenv() {
