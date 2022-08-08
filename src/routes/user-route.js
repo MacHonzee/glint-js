@@ -97,13 +97,13 @@ class UserRoute {
 
   async refreshToken({request, response}) {
     const refreshToken = request.signedCookies?.refreshToken;
-    if (!InvalidRefreshToken) throw new InvalidRefreshToken();
+    if (!refreshToken) throw new InvalidRefreshToken();
 
     // verify that token has been signed with correct secret
     const jwtData = AuthenticationService.verifyRefreshToken(refreshToken);
 
     // find user based on the signed token id
-    const userId = jwtData._id;
+    const userId = jwtData.user.id;
     const user = await UserModel.findById(userId);
 
     // verify that the token is saved to given user (could be deleted because of logout)
@@ -119,13 +119,10 @@ class UserRoute {
     };
   }
 
-  // TODO test it that it works
-  async logout({request, response}) {
+  async logout({request, response, session}) {
     const refreshToken = request.signedCookies?.refreshToken;
-    if (!InvalidRefreshToken) throw new InvalidRefreshToken();
-
-    // TODO we have to read user from session, which should be injected by middleware
-    const userId = '';
+    if (!refreshToken) throw new InvalidRefreshToken();
+    const userId = session.user.id;
 
     // delete token from database
     const user = await UserModel.findById(userId);
@@ -142,7 +139,14 @@ class UserRoute {
   // method handles common logic for creating new token, creating new refresh token
   // and updating or adding the refreshToken to user
   async _handleUserAndTokens(user, response, tokenIndex) {
-    const refreshToken = AuthenticationService.getRefreshToken({_id: user._id});
+    const userPayload = {
+      id: user._id,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+
+    const refreshToken = AuthenticationService.getRefreshToken(userPayload);
     if (tokenIndex != null) {
       user.refreshTokens[tokenIndex] = refreshToken;
     } else {
@@ -150,7 +154,7 @@ class UserRoute {
     }
     await user.save();
 
-    const token = AuthenticationService.getToken({_id: user._id});
+    const token = AuthenticationService.getToken(userPayload);
     response.cookie('refreshToken', refreshToken, AuthenticationService.COOKIE_OPTIONS);
 
     return token;

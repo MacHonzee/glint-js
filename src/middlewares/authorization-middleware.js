@@ -24,7 +24,8 @@ class AuthorizationMiddleware {
       return;
     }
 
-    const authorizationResult = await AuthorizationService.authorize(req.ucEnv.uri.useCase, req.ucEnv.session.user);
+    const {uri, session} = req.ucEnv;
+    const authorizationResult = await AuthorizationService.authorize(uri.useCase, session.user.username);
     req.ucEnv.authorizationResult = authorizationResult;
 
     if (!authorizationResult.authorized) {

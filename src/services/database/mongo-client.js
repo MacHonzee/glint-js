@@ -40,7 +40,7 @@ class MongoClient {
       throw e;
     }
 
-    this.logger.info(`Successfully connected to database: ${mongoUri}`);
+    this.logger.info(`Successfully connected to database: ${this.envKey}`);
     MongoClient.connections[this.envKey] = {connection: this.connection, uri: this.mongoUri};
   }
 }

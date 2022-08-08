@@ -96,12 +96,12 @@ class PermissionRoute {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // set default value
-    if (!dtoIn.user) dtoIn.user = session.user.user;
+    if (!dtoIn.user) dtoIn.user = session.user.username;
 
     // allow listing only of your permissions when you are not "Admin" or "Authority"
     if (authorizationResult.userRoles.length === 1 &&
         !LIST_PRIVILEGED_ROLES.includes(authorizationResult.userRoles[0]) &&
-        dtoIn.user !== session.user.user) {
+        dtoIn.user !== session.user.username) {
       throw new CannotLoadRoles(authorizationResult.userRoles);
     }
 

@@ -1,6 +1,7 @@
 import DefaultRoles from '../config/default-roles.js';
 import AuthenticationService from '../services/authentication/authentication-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
+import {ExtractJwt} from 'passport-jwt';
 
 class AuthenticationError extends UseCaseError {
   constructor(cause) {
@@ -27,16 +28,7 @@ class AuthenticationMiddleware {
       return next();
     }
 
-    let user;
-    try {
-      user = await this._authenticate(req.headers);
-    } catch (e) {
-      throw new AuthenticationError(e);
-    }
-
-    req.ucEnv.session = {
-      user,
-    };
+    req.ucEnv.session = await this._authenticate(req);
 
     next();
   }
@@ -46,24 +38,13 @@ class AuthenticationMiddleware {
     return !roles.includes(DefaultRoles.public);
   }
 
-  // here we call middleware explicitly because we need more control
-  // TODO check if there is a better way
-  async _authenticate(headers) {
-    const fakeRequest = {
-      headers: headers,
-    };
-
-    await new Promise((resolve, reject) => {
-      const fakeResponse = {
-        end(cause) {
-          reject(cause);
-        },
-      };
-
-      AuthenticationService.verifyToken()(fakeRequest, fakeResponse, resolve);
-    });
-
-    return fakeRequest.user;
+  async _authenticate(request) {
+    try {
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+      return AuthenticationService.verifyToken(token);
+    } catch (e) {
+      throw new AuthenticationError(e);
+    }
   }
 }
 

@@ -85,10 +85,12 @@ class Server {
 
     // self-discovery of app middlewares
     const appMiddlewareFldPath = path.join(process.env.SERVER_ROOT, 'app', 'middlewares');
-    const appEntries = fs.readdirSync(appMiddlewareFldPath);
-    for (const entry of appEntries) {
-      const middlewareClass = (await import('file://' + path.join(appMiddlewareFldPath, entry))).default;
-      middlewares.push(middlewareClass);
+    if (fs.existsSync(appMiddlewareFldPath)) {
+      const appEntries = fs.readdirSync(appMiddlewareFldPath);
+      for (const entry of appEntries) {
+        const middlewareClass = (await import('file://' + path.join(appMiddlewareFldPath, entry))).default;
+        middlewares.push(middlewareClass);
+      }
     }
 
     // self-discovery of library middlewares

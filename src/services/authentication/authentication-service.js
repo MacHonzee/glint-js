@@ -1,22 +1,15 @@
-import passport from 'passport';
 import jwt from 'jsonwebtoken';
-import LocalStrategy from './local-strategy.js';
-import JwtStrategy from './jwt-strategy.js';
 import cookieParser from 'cookie-parser';
 
-// TODO this needs some refactoring
 class AuthenticationService {
   async init() {
     // TODO read secrets from SecretStore for JWT_SECRET and REFRESH_TOKEN_SECRET
-    await LocalStrategy.init();
-    await JwtStrategy.init();
   }
 
   async initCookieParser(app) {
     this.COOKIE_OPTIONS = {
       httpOnly: true,
-      // Since localhost is not having https protocol,
-      // secure cookies do not work correctly
+      // Since localhost is not having https protocol, secure cookies do not work correctly
       secure: process.env.NODE_ENV === 'production',
       signed: true,
       maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRY),
@@ -27,20 +20,22 @@ class AuthenticationService {
     app.use(cookieParser(process.env.COOKIE_SECRET));
   }
 
-  getToken(userId) {
-    return jwt.sign(userId, process.env.JWT_SECRET, {
+  getToken(userPayload) {
+    return jwt.sign({id: userPayload.id, user: userPayload}, process.env.JWT_SECRET, {
       expiresIn: parseInt(process.env.SESSION_EXPIRY),
     });
   };
 
-  getRefreshToken(userId) {
-    return jwt.sign(userId, process.env.REFRESH_TOKEN_SECRET, {
+  getRefreshToken(userPayload) {
+    return jwt.sign({id: userPayload.id, user: userPayload}, process.env.REFRESH_TOKEN_SECRET, {
       expiresIn: parseInt(process.env.REFRESH_TOKEN_EXPIRY),
     });
   };
 
-  verifyToken() {
-    return passport.authenticate('jwt', {session: false});
+  verifyToken(token) {
+    // TODO implement a blacklist of tokens in memcached / redis / something, that will
+    // make sure that logout / password change will invalidate the token
+    return jwt.verify(token, process.env.JWT_SECRET);
   }
 
   verifyRefreshToken(refreshToken) {
