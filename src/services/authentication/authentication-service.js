@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import ms from 'ms';
+import mongoose from 'mongoose';
 
 class AuthenticationService {
   async init() {
@@ -34,9 +35,23 @@ class AuthenticationService {
   };
 
   getRefreshToken(userPayload) {
-    return jwt.sign({id: userPayload.id, user: userPayload}, this._refreshTokenKey, {
-      expiresIn: this._refreshTokenExpiry,
-    });
+    // create token id
+    const refreshTokenId = new mongoose.Types.ObjectId();
+
+    // create iat and exp for token, save it in unix epoch
+    const refreshTokenTtl = new Date();
+    const iat = Math.floor(refreshTokenTtl.getTime() / 1000);
+    refreshTokenTtl.setSeconds(refreshTokenTtl.getSeconds() + this._refreshTokenExpiry);
+    const exp = Math.floor(refreshTokenTtl.getTime() / 1000);
+
+    // create the token with the data and secret
+    const refreshToken = jwt.sign( {tid: refreshTokenId, user: userPayload, iat, exp}, this._refreshTokenKey);
+
+    return {
+      refreshToken,
+      refreshTokenTtl,
+      refreshTokenId,
+    };
   };
 
   verifyToken(token) {
@@ -48,6 +63,10 @@ class AuthenticationService {
   verifyRefreshToken(refreshToken) {
     return jwt.verify(refreshToken, this._refreshTokenKey);
   };
+
+  decodeToken(token) {
+    return jwt.decode(token);
+  }
 
   async login(username, password) {
     const UserModel = await import('../../models/user-model.js');

@@ -1,4 +1,5 @@
 import UserModel from '../models/user-model.js';
+import RefreshTokenModel from '../models/refresh-token-model.js';
 import ValidationService from '../services/validation/validation-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
 import LoggerFactory from '../services/logging/logger-factory.js';
@@ -86,7 +87,6 @@ class UserRoute {
       throw new LoginFailed(error);
     }
 
-    // TODO we must handle deletion of some old expired tokens
     const token = await this._handleUserAndTokens(user, response);
 
     return {
@@ -102,58 +102,67 @@ class UserRoute {
     // verify that token has been signed with correct secret
     const jwtData = AuthenticationService.verifyRefreshToken(refreshToken);
 
-    // find user based on the signed token id
-    const userId = jwtData.user.id;
-    const user = await UserModel.findById(userId);
+    // find refreshToken based on the signed token id
+    const tokenId = jwtData.tid;
+    const refreshTokenModel = await RefreshTokenModel.findOne({tid: tokenId});
 
-    // verify that the token is saved to given user (could be deleted because of logout)
-    const tokenIndex = user.refreshTokens.findIndex( (item) => item === refreshToken );
-    if (tokenIndex === -1) {
+    // verify that the token is saved to given refreshToken (could be changed or deleted because of logout)
+    if (!refreshTokenModel || refreshTokenModel.token !== refreshToken) {
       throw new RefreshTokenMismatch();
     }
 
-    const token = await this._handleUserAndTokens(user, response, tokenIndex);
+    const token = await this._handleUserAndTokens(refreshTokenModel.user, response, refreshTokenModel);
 
     return {
       token,
     };
   }
 
+  // TODO implement global logout by checking dtoIn
   async logout({request, response, session}) {
     const refreshToken = request.signedCookies?.refreshToken;
     if (!refreshToken) throw new InvalidRefreshToken();
-    const userId = session.user.id;
 
-    // delete token from database
-    const user = await UserModel.findById(userId);
-    const tokenIndex = user.refreshTokens.findIndex( (item) => item === refreshToken );
-    user.refreshTokens.splice(tokenIndex);
-    await user.save();
+    // delete refresh token from database
+    const tokenId = AuthenticationService.decodeToken(refreshToken).tid;
+    await RefreshTokenModel.deleteOne({tid: tokenId});
 
     // and clear cookie of client
     response.clearCookie('refreshToken', AuthenticationService.COOKIE_OPTIONS);
+
+    // TODO add the session token to blacklist
 
     return {};
   }
 
   // method handles common logic for creating new token, creating new refresh token
   // and updating or adding the refreshToken to user
-  async _handleUserAndTokens(user, response, tokenIndex) {
+  async _handleUserAndTokens(user, response, refreshTokenToUpdate) {
+    // create new refresh token
+    // TODO optimize it, we probably dont need to create new token every ~5 minutes, but after some timeout
     const userPayload = {
-      id: user._id,
+      id: user._id || user.id,
       username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
     };
+    const {refreshToken, refreshTokenId, refreshTokenTtl} = AuthenticationService.getRefreshToken(userPayload);
 
-    const refreshToken = AuthenticationService.getRefreshToken(userPayload);
-    if (tokenIndex != null) {
-      user.refreshTokens[tokenIndex] = refreshToken;
+    // and create or update the token in the database (in register and login we create, in refreshToken we update)
+    const refreshTokenData = {
+      token: refreshToken,
+      tid: refreshTokenId,
+      expiresAt: refreshTokenTtl,
+      user: userPayload,
+    };
+    if (refreshTokenToUpdate) {
+      await RefreshTokenModel.updateOne({tid: refreshTokenToUpdate.tid}, refreshTokenData);
     } else {
-      user.refreshTokens.push(refreshToken);
+      const refreshTokenModel = new RefreshTokenModel(refreshTokenData);
+      await refreshTokenModel.save();
     }
-    await user.save();
 
+    // then create new short-lived token and save the long-lived refreshToken to response
     const token = AuthenticationService.getToken(userPayload);
     response.cookie('refreshToken', refreshToken, AuthenticationService.COOKIE_OPTIONS);
 

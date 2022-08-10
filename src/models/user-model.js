@@ -21,9 +21,6 @@ class UserModel extends AbstractModel {
             type: String,
             default: 'cs',
           },
-          refreshTokens: [{
-            type: String,
-          }],
         },
         {timestamps: true},
     );
