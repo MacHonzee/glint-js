@@ -3,10 +3,15 @@ import cookieParser from 'cookie-parser';
 import ms from 'ms';
 import mongoose from 'mongoose';
 
+const CFG_DEFAULTS = {
+  sessionExpiry: '30m',
+  refreshTokenExpiry: '30d',
+};
+
 class AuthenticationService {
   async init() {
-    this._sessionExpiry = ms(process.env.AUTH_SESSION_EXPIRY) / 1000;
-    this._refreshTokenExpiry = ms(process.env.AUTH_REFRESH_TOKEN_EXPIRY) / 1000;
+    this._sessionExpiry = ms(process.env.AUTH_SESSION_EXPIRY || CFG_DEFAULTS.sessionExpiry) / 1000;
+    this._refreshTokenExpiry = ms(process.env.AUTH_REFRESH_TOKEN_EXPIRY || CFG_DEFAULTS.refreshTokenExpiry) / 1000;
 
     // TODO read secrets from SecretStore for AUTH_JWT_SECRET and AUTH_REFRESH_TOKEN_SECRET
     this._cookieKey = process.env.AUTH_COOKIE_KEY;

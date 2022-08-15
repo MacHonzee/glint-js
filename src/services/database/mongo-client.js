@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import LoggerFactory from '../logging/logger-factory.js';
 
-
 class MongoClient {
   constructor(envKey = 'PRIMARY') {
     this.envKey = envKey;

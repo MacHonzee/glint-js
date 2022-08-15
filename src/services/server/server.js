@@ -50,10 +50,13 @@ class Server {
   }
 
   _initDotenv() {
-    const mode = process.env.NODE_ENV;
-    const envPath = path.join(process.env.SERVER_ROOT, 'env', mode + '.env');
+    const runtimeMode = process.env.NODE_ENV;
+    const cloudMode = process.env.CLOUD_ENV;
+    const envFileName = cloudMode ? `${runtimeMode}-${cloudMode}` : runtimeMode;
+
+    const envPath = path.join(process.env.SERVER_ROOT, 'env', envFileName + '.env');
     if (!fs.existsSync(envPath)) {
-      throw new Error('Unable to load .env file for runtime mode: ' + mode);
+      throw new Error('Unable to load .env file on path: ' + envFileName);
     }
 
     dotenv.config({path: envPath});
