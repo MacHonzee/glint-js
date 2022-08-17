@@ -20,13 +20,15 @@ class AuthenticationService {
   }
 
   async initCookieParser(app) {
+    const isProduction = process.env.NODE_ENV === 'production';
+
     this.COOKIE_OPTIONS = {
       httpOnly: true,
       // Since localhost is not having https protocol, secure cookies do not work correctly
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       signed: true,
       maxAge: this._refreshTokenExpiry,
-      sameSite: 'none',
+      sameSite: isProduction ? 'none' : 'lax',
     };
 
     // TODO read secrets from SecretStore for COOKIE_SECRET

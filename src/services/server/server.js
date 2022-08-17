@@ -163,13 +163,15 @@ class Server {
   }
 
   _registerCorsHandler() {
-    const whitelist = process.env.WHITELISTED_DOMAINS?.split(',') || [];
+    let whitelist = process.env.WHITELISTED_DOMAINS?.split(',') || [];
+    whitelist = whitelist.concat(['http://localhost:' + process.env.PORT + '/']);
 
     const corsOptions = {
       origin: (origin, callback) => {
         if (!origin || whitelist.includes(origin)) {
           callback(null, true);
         } else {
+          // TODO raise some proper Cors error
           callback(new Error('Not allowed by CORS'));
         }
       },
