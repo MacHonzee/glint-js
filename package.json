@@ -24,11 +24,11 @@
     "passport-local-mongoose": "^7.1.2",
     "winston": "^3.8.0"
   },
+  "// TODO": "Remove eslint and eslint-config-google once we are on stable version of GlintJs without local dependency",
   "devDependencies": {
-    "eslint": "^8.18.0",
-    "eslint-config-google": "^0.14.0",
-    "jest": "^28.1.1",
-    "nodemon": "^2.0.19"
+    "glint-js-kit": "file:../glint-js-kit",
+    "eslint": "8.20.0",
+    "eslint-config-google": "^0.14.0"
   },
   "scripts": {
     "test": "jest"
@@ -47,7 +47,7 @@
     "googleCloud"
   ],
   "author": "Jan Rudolf",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/MacHonzee/glint-js/issues"
   },
