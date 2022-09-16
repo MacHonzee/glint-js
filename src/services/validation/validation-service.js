@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import Config from '../utils/config.js';
 
 class SchemaNotFoundError extends Error {
   constructor(useCase, schemaName) {
@@ -40,10 +41,10 @@ class ValidationService {
     // TODO add API or auto-loading of custom formats
     await this._registerFormats();
 
-    const appSchemasFldPath = path.join(process.env.SERVER_ROOT, 'app', 'validation-schemas');
+    const appSchemasFldPath = path.join(Config.SERVER_ROOT, 'app', 'validation-schemas');
     await this._registerFromPath(appSchemasFldPath);
 
-    const libSchemasFldPath = path.join(process.env.GLINT_ROOT, 'src', 'validation-schemas');
+    const libSchemasFldPath = path.join(Config.GLINT_ROOT, 'src', 'validation-schemas');
     await this._registerFromPath(libSchemasFldPath);
   }
 
@@ -67,7 +68,7 @@ class ValidationService {
   }
 
   async _registerFormats() {
-    const formatsFldPath = path.join(process.env.GLINT_ROOT, 'src', 'services', 'validation', 'validation-formats');
+    const formatsFldPath = path.join(Config.GLINT_ROOT, 'src', 'services', 'validation', 'validation-formats');
     const entries = await fs.promises.readdir(formatsFldPath);
     for (const entry of entries) {
       const format = await import('file://' + path.join(formatsFldPath, entry));

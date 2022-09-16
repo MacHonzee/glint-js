@@ -14,9 +14,7 @@ class AuthorizationError extends UseCaseError {
 }
 
 class AuthorizationMiddleware {
-  constructor() {
-    this.ORDER = -300;
-  }
+  ORDER = -300;
 
   async process(req, res, next) {
     if (!this._shouldBeAuthorized(req)) {

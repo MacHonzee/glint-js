@@ -1,10 +1,9 @@
 import path from 'path';
+import Config from '../utils/config.js';
 
 class RouteRegister {
-  constructor() {
-    this._active = false;
-    this._routes = {};
-  }
+  _active = false;
+  _routes = {};
 
   async init() {
     // initialize all common routes -> it MUST be loaded dynamically, because the database connection
@@ -13,7 +12,7 @@ class RouteRegister {
     this._registerRoutesFromMappings(Mappings.default);
 
     // self-discovery of app's routes
-    const appMappingsPath = path.join(process.env.SERVER_ROOT, 'app', 'config', 'mappings.js');
+    const appMappingsPath = path.join(Config.SERVER_ROOT, 'app', 'config', 'mappings.js');
     const appMappings = await import('file://' + appMappingsPath);
     this._registerRoutesFromMappings(appMappings.default);
 

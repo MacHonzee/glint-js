@@ -2,7 +2,7 @@ import DefaultRoles from '../config/default-roles.js';
 import AuthenticationService from '../services/authentication/authentication-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
 
-// TODO remove this dependency, rewrite it to something else
+// TODO remove this dependency, rewrite it to some helper or maybe just private method
 import {ExtractJwt} from 'passport-jwt';
 
 class AuthenticationError extends UseCaseError {
@@ -17,9 +17,7 @@ class AuthenticationError extends UseCaseError {
 }
 
 class AuthenticationMiddleware {
-  constructor() {
-    this.ORDER = -400;
-  }
+  ORDER = -400;
 
   async process(req, res, next) {
     if (!this._shouldBeAuthenticated(req)) {

@@ -1,37 +1,53 @@
 import mongoose from 'mongoose';
 import LoggerFactory from '../logging/logger-factory.js';
+import Config from '../utils/config.js';
 
 class MongoClient {
-  // TODO add some fallback optional envKey (ie. make AUTH optional with fallback to PRIMARY)
-  constructor(envKey = 'PRIMARY') {
+  static connections = {};
+
+  constructor(envKey = 'PRIMARY', fallbackEnvKey) {
     this.envKey = envKey;
+    this.fallbackEnvKey = fallbackEnvKey;
     this.connection = null;
     this.mongoUri = null;
     this.logger = LoggerFactory.create('Server.MongoClient');
   }
 
-  // TODO consider lazy-connecting here and create new instance of mongo client here instead
-  static getConnection(envKey) {
-    const connection = this.connections[envKey];
+  static async getConnection(envKey, fallbackEnvKey) {
+    let connection = this.connections[envKey] || this.connections[fallbackEnvKey];
+
+    // lazy initialization of connection (only PRIMARY is explicitly connected)
     if (!connection) {
-      throw new Error(`Connection for key ${envKey} was not found, init it first.`);
+      await (new MongoClient(envKey, fallbackEnvKey)).init();
+      connection = this.connections[envKey] || this.connections[fallbackEnvKey];
     }
+
     return connection.connection;
   }
 
+  // TODO handle parallel initialization of connection with Promise.all being used by ES6 module loader,
+  // we need some kind of Mutex here probably (maybe just in the _handleExistingConnection method?)
   async init() {
-    const envConfigKey = this.envKey.toUpperCase() + '_MONGODB_URI';
-    const mongoUri = process.env[envConfigKey];
+    // no need to initialize the connection multiple times, the pooling is handled by Mongoose
+    const alreadyConnected = this._handleExistingConnection();
+    if (alreadyConnected) return;
 
-    // TODO needed for cloud sometime later
-    // if (!mongoUri) mongoUri = await this._resolveMongoSecret(envKey);
+    let mongoUri = await this._getMongoUri(this.envKey);
+
+    let usedFallback = false;
+    if (!mongoUri && this.fallbackEnvKey) {
+      mongoUri = await this._getMongoUri(this.fallbackEnvKey);
+      usedFallback = true;
+    }
 
     if (!mongoUri) {
       throw new Error(
           'MongoDB connection not specified. ' +
-          `Either ${this.envKey}_MONGODB_URI or ${this.envKey}_MONGODB_SECRET have to be set in ENV.`,
+          `Either ${this.envKey}_MONGODB_URI or ${this.envKey}_MONGODB_SECRET have to be set in ENV, ` +
+        'or you can use fallback parameter.',
       );
     }
+
     this.mongoUri = mongoUri;
 
     try {
@@ -41,11 +57,35 @@ class MongoClient {
       throw e;
     }
 
-    this.logger.info(`Successfully connected to database: ${this.envKey}`);
-    MongoClient.connections[this.envKey] = {connection: this.connection, uri: this.mongoUri};
+    if (usedFallback) {
+      this.logger.info(`Successfully connected to database: ${this.fallbackEnvKey} as a fallback from: ${this.envKey}`);
+      MongoClient.connections[this.fallbackEnvKey] = {connection: this.connection, uri: this.mongoUri};
+    } else {
+      this.logger.info(`Successfully connected to database: ${this.envKey}`);
+      MongoClient.connections[this.envKey] = {connection: this.connection, uri: this.mongoUri};
+    }
+  }
+
+  async _getMongoUri(envKey) {
+    const envConfigKey = envKey.toUpperCase() + '_MONGODB_URI';
+    const mongoUri = Config.get(envConfigKey);
+
+    if (!mongoUri) {
+      // TODO needed for cloud sometime later
+      // mongoUri = await this._resolveMongoSecret(envKey);
+    }
+
+    return mongoUri;
+  }
+
+  _handleExistingConnection() {
+    const connectionParams = MongoClient.connections[this.envKey] || MongoClient.connections[this.fallbackEnvKey];
+    if (connectionParams) {
+      this.mongoUri = connectionParams.mongoUri;
+      this.connection = connectionParams.connection;
+    }
+    return connectionParams;
   }
 }
-
-MongoClient.connections = {};
 
 export default MongoClient;

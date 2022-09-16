@@ -1,19 +1,20 @@
 import path from 'path';
 import fs from 'fs';
 import {ModelWarehouse} from '../services/database/abstract-model.js';
+import Config from '../services/utils/config.js';
 
 class SysRoute {
-  constructor() {
-    this._pkgJson = null;
-  }
+  _pkgJson;
 
   async ping(ucEnv) {
     if (!this._pkgJson) {
-      const pkgJsonPath = path.join(process.env.SERVER_ROOT, 'package.json');
+      const pkgJsonPath = path.join(Config.SERVER_ROOT, 'package.json');
       this._pkgJson = JSON.parse(await fs.promises.readFile(pkgJsonPath, 'utf8'));
     }
 
-    return {status: 'OK', version: this._pkgJson.version, ts: new Date(), dtoIn: ucEnv.dtoIn};
+    const roles = await import('../config/default-roles.js');
+
+    return {status: 'OK', version: this._pkgJson.version, ts: new Date(), dtoIn: ucEnv.dtoIn, roles: roles.default};
   }
 
   async syncIndexes() {

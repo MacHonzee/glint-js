@@ -8,7 +8,7 @@ function isNumeric(str) {
 // TODO find a different library I guess than lru-cache, since we are not easily able to pass
 //  numbers within <-1, Infinity) interval (ie. infinite, disabled or standard cache)
 
-// TODO also prepare mongo-distributed cache too
+// TODO also prepare mongo-distributed cache too (there are libs for that)
 class LruCache extends LRUCache {
   constructor(options) {
     if (isNumeric(options.max)) options.max = parseInt(options.max);

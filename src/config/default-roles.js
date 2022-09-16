@@ -1,4 +1,3 @@
-// TODO we might need some interface to allow application to add profiles on startup
 const DefaultRoles = {
   admin: 'Admin',
   public: 'Public',
@@ -10,5 +9,12 @@ DefaultRoles.all = Object.values(DefaultRoles);
 DefaultRoles.privileged = [DefaultRoles.admin];
 DefaultRoles.protected = [DefaultRoles.public, DefaultRoles.authenticated];
 DefaultRoles.application = [DefaultRoles.authority];
+
+DefaultRoles.add = function add(role, roleType = 'application') {
+  this[role] = role;
+  this[roleType] = this[roleType] || [];
+  this[roleType].push(role);
+  this.all.push(role);
+};
 
 export default DefaultRoles;

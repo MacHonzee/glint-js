@@ -31,4 +31,5 @@ class RefreshTokenModel extends AbstractModel {
   }
 }
 
-export default new RefreshTokenModel().createModel('AUTH');
+const refreshTokenModel = new RefreshTokenModel();
+export default await refreshTokenModel.createModel('AUTH', 'PRIMARY');

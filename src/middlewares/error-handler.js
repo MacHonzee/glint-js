@@ -1,11 +1,10 @@
 import LoggerFactory from '../services/logging/logger-factory.js';
+import Config from '../services/utils/config.js';
 
-const logger = LoggerFactory.create('Server.ErrorHandler', 'error');
 
 class ErrorHandler {
-  constructor() {
-    this.ORDER = 100;
-  }
+  ORDER = 100;
+  logger = LoggerFactory.create('Server.ErrorHandler', 'error');
 
   // don't remove unused "next", otherwise it will stop being an error middlewares
   async process(err, req, res, next) {
@@ -15,9 +14,9 @@ class ErrorHandler {
       params: err.params,
     };
 
-    logger.error(`Request ${req.ucEnv?.uri.useCase || req.path} has thrown an error:`, err);
+    this.logger.error(`Request ${req.ucEnv?.uri.useCase || req.path} has thrown an error:`, err);
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (Config.NODE_ENV !== 'production') {
       dtoOut.trace = err.stack;
     }
 

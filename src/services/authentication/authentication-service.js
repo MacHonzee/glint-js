@@ -3,6 +3,9 @@ import cookieParser from 'cookie-parser';
 import ms from 'ms';
 import mongoose from 'mongoose';
 
+import Config from '../utils/config.js';
+import UserModel from '../../models/user-model.js';
+
 const CFG_DEFAULTS = {
   sessionExpiry: '30m',
   refreshTokenExpiry: '30d',
@@ -10,17 +13,17 @@ const CFG_DEFAULTS = {
 
 class AuthenticationService {
   async init() {
-    this._sessionExpiry = ms(process.env.AUTH_SESSION_EXPIRY || CFG_DEFAULTS.sessionExpiry) / 1000;
-    this._refreshTokenExpiry = ms(process.env.AUTH_REFRESH_TOKEN_EXPIRY || CFG_DEFAULTS.refreshTokenExpiry) / 1000;
+    this._sessionExpiry = ms(Config.get('AUTH_SESSION_EXPIRY') || CFG_DEFAULTS.sessionExpiry) / 1000;
+    this._refreshTokenExpiry = ms(Config.get('AUTH_REFRESH_TOKEN_EXPIRY') || CFG_DEFAULTS.refreshTokenExpiry) / 1000;
 
     // TODO read secrets from SecretStore for AUTH_JWT_SECRET and AUTH_REFRESH_TOKEN_SECRET
-    this._cookieKey = process.env.AUTH_COOKIE_KEY;
-    this._tokenKey = process.env.AUTH_JWT_KEY;
-    this._refreshTokenKey = process.env.AUTH_REFRESH_TOKEN_KEY;
+    this._cookieKey = Config.get('AUTH_COOKIE_KEY');
+    this._tokenKey = Config.get('AUTH_JWT_KEY');
+    this._refreshTokenKey = Config.get('AUTH_REFRESH_TOKEN_KEY');
   }
 
   async initCookieParser(app) {
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = Config.NODE_ENV === 'production';
 
     this.COOKIE_OPTIONS = {
       httpOnly: true,
@@ -77,9 +80,7 @@ class AuthenticationService {
   }
 
   async login(username, password) {
-    // TODO import this at top level after refactoring server.js
-    const UserModel = await import('../../models/user-model.js');
-    return await UserModel.default.authenticate()(username, password);
+    return await UserModel.authenticate()(username, password);
   }
 }
 

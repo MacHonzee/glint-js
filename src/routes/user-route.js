@@ -44,9 +44,7 @@ class RefreshTokenMismatch extends UseCaseError {
 }
 
 class UserRoute {
-  constructor() {
-    this.logger = LoggerFactory.create('Route.UserRoute');
-  }
+  logger = LoggerFactory.create('Route.UserRoute');
 
   async register({dtoIn, uri, response}) {
     await ValidationService.validate(dtoIn, uri.useCase);

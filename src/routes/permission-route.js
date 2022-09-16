@@ -3,6 +3,7 @@ import UserModel from '../models/user-model.js';
 import ValidationService from '../services/validation/validation-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
 import DefaultRoles from '../config/default-roles.js';
+import Config from '../services/utils/config.js';
 
 const LIST_PRIVILEGED_ROLES = [DefaultRoles.admin, DefaultRoles.authority];
 
@@ -113,9 +114,9 @@ class PermissionRoute {
   }
 
   async _getPermissionKey() {
-    const permissionKey = process.env.PERMISSION_GRANT_KEY;
+    const permissionKey = Config.get('PERMISSION_GRANT_KEY');
     if (!permissionKey) {
-      const permissionSecret = process.env.PERMISSION_GRANT_SECRET;
+      const permissionSecret = Config.get('PERMISSION_GRANT_SECRET');
 
       if (!permissionSecret) {
         return;

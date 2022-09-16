@@ -26,4 +26,5 @@ class PermissionModel extends AbstractModel {
   }
 }
 
-export default new PermissionModel().createModel('AUTH');
+const permissionModel = new PermissionModel();
+export default await permissionModel.createModel('AUTH', 'PRIMARY');

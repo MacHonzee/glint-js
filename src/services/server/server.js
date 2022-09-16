@@ -1,9 +1,10 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
+import compression from 'compression';
 
+import Config from '../utils/config.js';
 import LoggerFactory from '../logging/logger-factory.js';
 import RouteRegister from './route-register.js';
 import MongoClient from '../database/mongo-client.js';
@@ -11,92 +12,47 @@ import ValidationService from '../validation/validation-service.js';
 import AuthenticationService from '../authentication/authentication-service.js';
 
 class Server {
-  constructor() {
-    this.app = express();
-    this.logger = LoggerFactory.create('Server.Startup');
-  }
+  app = express();
+  logger = LoggerFactory.create('Server.Startup');
 
   async start() {
     await this._onBeforeStart();
-    this.app.listen(process.env.PORT, () => this._onAfterStart());
+    this.app.listen(Config.PORT, () => this._onAfterStart());
   }
 
   async _onBeforeStart() {
-    // TODO do this synchronnously as a first thing when requiring this module, so
-    // we can remove some stupidly designed imports
-    this._initAppRoot();
-    this._initDotenv();
-
-    // TODO it might be lazyloaded when specified by Models actually
-    // it has to be done first in order to properly load mappings etc
-    await new MongoClient().init();
-    await this._initAuthMongo();
-
     await ValidationService.init();
     await AuthenticationService.init(this.app);
+
+    await new MongoClient().init();
 
     const errorMiddlewares = await this._registerMiddlewares();
     await this._registerRoutes();
     await this._registerErrorMiddlewares(errorMiddlewares);
   }
 
-  _initAppRoot() {
-    // we save root of the server
-    process.env.SERVER_ROOT = process.cwd();
-
-    // and we also save root of the library (dynamically find out nearest package.json)
-    let currentDirname = path.dirname(import.meta.url.replace('file:///', ''));
-    while (!fs.existsSync(path.join(currentDirname, 'package.json'))) {
-      currentDirname = path.join(currentDirname, '..');
-    }
-    process.env.GLINT_ROOT = path.resolve(currentDirname);
-  }
-
-  _initDotenv() {
-    const runtimeMode = process.env.NODE_ENV;
-    const cloudMode = process.env.CLOUD_ENV;
-    const envFileName = cloudMode ? `${runtimeMode}-${cloudMode}` : runtimeMode;
-
-    const envPath = path.join(process.env.SERVER_ROOT, 'env', envFileName + '.env');
-    if (!fs.existsSync(envPath)) {
-      throw new Error('Unable to load .env file on path: ' + envFileName);
-    }
-
-    dotenv.config({path: envPath});
-  }
-
-  async _initAuthMongo() {
-    try {
-      await new MongoClient('AUTH').init();
-    } catch (e) {
-      this.logger.warn('Could not connect to AUTH MongoDB.', e);
-    }
-  }
-
-  // async _initModels() {
-  //   for (const [modelName, model] of Object.entries(ModelWarehouse));
-  // }
-
   async _registerRoutes() {
     await RouteRegister.init();
     for (const route of RouteRegister.getRoutes()) {
       this.app[route.method](route.url, route.controller);
-      this.logger.info(`Registered route ${route.url} [${route.method}]`);
+      this.logger.info(`Registered route [${route.method}] ${route.url}`);
     }
   }
 
   async _registerMiddlewares() {
     this.app.use(express.json());
     this.app.use(express.urlencoded({extended: true}));
+    this.app.use(compression());
+    this.app.disable('x-powered-by');
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);
 
-    // TODO what about "compression" ? it does not seem that it is in gzip now
+    // TODO consider using helmet middleware for security
 
     const middlewares = [];
 
     // self-discovery of app middlewares
-    const appMiddlewareFldPath = path.join(process.env.SERVER_ROOT, 'app', 'middlewares');
+    const appMiddlewareFldPath = path.join(Config.SERVER_ROOT, 'app', 'middlewares');
     if (fs.existsSync(appMiddlewareFldPath)) {
       const appEntries = fs.readdirSync(appMiddlewareFldPath);
       for (const entry of appEntries) {
@@ -106,7 +62,7 @@ class Server {
     }
 
     // self-discovery of library middlewares
-    const libMiddlewareFldPath = path.join(process.env.GLINT_ROOT, 'src', 'middlewares');
+    const libMiddlewareFldPath = path.join(Config.GLINT_ROOT, 'src', 'middlewares');
     const libEntries = fs.readdirSync(libMiddlewareFldPath);
     for (const entry of libEntries) {
       const middlewareClass = (await import('file://' + path.join(libMiddlewareFldPath, entry))).default;
@@ -168,8 +124,8 @@ class Server {
   }
 
   _registerCorsHandler() {
-    let whitelist = process.env.WHITELISTED_DOMAINS?.split(',') || [];
-    whitelist = whitelist.concat(['http://localhost:' + process.env.PORT + '/']);
+    let whitelist = Config.get('WHITELISTED_DOMAINS')?.split(',') || [];
+    whitelist = whitelist.concat(['http://localhost:' + Config.PORT + '/']);
 
     const corsOptions = {
       origin: (origin, callback) => {
@@ -188,7 +144,7 @@ class Server {
   }
 
   async _onAfterStart() {
-    this.logger.info('Application is running on address http://localhost:' + process.env.PORT);
+    this.logger.info('Application is running on address http://localhost:' + Config.PORT);
   }
 }
 
