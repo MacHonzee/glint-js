@@ -1,7 +1,7 @@
 {
-  "name": "energy-kit-library",
-  "version": "0.1.1",
-  "description": "Core NPM framework-kinda library to handle services in energyKit application.",
+  "name": "glint-js",
+  "version": "0.2.0",
+  "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
   "main": "index.js",
   "type": "module",
   "dependencies": {
@@ -35,18 +35,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MacHonzee/energy-kit-library.git"
+    "url": "git+https://github.com/MacHonzee/glint-js.git"
   },
   "keywords": [
-    "electricity",
+    "serverside",
     "webapp",
-    "household",
-    "npm"
+    "npm",
+    "express",
+    "mongoose",
+    "ajv",
+    "googleCloud"
   ],
   "author": "Jan Rudolf",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/MacHonzee/energy-kit-library/issues"
+    "url": "https://github.com/MacHonzee/glint-js/issues"
   },
-  "homepage": "https://github.com/MacHonzee/energy-kit-library#readme"
+  "homepage": "https://github.com/MacHonzee/glint-js#readme"
 }

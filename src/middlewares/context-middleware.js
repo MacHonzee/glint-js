@@ -25,6 +25,7 @@ class InvalidMethod extends UseCaseError {
           url: req.originalUrl,
           method: req.method,
         },
+        405,
     );
   }
 }
@@ -32,11 +33,13 @@ class InvalidMethod extends UseCaseError {
 class ContextMiddleware {
   constructor() {
     // this middlewares must be first at all costs
-    this.ORDER = -999;
+    this.ORDER = -Infinity;
     this.logger = LoggerFactory.create('Context.Middleware');
   }
 
   async process(req, res, next) {
+    // TODO we should start some MDC here probably
+
     if (this.logger.isDebugEnabled()) {
       this.logger.debug(`Path: ${req.path} Method: ${req.method}`);
     }
@@ -46,10 +49,12 @@ class ContextMiddleware {
     req.ucEnv = ucEnv;
     const route = RouteRegister.getRoute(ucEnv.uri.useCase);
 
-    // TODO filter out anything that is not command-related (ie. static resources)
+    // TODO decide whether it is not command-related (ie. static resources), then process it correctly
+
     if (!route) {
       throw new Error404(req);
     }
+
     if (route.config.method !== req.method.toLowerCase()) {
       throw new InvalidMethod(req);
     }

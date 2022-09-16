@@ -4,6 +4,8 @@ import DefaultRoles from './src/config/default-roles.js';
 import ValidationService from './src/services/validation/validation-service.js';
 import UserService from './src/services/authentication/user-service.js';
 
+// TODO export more stuff?
+// TODO describe everything with proper JSDoc
 export {
   Server,
   DefaultRoles,

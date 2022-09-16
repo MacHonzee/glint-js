@@ -13,6 +13,7 @@ class UserService {
     return await userModel.findById(username);
   }
 
+  // TODO import it at top level after refactoring server.js
   async _getUserModel() {
     if (!this._userModel) {
       this._userModel = (await import('../../models/user-model.js')).default;

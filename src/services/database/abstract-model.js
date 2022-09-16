@@ -8,6 +8,7 @@ class AbstractModel {
     this.schema = new mongoose.Schema( schema, options );
   }
 
+  // TODO consider using async await here for getConnection
   createModel(connectionKey = 'PRIMARY') {
     const connection = MongoClient.getConnection(connectionKey);
 

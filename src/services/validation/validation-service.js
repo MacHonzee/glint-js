@@ -7,7 +7,7 @@ class SchemaNotFoundError extends Error {
   constructor(useCase, schemaName) {
     super();
     this.message = 'Schema not found for given usecase.';
-    this.code = 'energy-kit/schemaNotFound';
+    this.code = 'glint-js/schemaNotFound';
     this.params = {
       useCase,
       schemaName,
@@ -19,7 +19,7 @@ class InvalidDtoIn extends Error {
   constructor(useCase, schemaName, errors) {
     super();
     this.message = 'Invalid dtoIn.';
-    this.code = 'energy-kit/invalidDtoIn';
+    this.code = 'glint-js/invalidDtoIn';
     this.status = 400;
     this.params = {
       useCase,
@@ -31,18 +31,19 @@ class InvalidDtoIn extends Error {
 
 class ValidationService {
   constructor() {
-    // TODO make allErrors configurable via some DEBUG config
+    // TODO make allErrors option configurable via some DEBUG config
     this._ajv = new Ajv({allErrors: false});
     addFormats(this._ajv);
   }
 
   async init() {
+    // TODO add API or auto-loading of custom formats
     await this._registerFormats();
 
     const appSchemasFldPath = path.join(process.env.SERVER_ROOT, 'app', 'validation-schemas');
     await this._registerFromPath(appSchemasFldPath);
 
-    const libSchemasFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'validation-schemas');
+    const libSchemasFldPath = path.join(process.env.GLINT_ROOT, 'src', 'validation-schemas');
     await this._registerFromPath(libSchemasFldPath);
   }
 
@@ -66,7 +67,7 @@ class ValidationService {
   }
 
   async _registerFormats() {
-    const formatsFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'services', 'validation', 'validation-formats');
+    const formatsFldPath = path.join(process.env.GLINT_ROOT, 'src', 'services', 'validation', 'validation-formats');
     const entries = await fs.promises.readdir(formatsFldPath);
     for (const entry of entries) {
       const format = await import('file://' + path.join(formatsFldPath, entry));

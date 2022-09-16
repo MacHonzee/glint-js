@@ -1,6 +1,8 @@
 import DefaultRoles from '../config/default-roles.js';
 import AuthenticationService from '../services/authentication/authentication-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
+
+// TODO remove this dependency, rewrite it to something else
 import {ExtractJwt} from 'passport-jwt';
 
 class AuthenticationError extends UseCaseError {

@@ -22,9 +22,12 @@ class Server {
   }
 
   async _onBeforeStart() {
+    // TODO do this synchronnously as a first thing when requiring this module, so
+    // we can remove some stupidly designed imports
     this._initAppRoot();
     this._initDotenv();
 
+    // TODO it might be lazyloaded when specified by Models actually
     // it has to be done first in order to properly load mappings etc
     await new MongoClient().init();
     await this._initAuthMongo();
@@ -46,7 +49,7 @@ class Server {
     while (!fs.existsSync(path.join(currentDirname, 'package.json'))) {
       currentDirname = path.join(currentDirname, '..');
     }
-    process.env.KIT_LIB_ROOT = path.resolve(currentDirname);
+    process.env.GLINT_ROOT = path.resolve(currentDirname);
   }
 
   _initDotenv() {
@@ -88,6 +91,8 @@ class Server {
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);
 
+    // TODO what about "compression" ? it does not seem that it is in gzip now
+
     const middlewares = [];
 
     // self-discovery of app middlewares
@@ -101,7 +106,7 @@ class Server {
     }
 
     // self-discovery of library middlewares
-    const libMiddlewareFldPath = path.join(process.env.KIT_LIB_ROOT, 'src', 'middlewares');
+    const libMiddlewareFldPath = path.join(process.env.GLINT_ROOT, 'src', 'middlewares');
     const libEntries = fs.readdirSync(libMiddlewareFldPath);
     for (const entry of libEntries) {
       const middlewareClass = (await import('file://' + path.join(libMiddlewareFldPath, entry))).default;

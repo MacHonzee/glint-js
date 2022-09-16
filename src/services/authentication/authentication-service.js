@@ -43,6 +43,7 @@ class AuthenticationService {
 
   getRefreshToken(userPayload) {
     // create token id
+    // TODO remove dependency on mongoose here and generate it via "crypto"
     const refreshTokenId = new mongoose.Types.ObjectId();
 
     // create iat and exp for token, save it in unix epoch
@@ -76,6 +77,7 @@ class AuthenticationService {
   }
 
   async login(username, password) {
+    // TODO import this at top level after refactoring server.js
     const UserModel = await import('../../models/user-model.js');
     return await UserModel.default.authenticate()(username, password);
   }

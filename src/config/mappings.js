@@ -7,6 +7,10 @@ import UserRoute from '../routes/user-route.js';
 const Get = 'get';
 const Post = 'post';
 
+// TODO add frontend mapping
+// TODO add configurable optional middlewares or middlewarish functions,
+// for example we do not need to copy paste validations, when we can just configure it here
+// TODO add OpenAPI specifications somewhere (maybe generate them from Ajv?)
 const Mappings = {
   // sys
   '/sys/ping': {

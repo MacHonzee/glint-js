@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import LoggerFactory from '../logging/logger-factory.js';
 
 class MongoClient {
+  // TODO add some fallback optional envKey (ie. make AUTH optional with fallback to PRIMARY)
   constructor(envKey = 'PRIMARY') {
     this.envKey = envKey;
     this.connection = null;
@@ -9,6 +10,7 @@ class MongoClient {
     this.logger = LoggerFactory.create('Server.MongoClient');
   }
 
+  // TODO consider lazy-connecting here and create new instance of mongo client here instead
   static getConnection(envKey) {
     const connection = this.connections[envKey];
     if (!connection) {
