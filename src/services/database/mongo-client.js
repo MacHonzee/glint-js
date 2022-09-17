@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
+import {Mutex} from 'async-mutex';
 import LoggerFactory from '../logging/logger-factory.js';
 import Config from '../utils/config.js';
 
 class MongoClient {
   static connections = {};
+  static mutex = new Mutex();
 
   constructor(envKey = 'PRIMARY', fallbackEnvKey) {
     this.envKey = envKey;
@@ -25,9 +27,11 @@ class MongoClient {
     return connection.connection;
   }
 
-  // TODO handle parallel initialization of connection with Promise.all being used by ES6 module loader,
-  // we need some kind of Mutex here probably (maybe just in the _handleExistingConnection method?)
   async init() {
+    await MongoClient.mutex.runExclusive(this._init.bind(this));
+  }
+
+  async _init() {
     // no need to initialize the connection multiple times, the pooling is handled by Mongoose
     const alreadyConnected = this._handleExistingConnection();
     if (alreadyConnected) return;
