@@ -27,10 +27,9 @@ class AuthenticationService {
 
     this.COOKIE_OPTIONS = {
       httpOnly: true,
-      // Since localhost is not having https protocol, secure cookies do not work correctly
       secure: isProduction,
       signed: true,
-      maxAge: this._refreshTokenExpiry,
+      maxAge: this._refreshTokenExpiry * 1000,
       sameSite: isProduction ? 'none' : 'lax',
     };
 

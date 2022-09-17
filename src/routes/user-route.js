@@ -6,11 +6,11 @@ import LoggerFactory from '../services/logging/logger-factory.js';
 import AuthenticationService from '../services/authentication/authentication-service.js';
 
 class RegistrationFailed extends UseCaseError {
-  constructor(cause) {
+  constructor(name, cause) {
     super(
         'Registration has failed.',
         'registrationFailed',
-        {cause},
+        {name, cause},
     );
   }
 }
@@ -19,7 +19,7 @@ class LoginFailed extends UseCaseError {
   constructor(cause) {
     super(
         'Login has failed.',
-        'registrationFailed',
+        'loginFailed',
         {cause},
     );
   }
@@ -63,7 +63,7 @@ class UserRoute {
       registeredUser = await UserModel.register(newUser, dtoIn.password);
     } catch (e) {
       this.logger.error(e);
-      throw new RegistrationFailed(e.message);
+      throw new RegistrationFailed(e.name, e.message);
     }
 
     const token = await this._handleUserAndTokens(registeredUser, response);
@@ -117,7 +117,7 @@ class UserRoute {
   }
 
   // TODO implement global logout by checking dtoIn
-  async logout({request, response, session}) {
+  async logout({request, response}) {
     const refreshToken = request.signedCookies?.refreshToken;
     if (!refreshToken) throw new InvalidRefreshToken();
 
@@ -126,7 +126,7 @@ class UserRoute {
     await RefreshTokenModel.deleteOne({tid: tokenId});
 
     // and clear cookie of client
-    response.clearCookie('refreshToken', AuthenticationService.COOKIE_OPTIONS);
+    response.clearCookie('refreshToken');
 
     // TODO add the session token to blacklist
 
