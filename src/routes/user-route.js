@@ -5,6 +5,16 @@ import UseCaseError from '../services/server/use-case-error.js';
 import LoggerFactory from '../services/logging/logger-factory.js';
 import AuthenticationService from '../services/authentication/authentication-service.js';
 
+class MismatchingPasswords extends UseCaseError {
+  constructor() {
+    super(
+        'Password is not repeated properly and is not matching.',
+        'mismatchingPasswords',
+        {name, cause},
+    );
+  }
+}
+
 class RegistrationFailed extends UseCaseError {
   constructor(name, cause) {
     super(
@@ -38,7 +48,7 @@ class RefreshTokenMismatch extends UseCaseError {
   constructor() {
     super(
         'Refresh token has not been matched.',
-        'invalidRefreshToken',
+        'refreshTokenMismatch',
     );
   }
 }
@@ -48,6 +58,11 @@ class UserRoute {
 
   async register({dtoIn, uri, response}) {
     await ValidationService.validate(dtoIn, uri.useCase);
+
+    // check matching password
+    if (dtoIn.password !== dtoIn.confirmPassword) {
+      throw new MismatchingPasswords();
+    }
 
     // create model for user
     const newUser = new UserModel({
