@@ -28,7 +28,7 @@
   },
   "// TODO": "Remove eslint and eslint-config-google once we are on stable version of GlintJs without local dependency",
   "devDependencies": {
-    "eslint": "8.20.0",
+    "eslint": "^8.23.0",
     "eslint-config-google": "^0.14.0",
     "glint-js-kit": "file:../glint-js-kit"
   },
