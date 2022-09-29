@@ -24,6 +24,18 @@ class RefreshTokenModel extends AbstractModel {
     );
   }
 
+  static async findByToken(token) {
+    return await this.findOne({tid: token}).lean();
+  }
+
+  static async updateByToken(token, tokenData) {
+    return await this.deleteOne({tid: token}, tokenData);
+  }
+
+  static async deleteByToken(token) {
+    return await this.deleteOne({tid: token});
+  }
+
   static async buildIndexes() {
     await this.schema.index({tid: 1});
     await this.schema.index({expiresAt: 1}, {expireAfterSeconds: 0});

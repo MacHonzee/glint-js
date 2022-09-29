@@ -117,7 +117,7 @@ class UserRoute {
 
     // find refreshToken based on the signed token id
     const tokenId = jwtData.tid;
-    const refreshTokenModel = await RefreshTokenModel.findOne({tid: tokenId});
+    const refreshTokenModel = await RefreshTokenModel.findByToken(tokenId);
 
     // verify that the token is saved to given refreshToken (could be changed or deleted because of logout)
     if (!refreshTokenModel || refreshTokenModel.token !== refreshToken) {
@@ -127,6 +127,7 @@ class UserRoute {
     const token = await this._handleUserAndTokens(refreshTokenModel.user, response, refreshTokenModel);
 
     return {
+      user: refreshTokenModel.user,
       token,
     };
   }
@@ -138,7 +139,7 @@ class UserRoute {
 
     // delete refresh token from database
     const tokenId = AuthenticationService.decodeToken(refreshToken).tid;
-    await RefreshTokenModel.deleteOne({tid: tokenId});
+    await RefreshTokenModel.deleteByToken(tokenId);
 
     // and clear cookie of client
     response.clearCookie('refreshToken');
@@ -169,7 +170,7 @@ class UserRoute {
       user: userPayload,
     };
     if (refreshTokenToUpdate) {
-      await RefreshTokenModel.updateOne({tid: refreshTokenToUpdate.tid}, refreshTokenData);
+      await RefreshTokenModel.updateByToken(refreshTokenToUpdate.tid, refreshTokenData);
     } else {
       const refreshTokenModel = new RefreshTokenModel(refreshTokenData);
       await refreshTokenModel.save();
