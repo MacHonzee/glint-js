@@ -29,7 +29,7 @@ class RefreshTokenModel extends AbstractModel {
   }
 
   static async updateByToken(token, tokenData) {
-    return await this.deleteOne({tid: token}, tokenData);
+    return await this.updateOne({tid: token}, tokenData);
   }
 
   static async deleteByToken(token) {
