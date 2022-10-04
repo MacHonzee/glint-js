@@ -5,14 +5,11 @@ import {AbstractModel} from '../services/database/abstract-model.js';
 class UserModel extends AbstractModel {
   constructor() {
     super(
-        // passport adds username and password by default
+        // passport adds username and password by default, username matches email
         {
-          firstName: {
-            type: String,
-          },
-          lastName: {
-            type: String,
-          },
+          firstName: String,
+          lastName: String,
+          email: String,
           authStrategy: {
             type: String,
             default: 'local',

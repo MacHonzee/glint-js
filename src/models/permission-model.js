@@ -3,7 +3,10 @@ import {AbstractModel} from '../services/database/abstract-model.js';
 class PermissionModel extends AbstractModel {
   constructor() {
     super(
-        {user: {type: String}, role: {type: String}},
+        {
+          user: String,
+          role: String,
+        },
         {timestamps: true},
     );
   }

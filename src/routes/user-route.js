@@ -4,6 +4,7 @@ import ValidationService from '../services/validation/validation-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
 import LoggerFactory from '../services/logging/logger-factory.js';
 import AuthenticationService from '../services/authentication/authentication-service.js';
+import UserService from '../services/authentication/user-service.js';
 
 class MismatchingPasswords extends UseCaseError {
   constructor() {
@@ -70,6 +71,7 @@ class UserRoute {
       firstName: dtoIn.firstName,
       lastName: dtoIn.lastName,
       language: dtoIn.language,
+      email: dtoIn.email || dtoIn.username,
     });
 
     // save user to database to check constraints
@@ -132,21 +134,50 @@ class UserRoute {
     };
   }
 
-  // TODO implement global logout by checking dtoIn
-  async logout({request, response}) {
+  async logout({request, response, dtoIn}) {
     const refreshToken = request.signedCookies?.refreshToken;
     if (!refreshToken) throw new InvalidRefreshToken();
 
+    // TODO changePassword and logout have some common logic
     // delete refresh token from database
-    const tokenId = AuthenticationService.decodeToken(refreshToken).tid;
-    await RefreshTokenModel.deleteByToken(tokenId);
+    const decodedToken = AuthenticationService.decodeToken(refreshToken);
+    if (dtoIn.global) {
+      await RefreshTokenModel.deleteByUsername(decodedToken.user.username);
+    } else {
+      await RefreshTokenModel.deleteByToken(decodedToken.tid);
+    }
 
     // and clear cookie of client
     response.clearCookie('refreshToken');
 
-    // TODO add the session token to blacklist
+    // TODO add the session token to blacklist - based on dtoIn.global
 
     return {};
+  }
+
+  async changePassword({uri, dtoIn, session, response}) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    // check matching password
+    if (dtoIn.password !== dtoIn.confirmPassword) {
+      throw new MismatchingPasswords();
+    }
+
+    // change the password
+    const user = await UserService.findByUsername(session.user.username);
+    await user.changePassword(dtoIn.currentPassword, dtoIn.password);
+
+    // perform "global logout" by deleting all refresh tokens
+    // TODO "blacklist" the username and whitelist the new JWT token
+    await RefreshTokenModel.deleteByUsername(session.user.username);
+
+    // and create new token
+    const token = await this._handleUserAndTokens(user, response);
+
+    return {
+      user,
+      token,
+    };
   }
 
   // method handles common logic for creating new token, creating new refresh token

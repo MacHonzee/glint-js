@@ -4,15 +4,9 @@ class RefreshTokenModel extends AbstractModel {
   constructor() {
     super(
         {
-          token: {
-            type: String,
-          },
-          tid: {
-            type: String,
-          },
-          expiresAt: {
-            type: Date,
-          },
+          token: String,
+          tid: String,
+          expiresAt: Date,
           user: {
             id: String,
             username: String,
@@ -34,6 +28,10 @@ class RefreshTokenModel extends AbstractModel {
 
   static async deleteByToken(token) {
     return await this.deleteOne({tid: token});
+  }
+
+  static async deleteByUsername(username) {
+    return await this.deleteMany({'user.username': username});
   }
 
   static async buildIndexes() {

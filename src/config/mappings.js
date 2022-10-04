@@ -72,6 +72,11 @@ const Mappings = {
     controller: UserRoute.logout.bind(UserRoute),
     roles: [DefaultRoles.authenticated],
   },
+  '/user/changePassword': {
+    method: Post,
+    controller: UserRoute.changePassword.bind(UserRoute),
+    roles: [DefaultRoles.authenticated],
+  },
 };
 
 export default Mappings;

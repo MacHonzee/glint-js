@@ -8,6 +8,7 @@ const UserRegisterSchema = {
     confirmPassword: {type: 'string'},
     firstName: {type: 'string'},
     lastName: {type: 'string'},
+    email: {type: 'string'},
     language: {enum: Object.keys(Languages)}, // TODO test dynamic adding of languages from app and this validation
   },
   required: ['username', 'password', 'confirmPassword', 'firstName', 'lastName'],
@@ -24,13 +25,32 @@ const UserLoginSchema = {
   additionalProperties: false,
 };
 
+const UserChangePasswordSchema = {
+  type: 'object',
+  properties: {
+    currentPassword: {type: 'string'},
+    password: {type: 'string'},
+    confirmPassword: {type: 'string'},
+  },
+  required: ['currentPassword', 'password', 'confirmPassword'],
+  additionalProperties: false,
+};
+
 const UserRefreshTokenSchema = {};
 
-const UserLogoutSchema = {};
+const UserLogoutSchema = {
+  type: 'object',
+  properties: {
+    global: {type: 'boolean'},
+  },
+  required: [],
+  additionalProperties: false,
+};
 
 export default {
   UserRegisterSchema,
   UserLoginSchema,
+  UserChangePasswordSchema,
   UserRefreshTokenSchema,
   UserLogoutSchema,
 };
