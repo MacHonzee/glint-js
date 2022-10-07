@@ -42,7 +42,9 @@ class ValidationService {
     await this._registerFormats();
 
     const appSchemasFldPath = path.join(Config.SERVER_ROOT, 'app', 'validation-schemas');
-    await this._registerFromPath(appSchemasFldPath);
+    if (fs.existsSync(appSchemasFldPath)) {
+      await this._registerFromPath(appSchemasFldPath);
+    }
 
     const libSchemasFldPath = path.join(Config.GLINT_ROOT, 'src', 'validation-schemas');
     await this._registerFromPath(libSchemasFldPath);
