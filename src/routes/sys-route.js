@@ -17,6 +17,10 @@ class SysRoute {
     return {status: 'OK', version: this._pkgJson.version, ts: new Date(), dtoIn: ucEnv.dtoIn, roles: roles.default};
   }
 
+  async getEnvironment() {
+    return process.env;
+  }
+
   async syncIndexes() {
     const results = [];
     for (const [modelName, model] of Object.entries(ModelWarehouse)) {
