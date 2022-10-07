@@ -14,10 +14,11 @@ import AuthenticationService from '../authentication/authentication-service.js';
 class Server {
   app = express();
   logger = LoggerFactory.create('Server.Startup');
+  port = Config.PORT || 8080;
 
   async start() {
     await this._onBeforeStart();
-    this.app.listen(Config.PORT, () => this._onAfterStart());
+    this.app.listen(this.port, () => this._onAfterStart());
   }
 
   async _onBeforeStart() {
@@ -125,7 +126,7 @@ class Server {
 
   _registerCorsHandler() {
     let whitelist = Config.get('WHITELISTED_DOMAINS')?.split(',') || [];
-    whitelist = whitelist.concat(['http://localhost:' + Config.PORT + '/']);
+    whitelist = whitelist.concat(['http://localhost:' + this.port + '/']);
 
     const corsOptions = {
       origin: (origin, callback) => {
@@ -144,7 +145,7 @@ class Server {
   }
 
   async _onAfterStart() {
-    this.logger.info('Application is running on address http://localhost:' + Config.PORT);
+    this.logger.info('Application is running on address http://localhost:' + this.port);
   }
 }
 

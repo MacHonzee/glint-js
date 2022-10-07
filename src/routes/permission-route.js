@@ -4,6 +4,7 @@ import ValidationService from '../services/validation/validation-service.js';
 import UseCaseError from '../services/server/use-case-error.js';
 import DefaultRoles from '../config/default-roles.js';
 import Config from '../services/utils/config.js';
+import SecretManager from '../services/secret-manager/secret-manager.js';
 
 const LIST_PRIVILEGED_ROLES = [DefaultRoles.admin, DefaultRoles.authority];
 
@@ -114,18 +115,7 @@ class PermissionRoute {
   }
 
   async _getPermissionKey() {
-    const permissionKey = Config.get('PERMISSION_GRANT_KEY');
-    if (!permissionKey) {
-      const permissionSecret = Config.get('PERMISSION_GRANT_SECRET');
-
-      if (!permissionSecret) {
-        return;
-      }
-
-      // TODO resolve it from Google secrets by some secret manager
-    }
-
-    return permissionKey;
+    return Config.get('PERMISSION_GRANT_KEY') || await SecretManager.get('permissionGrantSecret');
   }
 
   async _checkUser(user) {

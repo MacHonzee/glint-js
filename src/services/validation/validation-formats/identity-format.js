@@ -4,8 +4,8 @@ const IdentityFormat = {
     validate: (value) => {
       if (typeof value !== 'string') return false;
 
-      // TODO add some better pattern to match identity
-      return value.match(/^[a-zA-Z0-9]{3,255}$/);
+      // this matches email currently
+      return value.match(/^[a-zA-Z0-9.!#$%&\u2019*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/);
     },
   },
 };

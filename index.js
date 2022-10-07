@@ -12,6 +12,9 @@ import MongoClient from './src/services/database/mongo-client.js';
 // services - logging
 import LoggerFactory from './src/services/logging/logger-factory.js';
 
+// services - secret-manager
+import SecretManager from './src/services/secret-manager/secret-manager.js';
+
 // services - server
 import Server from './src/services/server/server.js';
 import RouteRegister from './src/services/server/route-register.js';
@@ -37,6 +40,7 @@ export {
   ModelWarehouse,
   MongoClient,
   LoggerFactory,
+  SecretManager,
   Server,
   RouteRegister,
   UseCaseEnvironment,
