@@ -87,7 +87,7 @@ class UserRoute {
 
     return {
       token,
-      registeredUser,
+      user: registeredUser,
     };
   }
 
