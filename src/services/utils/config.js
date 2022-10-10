@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import url from 'url';
 
 // synchronous one-time initialization of most basic configurations -> roots + dotEnv
 class Config {
@@ -51,7 +52,7 @@ class Config {
     this.set('SERVER_ROOT', process.cwd());
 
     // and we also save root of the library (dynamically find out the nearest package.json)
-    let currentDirname = path.dirname(import.meta.url.replace('file:///', ''));
+    let currentDirname = path.dirname(url.fileURLToPath(import.meta.url));
     while (!fs.existsSync(path.join(currentDirname, 'package.json'))) {
       currentDirname = path.join(currentDirname, '..');
     }
