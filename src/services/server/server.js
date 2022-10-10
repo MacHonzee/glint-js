@@ -134,9 +134,7 @@ class Server {
   }
 
   _registerCorsHandler() {
-    const whitelist = Config.get('WHITELISTED_DOMAINS')?.split(',') || [];
-    whitelist.push('http://localhost:' + this.port);
-
+    const whitelist = Config.get('CORS_WHITELIST')?.split(',') || [];
     const corsOptions = {
       origin: (origin, callback) => {
         if (!origin || whitelist.includes(origin)) {
