@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import {Mutex} from 'async-mutex';
 import LoggerFactory from '../logging/logger-factory.js';
 import Config from '../utils/config.js';
+import SecretManager from '../secret-manager/secret-manager.js';
 
 class MongoClient {
   static connections = {};
@@ -72,14 +73,7 @@ class MongoClient {
 
   async _getMongoUri(envKey) {
     const envConfigKey = envKey.toUpperCase() + '_MONGODB_URI';
-    const mongoUri = Config.get(envConfigKey);
-
-    if (!mongoUri) {
-      // TODO needed for cloud sometime later
-      // mongoUri = await this._resolveMongoSecret(envKey);
-    }
-
-    return mongoUri;
+    return Config.get(envConfigKey) || await SecretManager.get('mongoDbUri_' + envKey);
   }
 
   _handleExistingConnection() {

@@ -4,8 +4,8 @@ import Config from '../utils/config.js';
 class SecretManager {
   gcpProject = Config.get('GOOGLE_CLOUD_PROJECT');
   client = new SecretManagerServiceClient({
-    projectId: this.gcpProject, // necessary for localhost only
-    keyFilename: Config.get('GCP_KEY_FILENAME'), // necessary for localhost only
+    projectId: this.gcpProject, // necessary for localhost
+    keyFilename: Config.get('GCP_KEY_FILENAME'), // necessary for localhost
   });
   _cachedSecrets = {};
 

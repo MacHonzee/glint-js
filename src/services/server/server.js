@@ -10,6 +10,13 @@ import RouteRegister from './route-register.js';
 import MongoClient from '../database/mongo-client.js';
 import ValidationService from '../validation/validation-service.js';
 import AuthenticationService from '../authentication/authentication-service.js';
+import UseCaseError from './use-case-error.js';
+
+class CorsError extends UseCaseError {
+  constructor() {
+    super('Request was blocked by CORS policy.', 'blockedByCors');
+  }
+}
 
 class Server {
   app = express();
@@ -41,12 +48,14 @@ class Server {
   }
 
   async _registerMiddlewares() {
+    // add some default middlewares
     this.app.use(express.json());
     this.app.use(express.urlencoded({extended: true}));
     this.app.use(compression());
     this.app.disable('x-powered-by');
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);
+    this._registerStaticHandler();
 
     // TODO consider using helmet middleware for security
 
@@ -125,16 +134,15 @@ class Server {
   }
 
   _registerCorsHandler() {
-    let whitelist = Config.get('WHITELISTED_DOMAINS')?.split(',') || [];
-    whitelist = whitelist.concat(['http://localhost:' + this.port + '/']);
+    const whitelist = Config.get('WHITELISTED_DOMAINS')?.split(',') || [];
+    whitelist.push('http://localhost:' + this.port);
 
     const corsOptions = {
       origin: (origin, callback) => {
         if (!origin || whitelist.includes(origin)) {
           callback(null, true);
         } else {
-          // TODO raise some proper Cors error
-          callback(new Error('Not allowed by CORS'));
+          callback(new CorsError());
         }
       },
 
@@ -142,6 +150,13 @@ class Server {
     };
 
     this.app.use(cors(corsOptions));
+  }
+
+  _registerStaticHandler() {
+    const staticFld = path.join(Config.SERVER_ROOT, 'build');
+    if (fs.existsSync(staticFld)) {
+      this.app.use(express.static(staticFld, {immutable: true, maxAge: '1y'}));
+    }
   }
 
   async _onAfterStart() {

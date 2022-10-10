@@ -7,8 +7,6 @@ import UserRoute from '../routes/user-route.js';
 const Get = 'get';
 const Post = 'post';
 
-// TODO add frontend mapping + favicon serving (express.static + serve-favicon module?)
-
 // TODO add configurable optional middlewares or middlewarish functions,
 // for example we do not need to copy paste validations, when we can just configure it here for each request
 

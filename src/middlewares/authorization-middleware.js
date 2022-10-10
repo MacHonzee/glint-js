@@ -18,8 +18,7 @@ class AuthorizationMiddleware {
 
   async process(req, res, next) {
     if (!this._shouldBeAuthorized(req)) {
-      next();
-      return;
+      return next();
     }
 
     const {uri, session} = req.ucEnv;

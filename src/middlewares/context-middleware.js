@@ -47,7 +47,11 @@ class ContextMiddleware {
     req.ucEnv = ucEnv;
     const route = RouteRegister.getRoute(ucEnv.uri.useCase);
 
-    // TODO decide whether it is not command-related (ie. static resources), then process it correctly
+    // this gets triggered only when loading routes from FE (i.e. the file does not physically exist)
+    if (this._isStatic(req) && !route) {
+      ucEnv.static = true;
+      return next();
+    }
 
     if (!route) {
       throw new Error404(req);
@@ -60,6 +64,12 @@ class ContextMiddleware {
     ucEnv.mapping = route.config;
 
     next();
+  }
+
+  _isStatic(req) {
+    if (req.method.toLowerCase() === 'get' && req.headers.accept.includes('text/html')) {
+      return true;
+    }
   }
 }
 

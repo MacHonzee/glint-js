@@ -12,9 +12,7 @@ class SysRoute {
       this._pkgJson = JSON.parse(await fs.promises.readFile(pkgJsonPath, 'utf8'));
     }
 
-    const roles = await import('../config/default-roles.js');
-
-    return {status: 'OK', version: this._pkgJson.version, ts: new Date(), dtoIn: ucEnv.dtoIn, roles: roles.default};
+    return {status: 'OK', version: this._pkgJson.version, ts: new Date(), dtoIn: ucEnv.dtoIn};
   }
 
   async getEnvironment() {

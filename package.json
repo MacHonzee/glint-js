@@ -1,6 +1,6 @@
 {
   "name": "glint-js",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
   "main": "index.js",
   "type": "module",
@@ -43,7 +43,11 @@
     "express",
     "mongoose",
     "ajv",
-    "googleCloud"
+    "jwt",
+    "fullstack",
+    "framework",
+    "google cloud",
+    "google app engine"
   ],
   "author": "Jan Rudolf",
   "license": "MIT",

@@ -56,6 +56,14 @@ class UseCaseEnvironment {
   get response() {
     return this._res;
   }
+
+  get static() {
+    return this._static;
+  }
+
+  set static(isStatic) {
+    this._static = isStatic;
+  }
 }
 
 export default UseCaseEnvironment;

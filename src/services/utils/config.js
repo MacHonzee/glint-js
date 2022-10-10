@@ -64,11 +64,12 @@ class Config {
     const envFileName = cloudMode ? `${runtimeMode}-${cloudMode}` : runtimeMode;
 
     const envPath = path.join(this.SERVER_ROOT, 'env', envFileName + '.env');
-    if (!fs.existsSync(envPath)) {
-      throw new Error('Unable to load .env file on path: ' + envFileName);
+    if (fs.existsSync(envPath)) {
+      dotenv.config({path: envPath});
+    } else {
+      // logger cannot be used here, because Config is not yet initialized
+      console.warn('Unable to load .env file on path: ' + envFileName);
     }
-
-    dotenv.config({path: envPath});
   }
 }
 

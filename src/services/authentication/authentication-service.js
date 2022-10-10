@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 
 import Config from '../utils/config.js';
 import UserModel from '../../models/user-model.js';
+import SecretManager from '../secret-manager/secret-manager.js';
 
 const CFG_DEFAULTS = {
   sessionExpiry: '30m',
@@ -16,10 +17,9 @@ class AuthenticationService {
     this._sessionExpiry = ms(Config.get('AUTH_SESSION_EXPIRY') || CFG_DEFAULTS.sessionExpiry) / 1000;
     this._refreshTokenExpiry = ms(Config.get('AUTH_REFRESH_TOKEN_EXPIRY') || CFG_DEFAULTS.refreshTokenExpiry) / 1000;
 
-    // TODO read secrets from SecretStore for AUTH_JWT_SECRET and AUTH_REFRESH_TOKEN_SECRET
-    this._cookieKey = Config.get('AUTH_COOKIE_KEY');
-    this._tokenKey = Config.get('AUTH_JWT_KEY');
-    this._refreshTokenKey = Config.get('AUTH_REFRESH_TOKEN_KEY');
+    this._cookieKey = Config.get('AUTH_COOKIE_KEY') || await SecretManager.get('authCookieKey');
+    this._tokenKey = Config.get('AUTH_JWT_KEY') || await SecretManager.get('authJwtKey');
+    this._refreshTokenKey = Config.get('AUTH_REFRESH_TOKEN_KEY') || await SecretManager.get('authRefreshTokenKey');
   }
 
   async initCookieParser(app) {
@@ -33,7 +33,6 @@ class AuthenticationService {
       sameSite: isProduction ? 'none' : 'lax',
     };
 
-    // TODO read secrets from SecretStore for COOKIE_SECRET
     app.use(cookieParser(this._cookieKey));
   }
 
@@ -45,7 +44,7 @@ class AuthenticationService {
 
   getRefreshToken(userPayload) {
     // create token id
-    // TODO remove dependency on mongoose here and generate it via "crypto"
+    // TODO remove dependency on mongoose here and generate it via "crypto" or something
     const refreshTokenId = new mongoose.Types.ObjectId();
 
     // create iat and exp for token, save it in unix epoch
