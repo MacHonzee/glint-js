@@ -16,6 +16,10 @@ class PermissionModel extends AbstractModel {
     return await this.syncIndexes();
   }
 
+  static list() {
+    return this.find();
+  }
+
   static listByUser(user) {
     return this.find({user});
   }

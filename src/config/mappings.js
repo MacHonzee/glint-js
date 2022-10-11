@@ -53,6 +53,11 @@ const Mappings = {
     controller: PermissionRoute.list.bind(PermissionRoute),
     roles: [DefaultRoles.authenticated],
   },
+  '/permission/listAll': {
+    method: 'get',
+    controller: PermissionRoute.listAll.bind(PermissionRoute),
+    roles: [DefaultRoles.admin, DefaultRoles.authority],
+  },
 
   // user
   '/user/register': {

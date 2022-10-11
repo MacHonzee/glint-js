@@ -104,17 +104,26 @@ class PermissionRoute {
   async list({dtoIn, uri, authorizationResult, session}) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
-    // set default value
+    // set default value based on session
     if (!dtoIn.user) dtoIn.user = session.user.username;
 
     // allow listing only of your permissions when you are not "Admin" or "Authority"
-    if (authorizationResult.userRoles.length === 1 &&
-        !LIST_PRIVILEGED_ROLES.includes(authorizationResult.userRoles[0]) &&
-        dtoIn.user !== session.user.username) {
-      throw new CannotLoadRoles(authorizationResult.userRoles);
+    const userRoles = authorizationResult.userRoles;
+    if (dtoIn.user !== session.user.username) {
+      if (!LIST_PRIVILEGED_ROLES.find((privRole) => userRoles.includes(privRole))) {
+        throw new CannotLoadRoles(userRoles);
+      }
     }
 
     const permissions = await PermissionModel.listByUser(dtoIn.user);
+
+    return {
+      permissions,
+    };
+  }
+
+  async listAll() {
+    const permissions = await PermissionModel.list();
 
     return {
       permissions,
