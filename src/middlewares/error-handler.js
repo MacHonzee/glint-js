@@ -4,7 +4,7 @@ import Config from '../services/utils/config.js';
 
 class ErrorHandler {
   ORDER = 100;
-  logger = LoggerFactory.create('ErrorHandler', 'error');
+  logger = LoggerFactory.create('Middleware.ErrorHandler', 'error');
 
   // don't remove unused "next", otherwise it will stop being an error middlewares
   async process(err, req, res, next) {

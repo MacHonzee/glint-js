@@ -33,7 +33,7 @@ class InvalidMethod extends UseCaseError {
 class ContextMiddleware {
   // this middlewares must be first at all costs
   ORDER = -Infinity;
-  logger = LoggerFactory.create('Context.Middleware');
+  logger = LoggerFactory.create('Middleware.Context');
 
   async process(req, res, next) {
     // TODO we should start some MDC here probably

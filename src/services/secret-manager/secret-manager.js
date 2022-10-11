@@ -4,7 +4,7 @@ import LoggerFactory from '../logging/logger-factory.js';
 
 class SecretManager {
   constructor() {
-    this._logger = LoggerFactory.create('SecretManager');
+    this._logger = LoggerFactory.create('Service.SecretManager');
 
     this.disabled = Config.get('SECRET_MANAGER_DISABLED', Boolean);
     if (!this.disabled) {
