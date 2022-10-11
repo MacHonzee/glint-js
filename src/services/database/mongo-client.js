@@ -13,7 +13,7 @@ class MongoClient {
     this.fallbackEnvKey = fallbackEnvKey;
     this.connection = null;
     this.mongoUri = null;
-    this.logger = LoggerFactory.create('Server.MongoClient');
+    this.logger = LoggerFactory.create('MongoClient');
   }
 
   static async getConnection(envKey, fallbackEnvKey) {

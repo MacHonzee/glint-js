@@ -3,6 +3,30 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import url from 'url';
 
+// TODO these methods can be probably part of some utils or something
+function stringToBool(value, key) {
+  switch (value) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      throw new Error(`Unexpected Boolean value '${value}' for configuration key ${key}`);
+  }
+}
+
+function isNumeric(str) {
+  if (typeof str != 'string') return false;
+  return !isNaN(str) && !isNaN(parseFloat(str));
+}
+
+function stringToNumber(value, key) {
+  if (!isNumeric(value, key)) {
+    throw new Error(`Unexpected Number value '${value}' for configuration key ${key}`);
+  }
+  return parseFloat(value);
+}
+
 // synchronous one-time initialization of most basic configurations -> roots + dotEnv
 class Config {
   constructor() {
@@ -10,12 +34,22 @@ class Config {
     this._initDotenv();
   }
 
-  get(key) {
-    return process.env[key];
+  get(key, dataType) {
+    const value = process.env[key];
+    if (value == null) return value;
+
+    switch (dataType) {
+      case Boolean:
+        return stringToBool(value, key);
+      case Number:
+        return stringToNumber(value, key);
+      default:
+        return value;
+    }
   }
 
-  mustGet(key) {
-    const value = this.get(key);
+  mustGet(key, dataType) {
+    const value = this.get(key, dataType);
     if (value === undefined) {
       throw new Error(`Configuration ${key} is not set.`);
     }
@@ -36,7 +70,7 @@ class Config {
   }
 
   get PORT() {
-    return this.get('PORT');
+    return this.get('PORT', Number);
   }
 
   get SERVER_ROOT() {
