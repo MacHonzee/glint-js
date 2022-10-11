@@ -5,6 +5,7 @@ import UseCaseError from '../services/server/use-case-error.js';
 import DefaultRoles from '../config/default-roles.js';
 import Config from '../services/utils/config.js';
 import SecretManager from '../services/secret-manager/secret-manager.js';
+import AuthorizationService from '../services/authorization/authorization-service.js';
 
 const LIST_PRIVILEGED_ROLES = [DefaultRoles.admin, DefaultRoles.authority];
 
@@ -55,6 +56,8 @@ class PermissionRoute {
 
     const permission = await new PermissionModel({user: dtoIn.user, role: dtoIn.role}).save();
 
+    AuthorizationService.clearUserCache(dtoIn.user);
+
     return {
       permission,
     };
@@ -72,6 +75,8 @@ class PermissionRoute {
 
     const permission = await new PermissionModel({user: dtoIn.user, role: dtoIn.role}).save();
 
+    AuthorizationService.clearUserCache(dtoIn.user);
+
     return {
       permission,
     };
@@ -88,6 +93,8 @@ class PermissionRoute {
       await PermissionModel.delete(dtoIn.user, dtoIn.role);
       revoked = dtoIn.role;
     }
+
+    AuthorizationService.clearUserCache(dtoIn.user);
 
     return {
       revoked,

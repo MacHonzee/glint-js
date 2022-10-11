@@ -40,6 +40,10 @@ class AuthorizationService {
     return await this._cache.fetch(user);
   }
 
+  clearUserCache(user) {
+    this._cache.delete(user);
+  }
+
   async _fetchUserRoles(user) {
     const roles = await Permission.listByUser(user);
     return roles.map((role) => role.role);
