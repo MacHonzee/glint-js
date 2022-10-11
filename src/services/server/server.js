@@ -137,7 +137,8 @@ class Server {
     const whitelist = Config.get('CORS_WHITELIST')?.split(',') || [];
     const corsOptions = {
       origin: (origin, callback) => {
-        if (!origin || whitelist.includes(origin)) {
+        const normalizedOrigin = origin && origin.replace(/\/$/, '');
+        if (!origin || whitelist.includes(normalizedOrigin)) {
           callback(null, true);
         } else {
           callback(new CorsError());
