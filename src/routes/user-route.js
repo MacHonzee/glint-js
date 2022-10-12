@@ -180,6 +180,21 @@ class UserRoute {
     };
   }
 
+  async list({uri, dtoIn}) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    let users;
+    if (dtoIn.withPermissions) {
+      users = await UserModel.listWithPermissions();
+    } else {
+      users = await UserModel.list();
+    }
+
+    return {
+      users,
+    };
+  }
+
   // method handles common logic for creating new token, creating new refresh token
   // and updating or adding the refreshToken to user
   async _handleUserAndTokens(user, response, refreshTokenToUpdate) {

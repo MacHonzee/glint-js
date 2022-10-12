@@ -85,6 +85,11 @@ const Mappings = {
     controller: UserRoute.changePassword.bind(UserRoute),
     roles: [DefaultRoles.authenticated],
   },
+  '/user/list': {
+    method: Get,
+    controller: UserRoute.list.bind(UserRoute),
+    roles: [DefaultRoles.admin, DefaultRoles.authority],
+  },
 };
 
 export default Mappings;

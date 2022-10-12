@@ -39,6 +39,34 @@ class UserModel extends AbstractModel {
     await this.schema.index({username: 1}, {unique: true});
     return await this.syncIndexes();
   }
+
+  static async list() {
+    return await this.find({}, {'salt': 0, 'hash': 0});
+  }
+
+  static async listWithPermissions() {
+    return await this.aggregate([
+      {
+        $lookup: {
+          from: 'permissions',
+          localField: 'username',
+          foreignField: 'user',
+          as: 'permissions',
+        },
+      },
+      {
+        $project: {
+          'salt': 0,
+          'hash': 0,
+          'permissions._id': 0,
+          'permissions.user': 0,
+          'permissions.createdAt': 0,
+          'permissions.updatedAt': 0,
+          'permissions.__v': 0,
+        },
+      },
+    ]);
+  }
 }
 
 const userModel = new UserModel();

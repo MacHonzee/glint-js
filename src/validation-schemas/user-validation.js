@@ -47,10 +47,20 @@ const UserLogoutSchema = {
   additionalProperties: false,
 };
 
+const UserListSchema = {
+  type: 'object',
+  properties: {
+    withPermissions: {type: 'boolean'},
+  },
+  required: [],
+  additionalProperties: false,
+};
+
 export default {
   UserRegisterSchema,
   UserLoginSchema,
   UserChangePasswordSchema,
   UserRefreshTokenSchema,
   UserLogoutSchema,
+  UserListSchema,
 };
