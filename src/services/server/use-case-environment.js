@@ -12,7 +12,7 @@ class UseCaseEnvironment {
     this._req = req;
     this._res = res;
 
-    this._dtoIn = {...this._req.query, ...this._req.body};
+    this._dtoIn = {...this._req.query, ...this._req.body, ...this._req.files};
 
     this._uri = new Uri(`${req.protocol}://${req.host}${req.originalUrl}`);
   }

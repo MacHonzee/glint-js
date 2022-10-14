@@ -3,6 +3,7 @@ import path from 'path';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import Config from '../utils/config.js';
+import LoggerFactory from '../logging/logger-factory.js';
 
 class SchemaNotFoundError extends Error {
   constructor(useCase, schemaName) {
@@ -32,6 +33,7 @@ class InvalidDtoIn extends Error {
 
 class ValidationService {
   constructor() {
+    this._logger = LoggerFactory.create('Service.ValidationService');
     // TODO make allErrors option configurable via some DEBUG config
     this._ajv = new Ajv({allErrors: false, coerceTypes: true});
     addFormats(this._ajv);
@@ -73,18 +75,37 @@ class ValidationService {
     const formatsFldPath = path.join(Config.GLINT_ROOT, 'src', 'services', 'validation', 'validation-formats');
     const entries = await fs.promises.readdir(formatsFldPath);
     for (const entry of entries) {
-      const format = await import('file://' + path.join(formatsFldPath, entry));
-      this._ajv.addFormat(format.default.name, format.default.format);
+      const formatPath = path.join(formatsFldPath, entry);
+      const {default: format} = await import('file://' + formatPath);
+
+      this._logger.debug(`Adding format with name '${format.name}' from path '${formatPath}'`);
+      try {
+        this._ajv.addFormat(format.name, format.format);
+      } catch (e) {
+        this._logger.error(
+            `Cannot add format with name '${format.name}' from path '${formatPath}'`,
+        );
+        throw e;
+      }
     }
   }
 
   async _registerFromPath(schemasFldPath) {
     const entries = await fs.promises.readdir(schemasFldPath);
     for (const entry of entries) {
-      const schemas = await import('file://' + path.join(schemasFldPath, entry));
+      const schemaPath = path.join(schemasFldPath, entry);
+      const schemas = await import('file://' + schemaPath);
 
       for (const [schemaName, schema] of Object.entries(schemas.default)) {
-        this._ajv.addSchema(schema, schemaName);
+        this._logger.debug(`Adding schema with name '${schemaName}' from path '${schemaPath}'`);
+        try {
+          this._ajv.addSchema(schema, schemaName);
+        } catch (e) {
+          this._logger.error(
+              `Cannot add schema with name '${schemaName}' from path '${schemaPath}'`,
+          );
+          throw e;
+        }
       }
     }
   }

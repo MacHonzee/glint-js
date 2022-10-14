@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import compression from 'compression';
+import fileUpload from 'express-fileupload';
 
 import Config from '../utils/config.js';
 import LoggerFactory from '../logging/logger-factory.js';
@@ -52,6 +53,7 @@ class Server {
     this.app.use(express.json());
     this.app.use(express.urlencoded({extended: true}));
     this.app.use(compression());
+    this.app.use(fileUpload({}));
     this.app.disable('x-powered-by');
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);

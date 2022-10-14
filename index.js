@@ -8,6 +8,7 @@ import AuthorizationService from './src/services/authorization/authorization-ser
 // services - database
 import {AbstractModel, ModelWarehouse} from './src/services/database/abstract-model.js';
 import MongoClient from './src/services/database/mongo-client.js';
+import mongoose from 'mongoose'; // has to be exported because new Schema checks that we are using one Mongoose lib
 
 // services - logging
 import LoggerFactory from './src/services/logging/logger-factory.js';
@@ -31,6 +32,7 @@ import ValidationService from './src/services/validation/validation-service.js';
 // configs
 import DefaultRoles from './src/config/default-roles.js';
 
+
 // TODO describe everything with proper JSDoc
 export {
   AuthenticationService,
@@ -49,4 +51,5 @@ export {
   Config,
   ValidationService,
   DefaultRoles,
+  mongoose,
 };
