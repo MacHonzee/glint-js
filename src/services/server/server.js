@@ -156,7 +156,7 @@ class Server {
   _registerStaticHandler() {
     const staticFld = path.join(Config.SERVER_ROOT, 'build');
     if (fs.existsSync(staticFld)) {
-      this.app.use(express.static(staticFld, {immutable: true, maxAge: '1y'}));
+      this.app.use(express.static(staticFld, {maxAge: '1y'}));
     }
   }
 
