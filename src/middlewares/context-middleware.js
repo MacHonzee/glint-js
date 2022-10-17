@@ -45,14 +45,8 @@ class ContextMiddleware {
     // prepare ucEnv to collect any custom attributes (mapping, dtoIn, session so far)
     const ucEnv = new UseCaseEnvironment(req, res);
     req.ucEnv = ucEnv;
+
     const route = RouteRegister.getRoute(ucEnv.uri.useCase);
-
-    // this gets triggered only when loading routes from FE (i.e. the file does not physically exist)
-    if (this._isStatic(req) && !route) {
-      ucEnv.static = true;
-      return next();
-    }
-
     if (!route) {
       throw new Error404(req);
     }
@@ -64,12 +58,6 @@ class ContextMiddleware {
     ucEnv.mapping = route.config;
 
     next();
-  }
-
-  _isStatic(req) {
-    if (req.method.toLowerCase() === 'get' && req.headers.accept.includes('text/html')) {
-      return true;
-    }
   }
 }
 

@@ -57,7 +57,6 @@ class Server {
     this.app.disable('x-powered-by');
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);
-    this._registerStaticHandler();
 
     // TODO consider using helmet middleware for security
 
@@ -151,13 +150,6 @@ class Server {
     };
 
     this.app.use(cors(corsOptions));
-  }
-
-  _registerStaticHandler() {
-    const staticFld = path.join(Config.SERVER_ROOT, 'build');
-    if (fs.existsSync(staticFld)) {
-      this.app.use(express.static(staticFld, {maxAge: '1y'}));
-    }
   }
 
   async _onAfterStart() {
