@@ -30,8 +30,12 @@ class AuthenticationService {
       secure: isProduction,
       signed: true,
       maxAge: this._refreshTokenExpiry * 1000,
-      sameSite: isProduction ? 'strict' : 'lax',
-      path: '/user', // we need it at least in logout and refreshToken commands
+
+      // frontend is handled always from different service, hence "none" for prod
+      sameSite: isProduction ? 'none' : 'lax',
+
+      // we need it at least in logout and refreshToken commands
+      path: '/user',
     };
 
     app.use(cookieParser(this._cookieKey));
