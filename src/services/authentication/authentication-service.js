@@ -8,7 +8,7 @@ import UserModel from '../../models/user-model.js';
 import SecretManager from '../secret-manager/secret-manager.js';
 
 const CFG_DEFAULTS = {
-  sessionExpiry: '30m',
+  sessionExpiry: '12h',
   refreshTokenExpiry: '30d',
 };
 
