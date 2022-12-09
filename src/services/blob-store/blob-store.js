@@ -36,7 +36,7 @@ class BlobStore {
   async setMetadata(fileId, metadata, options = {}) {
     if (!this._active) await this._init();
 
-    return await this.bucket.file(fileId).setMetadata({metadata}, options);
+    return await this.bucket.file(fileId).setMetadata(metadata, options);
   }
 
   async delete(fileId, options = {}) {
