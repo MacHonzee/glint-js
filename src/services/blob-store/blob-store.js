@@ -4,7 +4,7 @@ import Config from '../utils/config.js';
 import LoggerFactory from '../logging/logger-factory.js';
 
 class BlobStore {
-  static DEFAULT_BUCKET_NAME = 'defaultAppBucket';
+  static DEFAULT_BUCKET_NAME = 'default-app-bucket';
 
   constructor() {
     this._logger = LoggerFactory.create('Service.BlobStore');
