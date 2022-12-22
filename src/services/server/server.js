@@ -4,6 +4,7 @@ import path from 'path';
 import cors from 'cors';
 import compression from 'compression';
 import fileUpload from 'express-fileupload';
+import helmet from 'helmet';
 
 import Config from '../utils/config.js';
 import LoggerFactory from '../logging/logger-factory.js';
@@ -54,11 +55,10 @@ class Server {
     this.app.use(express.urlencoded({extended: true}));
     this.app.use(compression());
     this.app.use(fileUpload({}));
+    this.app.use(helmet());
     this.app.disable('x-powered-by');
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);
-
-    // TODO consider using helmet middleware for security
 
     const middlewares = [];
 
