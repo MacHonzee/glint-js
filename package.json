@@ -1,6 +1,6 @@
 {
   "name": "glint-js",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
   "main": "src/index.js",
   "type": "module",
@@ -31,10 +31,11 @@
     "winston": "^3.8.0"
   },
   "devDependencies": {
-    "glint-js-kit": "^0.2.0"
+    "glint-js-kit": "^0.2.0",
+    "cross-env": "^7.0.3"
   },
   "scripts": {
-    "test": "jest"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "repository": {
     "type": "git",
@@ -58,5 +59,12 @@
   "bugs": {
     "url": "https://github.com/MacHonzee/glint-js/issues"
   },
-  "homepage": "https://github.com/MacHonzee/glint-js#readme"
+  "homepage": "https://github.com/MacHonzee/glint-js#readme",
+  "jest": {
+    "testEnvironment": "jest-environment-node",
+    "transform": {},
+    "collectCoverage": true,
+    "collectCoverageFrom": ["**/*.{js,jsx}", "!**/node_modules/**"],
+    "coverageReporters": ["html"]
+  }
 }

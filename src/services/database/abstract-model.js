@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import MongoClient from './mongo-client.js';
 import UseCaseError from '../server/use-case-error.js';
+import Config from '../utils/config.js';
 
 class DuplicateKeyError extends UseCaseError {
   constructor(keyValue, keyPattern) {
@@ -18,6 +19,8 @@ class AbstractModel {
   }
 
   async createModel(connectionKey = 'PRIMARY', fallbackKey) {
+    if (Config.MONGODB_DISABLED) return;
+
     const connection = await MongoClient.getConnection(connectionKey, fallbackKey);
 
     this.schema.loadClass(this.constructor);

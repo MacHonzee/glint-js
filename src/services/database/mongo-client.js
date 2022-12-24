@@ -17,6 +17,7 @@ class MongoClient {
   }
 
   static async getConnection(envKey, fallbackEnvKey) {
+    if (Config.MONGODB_DISABLED) return;
     let connection = this.connections[envKey] || this.connections[fallbackEnvKey];
 
     // lazy initialization of connection (only PRIMARY is explicitly connected)
@@ -29,6 +30,7 @@ class MongoClient {
   }
 
   async init() {
+    if (Config.MONGODB_DISABLED) return;
     await MongoClient.mutex.runExclusive(this._init.bind(this));
   }
 

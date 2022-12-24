@@ -25,6 +25,7 @@ import UseCaseError from './services/server/use-case-error.js';
 // services - utils
 import LruCache from './services/utils/lru-cache.js';
 import Config from './services/utils/config.js';
+import AppEventEmitter from './services/utils/app-event-emitter.js';
 
 // services - validation
 import ValidationService from './services/validation/validation-service.js';
@@ -51,6 +52,7 @@ export {
   UseCaseError,
   LruCache,
   Config,
+  AppEventEmitter,
   ValidationService,
   DefaultRoles,
   mongoose,

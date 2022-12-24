@@ -81,6 +81,10 @@ class Config {
     return this.mustGet('GLINT_ROOT');
   }
 
+  get MONGODB_DISABLED() {
+    return this.get('MONGODB_DISABLED', Boolean);
+  }
+
   _initAppRoot() {
     // we save root of the server
     this.set('SERVER_ROOT', process.cwd());
@@ -103,7 +107,7 @@ class Config {
       dotenv.config({path: envPath});
     } else {
       // logger cannot be used here, because Config is not yet initialized
-      console.warn('Unable to load .env file on path: ' + envFileName);
+      console.warn('Unable to load .env file on path: ' + envPath);
     }
   }
 }
