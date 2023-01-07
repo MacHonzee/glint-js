@@ -44,7 +44,12 @@ class Server {
   async _registerRoutes() {
     await RouteRegister.init();
     for (const route of RouteRegister.getRoutes()) {
-      this.app[route.method](route.url, route.controller);
+      const routeMethod = this.app[route.method];
+      if (!routeMethod) {
+        throw new Error(`Unknown method '${route.method}' for route ${route.url}`);
+      }
+
+      routeMethod(route.url, route.controller);
       this.logger.info(`Registered route [${route.method}] ${route.url}`);
     }
   }
