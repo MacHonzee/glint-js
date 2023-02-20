@@ -3,6 +3,7 @@ import RouteRegister from '../server/route-register.js';
 import Permission from '../../models/permission-model.js';
 import DefaultRoles from '../../config/default-roles.js';
 import Config from '../utils/config.js';
+import AuthorizationResult from './authorization-result.js';
 
 const DEFAULT_CACHE = 1000 * 60 * 5;
 
@@ -28,12 +29,12 @@ class AuthorizationService {
       authorized = userRoles.some((userRole) => useCaseRoles.includes(userRole));
     }
 
-    return {
+    return new AuthorizationResult({
       authorized,
       user: user,
       useCaseRoles,
       userRoles,
-    };
+    });
   }
 
   async getUserRoles(user) {

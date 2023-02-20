@@ -4,6 +4,7 @@ import UserService from './services/authentication/user-service.js';
 
 // services - authorization
 import AuthorizationService from './services/authorization/authorization-service.js';
+import AuthorizationResult from './services/authorization/authorization-result.js';
 
 // services - database
 import {AbstractModel, ModelWarehouse} from './services/database/abstract-model.js';
@@ -41,6 +42,7 @@ export {
   AuthenticationService,
   UserService,
   AuthorizationService,
+  AuthorizationResult,
   AbstractModel,
   ModelWarehouse,
   MongoClient,
