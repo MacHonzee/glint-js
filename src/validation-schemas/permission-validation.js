@@ -1,45 +1,42 @@
-import DefaultRoles from '../config/default-roles.js';
+import DefaultRoles from "../config/default-roles.js";
 
 const PermissionSecretGrantSchema = {
-  type: 'object',
+  type: "object",
   properties: {
-    secret: {type: 'string'},
-    user: {format: 'identity', type: 'string'},
-    role: {enum: DefaultRoles.privileged},
+    secret: { type: "string" },
+    user: { format: "identity", type: "string" },
+    role: { enum: DefaultRoles.privileged },
   },
-  required: ['secret', 'user', 'role'],
+  required: ["secret", "user", "role"],
   additionalProperties: false,
 };
 
 const PermissionGrantSchema = {
-  type: 'object',
+  type: "object",
   properties: {
-    user: {format: 'identity', type: 'string'},
-    role: {enum: DefaultRoles.application},
+    user: { format: "identity", type: "string" },
+    role: { enum: DefaultRoles.application },
   },
-  required: ['user', 'role'],
+  required: ["user", "role"],
   additionalProperties: false,
 };
 
 const PermissionRevokeSchema = {
-  type: 'object',
+  type: "object",
   properties: {
-    user: {format: 'identity', type: 'string'},
-    role: {enum: DefaultRoles.application},
-    all: {type: 'boolean'},
+    user: { format: "identity", type: "string" },
+    role: { enum: DefaultRoles.application },
+    all: { type: "boolean" },
   },
-  required: ['user'],
-  anyOf: [
-    {required: ['role']},
-    {required: ['all']},
-  ],
+  required: ["user"],
+  anyOf: [{ required: ["role"] }, { required: ["all"] }],
   additionalProperties: false,
 };
 
 const PermissionListSchema = {
-  type: 'object',
+  type: "object",
   properties: {
-    user: {format: 'identity', type: 'string'},
+    user: { format: "identity", type: "string" },
   },
 };
 

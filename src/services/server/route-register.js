@@ -1,5 +1,5 @@
-import path from 'path';
-import Config from '../utils/config.js';
+import path from "path";
+import Config from "../utils/config.js";
 
 class RouteRegister {
   _active = false;
@@ -8,12 +8,12 @@ class RouteRegister {
   async init() {
     // initialize all common routes -> it MUST be loaded dynamically, because the database connection
     // must be established first in order to properly create models
-    const Mappings = await import('../../config/mappings.js');
+    const Mappings = await import("../../config/mappings.js");
     this._registerRoutesFromMappings(Mappings.default);
 
     // self-discovery of app's routes
-    const appMappingsPath = path.join(Config.SERVER_ROOT, 'app', 'config', 'mappings.js');
-    const appMappings = await import('file://' + appMappingsPath);
+    const appMappingsPath = path.join(Config.SERVER_ROOT, "app", "config", "mappings.js");
+    const appMappings = await import("file://" + appMappingsPath);
     this._registerRoutesFromMappings(appMappings.default);
 
     this._active = true;
@@ -39,7 +39,7 @@ class RouteRegister {
 
   getRoutes() {
     if (!this._active) {
-      throw new Error('RouteRegister was not initialized properly, cannot load route metadata');
+      throw new Error("RouteRegister was not initialized properly, cannot load route metadata");
     }
 
     return Object.values(this._routes);
@@ -47,7 +47,7 @@ class RouteRegister {
 
   getRoute(routeUrl) {
     if (!this._active) {
-      throw new Error('RouteRegister was not initialized properly, cannot load route metadata');
+      throw new Error("RouteRegister was not initialized properly, cannot load route metadata");
     }
 
     return this._routes[routeUrl];

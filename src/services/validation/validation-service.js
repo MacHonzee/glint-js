@@ -1,15 +1,15 @@
-import fs from 'fs';
-import path from 'path';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import Config from '../utils/config.js';
-import LoggerFactory from '../logging/logger-factory.js';
+import fs from "fs";
+import path from "path";
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
+import Config from "../utils/config.js";
+import LoggerFactory from "../logging/logger-factory.js";
 
 class SchemaNotFoundError extends Error {
   constructor(useCase, schemaName) {
     super();
-    this.message = 'Schema not found for given usecase.';
-    this.code = 'glint-js/schemaNotFound';
+    this.message = "Schema not found for given usecase.";
+    this.code = "glint-js/schemaNotFound";
     this.params = {
       useCase,
       schemaName,
@@ -20,8 +20,8 @@ class SchemaNotFoundError extends Error {
 class InvalidDtoIn extends Error {
   constructor(useCase, schemaName, errors) {
     super();
-    this.message = 'Invalid dtoIn.';
-    this.code = 'glint-js/invalidDtoIn';
+    this.message = "Invalid dtoIn.";
+    this.code = "glint-js/invalidDtoIn";
     this.status = 400;
     this.params = {
       useCase,
@@ -33,9 +33,9 @@ class InvalidDtoIn extends Error {
 
 class ValidationService {
   constructor() {
-    this._logger = LoggerFactory.create('Service.ValidationService');
+    this._logger = LoggerFactory.create("Service.ValidationService");
     // TODO make allErrors option configurable via some DEBUG config
-    this._ajv = new Ajv({allErrors: false, coerceTypes: true});
+    this._ajv = new Ajv({ allErrors: false, coerceTypes: true });
     addFormats(this._ajv);
   }
 
@@ -43,18 +43,21 @@ class ValidationService {
     // TODO add API or auto-loading of custom formats
     await this._registerFormats();
 
-    const appSchemasFldPath = path.join(Config.SERVER_ROOT, 'app', 'validation-schemas');
+    const appSchemasFldPath = path.join(Config.SERVER_ROOT, "app", "validation-schemas");
     if (fs.existsSync(appSchemasFldPath)) {
       await this._registerFromPath(appSchemasFldPath);
     }
 
-    const libSchemasFldPath = path.join(Config.GLINT_ROOT, 'src', 'validation-schemas');
+    const libSchemasFldPath = path.join(Config.GLINT_ROOT, "src", "validation-schemas");
     await this._registerFromPath(libSchemasFldPath);
   }
 
   async validate(data, useCase) {
-    const ucParts = useCase.split('/').slice(1).map((ucPart) => `${ucPart[0].toUpperCase()}${ucPart.slice(1)}`);
-    const schemaName = ucParts.join('') + 'Schema';
+    const ucParts = useCase
+      .split("/")
+      .slice(1)
+      .map((ucPart) => `${ucPart[0].toUpperCase()}${ucPart.slice(1)}`);
+    const schemaName = ucParts.join("") + "Schema";
     const schema = this._ajv.getSchema(schemaName);
     if (!schema) {
       throw new SchemaNotFoundError(useCase, schemaName);
@@ -72,19 +75,17 @@ class ValidationService {
   }
 
   async _registerFormats() {
-    const formatsFldPath = path.join(Config.GLINT_ROOT, 'src', 'services', 'validation', 'validation-formats');
+    const formatsFldPath = path.join(Config.GLINT_ROOT, "src", "services", "validation", "validation-formats");
     const entries = await fs.promises.readdir(formatsFldPath);
     for (const entry of entries) {
       const formatPath = path.join(formatsFldPath, entry);
-      const {default: format} = await import('file://' + formatPath);
+      const { default: format } = await import("file://" + formatPath);
 
       this._logger.debug(`Adding format with name '${format.name}' from path '${formatPath}'`);
       try {
         this._ajv.addFormat(format.name, format.format);
       } catch (e) {
-        this._logger.error(
-            `Cannot add format with name '${format.name}' from path '${formatPath}'`,
-        );
+        this._logger.error(`Cannot add format with name '${format.name}' from path '${formatPath}'`);
         throw e;
       }
     }
@@ -94,16 +95,14 @@ class ValidationService {
     const entries = await fs.promises.readdir(schemasFldPath);
     for (const entry of entries) {
       const schemaPath = path.join(schemasFldPath, entry);
-      const schemas = await import('file://' + schemaPath);
+      const schemas = await import("file://" + schemaPath);
 
       for (const [schemaName, schema] of Object.entries(schemas.default)) {
         this._logger.debug(`Adding schema with name '${schemaName}' from path '${schemaPath}'`);
         try {
           this._ajv.addSchema(schema, schemaName);
         } catch (e) {
-          this._logger.error(
-              `Cannot add schema with name '${schemaName}' from path '${schemaPath}'`,
-          );
+          this._logger.error(`Cannot add schema with name '${schemaName}' from path '${schemaPath}'`);
           throw e;
         }
       }

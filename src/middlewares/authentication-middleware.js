@@ -1,18 +1,13 @@
-import DefaultRoles from '../config/default-roles.js';
-import AuthenticationService from '../services/authentication/authentication-service.js';
-import UseCaseError from '../services/server/use-case-error.js';
+import DefaultRoles from "../config/default-roles.js";
+import AuthenticationService from "../services/authentication/authentication-service.js";
+import UseCaseError from "../services/server/use-case-error.js";
 
 // TODO remove this dependency, rewrite it to some helper or maybe just private method
-import {ExtractJwt} from 'passport-jwt';
+import { ExtractJwt } from "passport-jwt";
 
 class AuthenticationError extends UseCaseError {
   constructor(cause) {
-    super(
-        'User is not authenticated.',
-        'userNotAuthenticated',
-        {cause},
-        401,
-    );
+    super("User is not authenticated.", "userNotAuthenticated", { cause }, 401);
   }
 }
 

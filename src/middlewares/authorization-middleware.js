@@ -1,15 +1,10 @@
-import AuthorizationService from '../services/authorization/authorization-service.js';
-import DefaultRoles from '../config/default-roles.js';
-import UseCaseError from '../services/server/use-case-error.js';
+import AuthorizationService from "../services/authorization/authorization-service.js";
+import DefaultRoles from "../config/default-roles.js";
+import UseCaseError from "../services/server/use-case-error.js";
 
 class AuthorizationError extends UseCaseError {
   constructor(authorizationResult) {
-    super(
-        'User is not authorized for given route.',
-        'userNotAuthorized',
-        authorizationResult,
-        403,
-    );
+    super("User is not authorized for given route.", "userNotAuthorized", authorizationResult, 403);
   }
 }
 
@@ -21,7 +16,7 @@ class AuthorizationMiddleware {
       return next();
     }
 
-    const {uri, session} = req.ucEnv;
+    const { uri, session } = req.ucEnv;
     const authorizationResult = await AuthorizationService.authorize(uri.useCase, session.user.username);
     req.ucEnv.authorizationResult = authorizationResult;
 

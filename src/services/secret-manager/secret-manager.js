@@ -1,14 +1,14 @@
-import {SecretManagerServiceClient} from '@google-cloud/secret-manager';
-import Config from '../utils/config.js';
-import LoggerFactory from '../logging/logger-factory.js';
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
+import Config from "../utils/config.js";
+import LoggerFactory from "../logging/logger-factory.js";
 
 class SecretManager {
   constructor() {
-    this._logger = LoggerFactory.create('Service.SecretManager');
+    this._logger = LoggerFactory.create("Service.SecretManager");
     this._active = false;
   }
 
-  async get(secretName, version = 'latest') {
+  async get(secretName, version = "latest") {
     if (!this._active) await this._init(); // lazy initialization during first call
 
     this._logger.debug(`Getting secret with name '${secretName}'`);
@@ -27,15 +27,15 @@ class SecretManager {
     return secretContent;
   }
 
-  async getSecretPath(secretName, version = 'latest') {
+  async getSecretPath(secretName, version = "latest") {
     if (!this._active) await this._init(); // lazy initialization during first call
 
     return `projects/${this.gcpProject}/secrets/${secretName}/versions/${version}`;
   }
 
   _init() {
-    this.gcpProject = Config.mustGet('GOOGLE_CLOUD_PROJECT');
-    const gcpKeyFilename = Config.get('GCP_KEY_FILENAME');
+    this.gcpProject = Config.mustGet("GOOGLE_CLOUD_PROJECT");
+    const gcpKeyFilename = Config.get("GCP_KEY_FILENAME");
 
     this._logger.debug(`Initializing SecretManager for project with id '${this.gcpProject}'`);
     this._logger.debug(`Key path for SecretManager is '${gcpKeyFilename}'`);

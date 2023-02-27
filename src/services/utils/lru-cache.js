@@ -1,7 +1,7 @@
-import LRUCache from 'lru-cache';
+import LRUCache from "lru-cache";
 
 function isNumeric(str) {
-  if (typeof str != 'string') return false;
+  if (typeof str != "string") return false;
   return !isNaN(str) && !isNaN(parseFloat(str));
 }
 

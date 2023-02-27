@@ -1,63 +1,45 @@
-import UserModel from '../models/user-model.js';
-import RefreshTokenModel from '../models/refresh-token-model.js';
-import ValidationService from '../services/validation/validation-service.js';
-import UseCaseError from '../services/server/use-case-error.js';
-import LoggerFactory from '../services/logging/logger-factory.js';
-import AuthenticationService from '../services/authentication/authentication-service.js';
-import UserService from '../services/authentication/user-service.js';
+import UserModel from "../models/user-model.js";
+import RefreshTokenModel from "../models/refresh-token-model.js";
+import ValidationService from "../services/validation/validation-service.js";
+import UseCaseError from "../services/server/use-case-error.js";
+import LoggerFactory from "../services/logging/logger-factory.js";
+import AuthenticationService from "../services/authentication/authentication-service.js";
+import UserService from "../services/authentication/user-service.js";
 
 class MismatchingPasswords extends UseCaseError {
   constructor() {
-    super(
-        'Password is not repeated properly and is not matching.',
-        'mismatchingPasswords',
-        {name, cause},
-    );
+    super("Password is not repeated properly and is not matching.", "mismatchingPasswords");
   }
 }
 
 class RegistrationFailed extends UseCaseError {
   constructor(name, cause) {
-    super(
-        'Registration has failed.',
-        'registrationFailed',
-        {name, cause},
-    );
+    super("Registration has failed.", "registrationFailed", { name, cause });
   }
 }
 
 class LoginFailed extends UseCaseError {
   constructor(cause) {
-    super(
-        'Login has failed.',
-        'loginFailed',
-        {cause},
-    );
+    super("Login has failed.", "loginFailed", { cause });
   }
 }
 
 class InvalidRefreshToken extends UseCaseError {
   constructor() {
-    super(
-        'Invalid or missing refreshToken cookie.',
-        'invalidRefreshToken',
-    );
+    super("Invalid or missing refreshToken cookie.", "invalidRefreshToken");
   }
 }
 
 class RefreshTokenMismatch extends UseCaseError {
   constructor() {
-    super(
-        'Refresh token has not been matched.',
-        'refreshTokenMismatch',
-    );
+    super("Refresh token has not been matched.", "refreshTokenMismatch");
   }
 }
 
 class UserRoute {
-  logger = LoggerFactory.create('Route.UserRoute');
+  logger = LoggerFactory.create("Route.UserRoute");
 
-  async register({dtoIn, uri, response}) {
+  async register({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // check matching password
@@ -91,11 +73,11 @@ class UserRoute {
     };
   }
 
-  async login({dtoIn, uri, response}) {
+  async login({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // authenticate based on username and password
-    const {user, error} = await AuthenticationService.login(dtoIn.username, dtoIn.password);
+    const { user, error } = await AuthenticationService.login(dtoIn.username, dtoIn.password);
 
     // check if authentication was successful and translate it to Http error
     if (error) {
@@ -110,7 +92,7 @@ class UserRoute {
     };
   }
 
-  async refreshToken({request, response}) {
+  async refreshToken({ request, response }) {
     const refreshToken = request.signedCookies?.refreshToken;
     if (!refreshToken) throw new InvalidRefreshToken();
 
@@ -134,7 +116,7 @@ class UserRoute {
     };
   }
 
-  async logout({request, response, dtoIn}) {
+  async logout({ request, response, dtoIn }) {
     const refreshToken = request.signedCookies?.refreshToken;
     if (!refreshToken) throw new InvalidRefreshToken();
 
@@ -148,14 +130,14 @@ class UserRoute {
     }
 
     // and clear cookie of client
-    response.clearCookie('refreshToken');
+    response.clearCookie("refreshToken");
 
     // TODO add the session token to blacklist - based on dtoIn.global
 
     return {};
   }
 
-  async changePassword({uri, dtoIn, session, response}) {
+  async changePassword({ uri, dtoIn, session, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // check matching password
@@ -180,7 +162,7 @@ class UserRoute {
     };
   }
 
-  async list({uri, dtoIn}) {
+  async list({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     let users;
@@ -206,7 +188,7 @@ class UserRoute {
       firstName: user.firstName,
       lastName: user.lastName,
     };
-    const {refreshToken, refreshTokenId, refreshTokenTtl} = AuthenticationService.getRefreshToken(userPayload);
+    const { refreshToken, refreshTokenId, refreshTokenTtl } = AuthenticationService.getRefreshToken(userPayload);
 
     // and create or update the token in the database (in register and login we create, in refreshToken we update)
     const refreshTokenData = {
@@ -224,7 +206,7 @@ class UserRoute {
 
     // then create new short-lived token and save the long-lived refreshToken to response
     const token = AuthenticationService.getToken(userPayload);
-    response.cookie('refreshToken', refreshToken, AuthenticationService.COOKIE_OPTIONS);
+    response.cookie("refreshToken", refreshToken, AuthenticationService.COOKIE_OPTIONS);
 
     return token;
   }

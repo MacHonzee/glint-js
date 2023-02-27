@@ -1,13 +1,13 @@
-import GcpStorage from '@google-cloud/storage';
-import {v4 as uuidV4} from 'uuid';
-import Config from '../utils/config.js';
-import LoggerFactory from '../logging/logger-factory.js';
+import GcpStorage from "@google-cloud/storage";
+import { v4 as uuidV4 } from "uuid";
+import Config from "../utils/config.js";
+import LoggerFactory from "../logging/logger-factory.js";
 
 class BlobStore {
-  static DEFAULT_BUCKET_NAME = 'default-app-bucket';
+  static DEFAULT_BUCKET_NAME = "default-app-bucket";
 
   constructor() {
-    this._logger = LoggerFactory.create('Service.BlobStore');
+    this._logger = LoggerFactory.create("Service.BlobStore");
     this._active = false;
   }
 
@@ -20,7 +20,7 @@ class BlobStore {
     // default in GCP is true, but it is not suitable for files smaller then 10MB
     const resumable = options.resumable ?? false;
 
-    await this.bucket.file(fileId).save(file, {...options, resumable});
+    await this.bucket.file(fileId).save(file, { ...options, resumable });
 
     return fileId;
   }
@@ -31,6 +31,10 @@ class BlobStore {
     const fileData = await this.bucket.file(fileId).download(options);
 
     return fileData[0];
+  }
+
+  async list(query) {
+    return await this.bucket.getFiles(query);
   }
 
   async setMetadata(fileId, metadata, options = {}) {
@@ -45,12 +49,16 @@ class BlobStore {
     return await this.bucket.file(fileId).delete(options);
   }
 
-  async _init() {
-    this.gcpProject = Config.mustGet('GOOGLE_CLOUD_PROJECT');
-    this.apiEndpoint = Config.get('GCP_STORAGE_ENDPOINT');
-    const gcpKeyFilename = Config.get('GCP_KEY_FILENAME');
+  async deleteMany(query) {
+    return await this.bucket.deleteFiles(query);
+  }
 
-    this.bucketName = Config.get('GCP_BUCKET_NAME') || BlobStore.DEFAULT_BUCKET_NAME;
+  async _init() {
+    this.gcpProject = Config.mustGet("GOOGLE_CLOUD_PROJECT");
+    this.apiEndpoint = Config.get("GCP_STORAGE_ENDPOINT");
+    const gcpKeyFilename = Config.get("GCP_KEY_FILENAME");
+
+    this.bucketName = Config.get("GCP_BUCKET_NAME") || BlobStore.DEFAULT_BUCKET_NAME;
 
     this._logger.debug(`Initializing BlobStore for project with id '${this.gcpProject}'`);
     this._logger.debug(`ApiEndpoint for BlobStore is '${this.apiEndpoint}'`);

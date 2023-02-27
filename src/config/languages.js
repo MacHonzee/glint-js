@@ -1,6 +1,6 @@
 const Languages = {
-  'cs': {}, // object just in case we need some configuration later
-  'en': {},
+  cs: {}, // object just in case we need some configuration later
+  en: {},
 };
 
 Languages.all = Object.values(Languages);

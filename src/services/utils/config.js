@@ -1,14 +1,14 @@
-import path from 'path';
-import fs from 'fs';
-import dotenv from 'dotenv';
-import url from 'url';
+import path from "path";
+import fs from "fs";
+import dotenv from "dotenv";
+import url from "url";
 
 // TODO these methods can be probably part of some utils or something
 function stringToBool(value, key) {
   switch (value) {
-    case 'true':
+    case "true":
       return true;
-    case 'false':
+    case "false":
       return false;
     default:
       throw new Error(`Unexpected Boolean value '${value}' for configuration key ${key}`);
@@ -16,7 +16,7 @@ function stringToBool(value, key) {
 }
 
 function isNumeric(str) {
-  if (typeof str != 'string') return false;
+  if (typeof str != "string") return false;
   return !isNaN(str) && !isNaN(parseFloat(str));
 }
 
@@ -62,39 +62,39 @@ class Config {
 
   // some keys have pre-defined getters for ease of use
   get NODE_ENV() {
-    return this.mustGet('NODE_ENV');
+    return this.mustGet("NODE_ENV");
   }
 
   get CLOUD_ENV() {
-    return this.get('CLOUD_ENV');
+    return this.get("CLOUD_ENV");
   }
 
   get PORT() {
-    return this.get('PORT', Number);
+    return this.get("PORT", Number);
   }
 
   get SERVER_ROOT() {
-    return this.mustGet('SERVER_ROOT');
+    return this.mustGet("SERVER_ROOT");
   }
 
   get GLINT_ROOT() {
-    return this.mustGet('GLINT_ROOT');
+    return this.mustGet("GLINT_ROOT");
   }
 
   get MONGODB_DISABLED() {
-    return this.get('MONGODB_DISABLED', Boolean);
+    return this.get("MONGODB_DISABLED", Boolean);
   }
 
   _initAppRoot() {
     // we save root of the server
-    this.set('SERVER_ROOT', process.cwd());
+    this.set("SERVER_ROOT", process.cwd());
 
     // and we also save root of the library (dynamically find out the nearest package.json)
     let currentDirname = path.dirname(url.fileURLToPath(import.meta.url));
-    while (!fs.existsSync(path.join(currentDirname, 'package.json'))) {
-      currentDirname = path.join(currentDirname, '..');
+    while (!fs.existsSync(path.join(currentDirname, "package.json"))) {
+      currentDirname = path.join(currentDirname, "..");
     }
-    this.set('GLINT_ROOT', path.resolve(currentDirname));
+    this.set("GLINT_ROOT", path.resolve(currentDirname));
   }
 
   _initDotenv() {
@@ -102,12 +102,12 @@ class Config {
     const cloudMode = this.CLOUD_ENV;
     const envFileName = cloudMode ? `${runtimeMode}-${cloudMode}` : runtimeMode;
 
-    const envPath = path.join(this.SERVER_ROOT, 'env', envFileName + '.env');
+    const envPath = path.join(this.SERVER_ROOT, "env", envFileName + ".env");
     if (fs.existsSync(envPath)) {
-      dotenv.config({path: envPath});
+      dotenv.config({ path: envPath });
     } else {
       // logger cannot be used here, because Config is not yet initialized
-      console.warn('Unable to load .env file on path: ' + envPath);
+      console.warn("Unable to load .env file on path: " + envPath);
     }
   }
 }

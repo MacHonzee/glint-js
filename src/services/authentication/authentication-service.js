@@ -1,29 +1,29 @@
-import jwt from 'jsonwebtoken';
-import cookieParser from 'cookie-parser';
-import ms from 'ms';
-import mongoose from 'mongoose';
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
+import ms from "ms";
+import mongoose from "mongoose";
 
-import Config from '../utils/config.js';
-import UserModel from '../../models/user-model.js';
-import SecretManager from '../secret-manager/secret-manager.js';
+import Config from "../utils/config.js";
+import UserModel from "../../models/user-model.js";
+import SecretManager from "../secret-manager/secret-manager.js";
 
 const CFG_DEFAULTS = {
-  sessionExpiry: '12h',
-  refreshTokenExpiry: '30d',
+  sessionExpiry: "12h",
+  refreshTokenExpiry: "30d",
 };
 
 class AuthenticationService {
   async init() {
-    this._sessionExpiry = ms(Config.get('AUTH_SESSION_EXPIRY') || CFG_DEFAULTS.sessionExpiry) / 1000;
-    this._refreshTokenExpiry = ms(Config.get('AUTH_REFRESH_TOKEN_EXPIRY') || CFG_DEFAULTS.refreshTokenExpiry) / 1000;
+    this._sessionExpiry = ms(Config.get("AUTH_SESSION_EXPIRY") || CFG_DEFAULTS.sessionExpiry) / 1000;
+    this._refreshTokenExpiry = ms(Config.get("AUTH_REFRESH_TOKEN_EXPIRY") || CFG_DEFAULTS.refreshTokenExpiry) / 1000;
 
-    this._cookieKey = Config.get('AUTH_COOKIE_KEY') || await SecretManager.get('authCookieKey');
-    this._tokenKey = Config.get('AUTH_JWT_KEY') || await SecretManager.get('authJwtKey');
-    this._refreshTokenKey = Config.get('AUTH_REFRESH_TOKEN_KEY') || await SecretManager.get('authRefreshTokenKey');
+    this._cookieKey = Config.get("AUTH_COOKIE_KEY") || (await SecretManager.get("authCookieKey"));
+    this._tokenKey = Config.get("AUTH_JWT_KEY") || (await SecretManager.get("authJwtKey"));
+    this._refreshTokenKey = Config.get("AUTH_REFRESH_TOKEN_KEY") || (await SecretManager.get("authRefreshTokenKey"));
   }
 
   async initCookieParser(app) {
-    const isProduction = Config.NODE_ENV === 'production';
+    const isProduction = Config.NODE_ENV === "production";
 
     this.COOKIE_OPTIONS = {
       httpOnly: true,
@@ -32,20 +32,20 @@ class AuthenticationService {
       maxAge: this._refreshTokenExpiry * 1000,
 
       // frontend is handled always from different service, hence "none" for prod
-      sameSite: isProduction ? 'none' : 'lax',
+      sameSite: isProduction ? "none" : "lax",
 
       // we need it at least in logout and refreshToken commands
-      path: '/user',
+      path: "/user",
     };
 
     app.use(cookieParser(this._cookieKey));
   }
 
   getToken(userPayload) {
-    return jwt.sign({id: userPayload.id, user: userPayload}, this._tokenKey, {
+    return jwt.sign({ id: userPayload.id, user: userPayload }, this._tokenKey, {
       expiresIn: this._sessionExpiry,
     });
-  };
+  }
 
   getRefreshToken(userPayload) {
     // create token id
@@ -59,14 +59,14 @@ class AuthenticationService {
     const exp = Math.floor(refreshTokenTtl.getTime() / 1000);
 
     // create the token with the data and secret
-    const refreshToken = jwt.sign( {tid: refreshTokenId, user: userPayload, iat, exp}, this._refreshTokenKey);
+    const refreshToken = jwt.sign({ tid: refreshTokenId, user: userPayload, iat, exp }, this._refreshTokenKey);
 
     return {
       refreshToken,
       refreshTokenTtl,
       refreshTokenId,
     };
-  };
+  }
 
   verifyToken(token) {
     // TODO implement a blacklist of tokens in memcached / redis / something, that will
@@ -76,7 +76,7 @@ class AuthenticationService {
 
   verifyRefreshToken(refreshToken) {
     return jwt.verify(refreshToken, this._refreshTokenKey);
-  };
+  }
 
   decodeToken(token) {
     return jwt.decode(token);

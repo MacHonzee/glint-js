@@ -1,17 +1,17 @@
-import UseCaseEnvironment from '../services/server/use-case-environment.js';
-import UseCaseError from '../services/server/use-case-error.js';
-import RouteRegister from '../services/server/route-register.js';
-import LoggerFactory from '../services/logging/logger-factory.js';
+import UseCaseEnvironment from "../services/server/use-case-environment.js";
+import UseCaseError from "../services/server/use-case-error.js";
+import RouteRegister from "../services/server/route-register.js";
+import LoggerFactory from "../services/logging/logger-factory.js";
 
 class Error404 extends UseCaseError {
   constructor(req) {
     super(
-        'Handler for request not found.',
-        'handlerNotFound',
-        {
-          url: req.originalUrl,
-        },
-        404,
+      "Handler for request not found.",
+      "handlerNotFound",
+      {
+        url: req.originalUrl,
+      },
+      404,
     );
   }
 }
@@ -19,13 +19,13 @@ class Error404 extends UseCaseError {
 class InvalidMethod extends UseCaseError {
   constructor(req) {
     super(
-        'Handler requested with invalid method.',
-        'invalidHandlerMethod',
-        {
-          url: req.originalUrl,
-          method: req.method,
-        },
-        405,
+      "Handler requested with invalid method.",
+      "invalidHandlerMethod",
+      {
+        url: req.originalUrl,
+        method: req.method,
+      },
+      405,
     );
   }
 }
@@ -33,7 +33,7 @@ class InvalidMethod extends UseCaseError {
 class ContextMiddleware {
   // this middlewares must be first at all costs
   ORDER = -Infinity;
-  logger = LoggerFactory.create('Middleware.Context');
+  logger = LoggerFactory.create("Middleware.Context");
 
   async process(req, res, next) {
     // TODO we should start some MDC here probably

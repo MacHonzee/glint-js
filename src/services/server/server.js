@@ -1,28 +1,28 @@
-import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import cors from 'cors';
-import compression from 'compression';
-import fileUpload from 'express-fileupload';
-import helmet from 'helmet';
+import express from "express";
+import fs from "fs";
+import path from "path";
+import cors from "cors";
+import compression from "compression";
+import fileUpload from "express-fileupload";
+import helmet from "helmet";
 
-import Config from '../utils/config.js';
-import LoggerFactory from '../logging/logger-factory.js';
-import RouteRegister from './route-register.js';
-import MongoClient from '../database/mongo-client.js';
-import ValidationService from '../validation/validation-service.js';
-import AuthenticationService from '../authentication/authentication-service.js';
-import UseCaseError from './use-case-error.js';
+import Config from "../utils/config.js";
+import LoggerFactory from "../logging/logger-factory.js";
+import RouteRegister from "./route-register.js";
+import MongoClient from "../database/mongo-client.js";
+import ValidationService from "../validation/validation-service.js";
+import AuthenticationService from "../authentication/authentication-service.js";
+import UseCaseError from "./use-case-error.js";
 
 class CorsError extends UseCaseError {
   constructor() {
-    super('Request was blocked by CORS policy.', 'blockedByCors');
+    super("Request was blocked by CORS policy.", "blockedByCors");
   }
 }
 
 class Server {
   app = express();
-  logger = LoggerFactory.create('Server.Startup');
+  logger = LoggerFactory.create("Server.Startup");
   port = Config.PORT || 8080;
 
   async start() {
@@ -57,31 +57,31 @@ class Server {
   async _registerMiddlewares() {
     // add some default middlewares
     this.app.use(express.json());
-    this.app.use(express.urlencoded({extended: true}));
+    this.app.use(express.urlencoded({ extended: true }));
     this.app.use(compression());
     this.app.use(fileUpload({}));
     this.app.use(helmet());
-    this.app.disable('x-powered-by');
+    this.app.disable("x-powered-by");
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);
 
     const middlewares = [];
 
     // self-discovery of app middlewares
-    const appMiddlewareFldPath = path.join(Config.SERVER_ROOT, 'app', 'middlewares');
+    const appMiddlewareFldPath = path.join(Config.SERVER_ROOT, "app", "middlewares");
     if (fs.existsSync(appMiddlewareFldPath)) {
       const appEntries = fs.readdirSync(appMiddlewareFldPath);
       for (const entry of appEntries) {
-        const middlewareClass = (await import('file://' + path.join(appMiddlewareFldPath, entry))).default;
+        const middlewareClass = (await import("file://" + path.join(appMiddlewareFldPath, entry))).default;
         middlewares.push(middlewareClass);
       }
     }
 
     // self-discovery of library middlewares
-    const libMiddlewareFldPath = path.join(Config.GLINT_ROOT, 'src', 'middlewares');
+    const libMiddlewareFldPath = path.join(Config.GLINT_ROOT, "src", "middlewares");
     const libEntries = fs.readdirSync(libMiddlewareFldPath);
     for (const entry of libEntries) {
-      const middlewareClass = (await import('file://' + path.join(libMiddlewareFldPath, entry))).default;
+      const middlewareClass = (await import("file://" + path.join(libMiddlewareFldPath, entry))).default;
       middlewares.push(middlewareClass);
     }
 
@@ -89,7 +89,7 @@ class Server {
     for (const middlewareClass of middlewares) {
       const mdlwrName = middlewareClass.constructor.name;
       if (middlewareClass.ORDER == null) {
-        throw new Error('ORDER attribute is not set for middleware ' + mdlwrName);
+        throw new Error("ORDER attribute is not set for middleware " + mdlwrName);
       }
 
       if (!middlewareClass.process) {
@@ -106,7 +106,7 @@ class Server {
       const mdl1Name = middleware.constructor.name;
       if (nextMiddleware && middleware.ORDER === nextMiddleware.ORDER) {
         const mdl2Name = nextMiddleware.constructor.name;
-        throw new Error('Found middlewares with same ORDER attribute: ' + mdl1Name + ', ' + mdl2Name);
+        throw new Error("Found middlewares with same ORDER attribute: " + mdl1Name + ", " + mdl2Name);
       }
 
       switch (middleware.process.length) {
@@ -119,7 +119,7 @@ class Server {
           break;
 
         default:
-          throw new Error('Invalid length of arguments in middleware ' + mdl1Name);
+          throw new Error("Invalid length of arguments in middleware " + mdl1Name);
       }
     });
 
@@ -140,10 +140,10 @@ class Server {
   }
 
   _registerCorsHandler() {
-    const whitelist = Config.get('CORS_WHITELIST')?.split(',') || [];
+    const whitelist = Config.get("CORS_WHITELIST")?.split(",") || [];
     const corsOptions = {
       origin: (origin, callback) => {
-        const normalizedOrigin = origin && origin.replace(/\/$/, '');
+        const normalizedOrigin = origin && origin.replace(/\/$/, "");
         if (!origin || whitelist.includes(normalizedOrigin)) {
           callback(null, true);
         } else {
@@ -158,7 +158,7 @@ class Server {
   }
 
   async _onAfterStart() {
-    this.logger.info('Application is running on address http://localhost:' + this.port);
+    this.logger.info("Application is running on address http://localhost:" + this.port);
   }
 }
 

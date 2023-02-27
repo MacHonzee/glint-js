@@ -1,11 +1,11 @@
-import DefaultRoles from './default-roles.js';
+import DefaultRoles from "./default-roles.js";
 
-import PermissionRoute from '../routes/permission-route.js';
-import SysRoute from '../routes/sys-route.js';
-import UserRoute from '../routes/user-route.js';
+import PermissionRoute from "../routes/permission-route.js";
+import SysRoute from "../routes/sys-route.js";
+import UserRoute from "../routes/user-route.js";
 
-const Get = 'get';
-const Post = 'post';
+const Get = "get";
+const Post = "post";
 
 // TODO add configurable optional middlewares or middlewarish functions,
 // for example we do not need to copy paste validations, when we can just configure it here for each request
@@ -16,76 +16,76 @@ const Post = 'post';
 // TODO add OpenAPI specifications somewhere (maybe generate them from Ajv?)
 const Mappings = {
   // sys
-  '/sys/ping': {
+  "/sys/ping": {
     method: Get,
     controller: SysRoute.ping.bind(SysRoute),
     roles: [DefaultRoles.public],
   },
-  '/sys/getEnvironment': {
+  "/sys/getEnvironment": {
     method: Get,
     controller: SysRoute.getEnvironment.bind(SysRoute),
     roles: [DefaultRoles.admin],
   },
-  '/sys/syncIndexes': {
+  "/sys/syncIndexes": {
     method: Post,
     controller: SysRoute.syncIndexes.bind(SysRoute),
     roles: [DefaultRoles.admin],
   },
 
   // permission
-  '/permission/secretGrant': {
+  "/permission/secretGrant": {
     method: Post,
     controller: PermissionRoute.secretGrant.bind(PermissionRoute),
     roles: [DefaultRoles.authenticated],
   },
-  '/permission/grant': {
+  "/permission/grant": {
     method: Post,
     controller: PermissionRoute.grant.bind(PermissionRoute),
     roles: [DefaultRoles.admin, DefaultRoles.authority],
   },
-  '/permission/revoke': {
+  "/permission/revoke": {
     method: Post,
     controller: PermissionRoute.revoke.bind(PermissionRoute),
     roles: [DefaultRoles.admin, DefaultRoles.authority],
   },
-  '/permission/list': {
-    method: 'get',
+  "/permission/list": {
+    method: "get",
     controller: PermissionRoute.list.bind(PermissionRoute),
     roles: [DefaultRoles.authenticated],
   },
-  '/permission/listAll': {
-    method: 'get',
+  "/permission/listAll": {
+    method: "get",
     controller: PermissionRoute.listAll.bind(PermissionRoute),
     roles: [DefaultRoles.admin, DefaultRoles.authority],
   },
 
   // user
-  '/user/register': {
+  "/user/register": {
     method: Post,
     controller: UserRoute.register.bind(UserRoute),
     roles: [DefaultRoles.public],
   },
-  '/user/login': {
+  "/user/login": {
     method: Post,
     controller: UserRoute.login.bind(UserRoute),
     roles: [DefaultRoles.public],
   },
-  '/user/refreshToken': {
+  "/user/refreshToken": {
     method: Post,
     controller: UserRoute.refreshToken.bind(UserRoute),
     roles: [DefaultRoles.public],
   },
-  '/user/logout': {
+  "/user/logout": {
     method: Post,
     controller: UserRoute.logout.bind(UserRoute),
     roles: [DefaultRoles.authenticated],
   },
-  '/user/changePassword': {
+  "/user/changePassword": {
     method: Post,
     controller: UserRoute.changePassword.bind(UserRoute),
     roles: [DefaultRoles.authenticated],
   },
-  '/user/list': {
+  "/user/list": {
     method: Get,
     controller: UserRoute.list.bind(UserRoute),
     roles: [DefaultRoles.admin, DefaultRoles.authority],

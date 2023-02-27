@@ -1,60 +1,51 @@
-import PermissionModel from '../models/permission-model.js';
-import UserModel from '../models/user-model.js';
-import ValidationService from '../services/validation/validation-service.js';
-import UseCaseError from '../services/server/use-case-error.js';
-import DefaultRoles from '../config/default-roles.js';
-import Config from '../services/utils/config.js';
-import SecretManager from '../services/secret-manager/secret-manager.js';
-import AuthorizationService from '../services/authorization/authorization-service.js';
+import PermissionModel from "../models/permission-model.js";
+import UserModel from "../models/user-model.js";
+import ValidationService from "../services/validation/validation-service.js";
+import UseCaseError from "../services/server/use-case-error.js";
+import DefaultRoles from "../config/default-roles.js";
+import Config from "../services/utils/config.js";
+import SecretManager from "../services/secret-manager/secret-manager.js";
+import AuthorizationService from "../services/authorization/authorization-service.js";
 
 const LIST_PRIVILEGED_ROLES = [DefaultRoles.admin, DefaultRoles.authority];
 
 class CannotLoadRoles extends UseCaseError {
   constructor(userRoles) {
-    super(
-        'You are not authorized to load roles of other users.',
-        'cannotLoadRoles',
-        {userRoles, privilegedRoles: LIST_PRIVILEGED_ROLES},
-    );
+    super("You are not authorized to load roles of other users.", "cannotLoadRoles", {
+      userRoles,
+      privilegedRoles: LIST_PRIVILEGED_ROLES,
+    });
   }
 }
 
 class PermissionSecretNotAvailable extends UseCaseError {
   constructor() {
     super(
-        'Application is not deployed with any configuration to permission secret, contact administrator.',
-        'permissionSecretNotAvailable',
+      "Application is not deployed with any configuration to permission secret, contact administrator.",
+      "permissionSecretNotAvailable",
     );
   }
 }
 
 class PermissionSecretNotMatching extends UseCaseError {
   constructor(secret) {
-    super(
-        'Permission secret is not matching',
-        'permissionSecretNotMatching',
-        {secret},
-    );
+    super("Permission secret is not matching", "permissionSecretNotMatching", { secret });
   }
 }
 
 class UserNotFound extends UseCaseError {
   constructor(user) {
-    super(
-        'User with given username was not found.',
-        'userNotFound',
-        {user},
-    );
+    super("User with given username was not found.", "userNotFound", { user });
   }
 }
 
 class PermissionRoute {
-  async grant({dtoIn, uri}) {
+  async grant({ dtoIn, uri }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     await this._checkUser(dtoIn.user);
 
-    const permission = await new PermissionModel({user: dtoIn.user, role: dtoIn.role}).save();
+    const permission = await new PermissionModel({ user: dtoIn.user, role: dtoIn.role }).save();
 
     AuthorizationService.clearUserCache(dtoIn.user);
 
@@ -63,7 +54,7 @@ class PermissionRoute {
     };
   }
 
-  async secretGrant({dtoIn, uri}) {
+  async secretGrant({ dtoIn, uri }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     const permissionKey = await this._getPermissionKey();
@@ -73,7 +64,7 @@ class PermissionRoute {
 
     await this._checkUser(dtoIn.user);
 
-    const permission = await new PermissionModel({user: dtoIn.user, role: dtoIn.role}).save();
+    const permission = await new PermissionModel({ user: dtoIn.user, role: dtoIn.role }).save();
 
     AuthorizationService.clearUserCache(dtoIn.user);
 
@@ -82,13 +73,13 @@ class PermissionRoute {
     };
   }
 
-  async revoke({dtoIn, uri}) {
+  async revoke({ dtoIn, uri }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     let revoked;
     if (dtoIn.all) {
       await PermissionModel.deleteByUser(dtoIn.user);
-      revoked = 'all';
+      revoked = "all";
     } else {
       await PermissionModel.delete(dtoIn.user, dtoIn.role);
       revoked = dtoIn.role;
@@ -101,7 +92,7 @@ class PermissionRoute {
     };
   }
 
-  async list({dtoIn, uri, authorizationResult, session}) {
+  async list({ dtoIn, uri, authorizationResult, session }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // set default value based on session
@@ -131,7 +122,7 @@ class PermissionRoute {
   }
 
   async _getPermissionKey() {
-    return Config.get('PERMISSION_GRANT_KEY') || await SecretManager.get('permissionGrantSecret');
+    return Config.get("PERMISSION_GRANT_KEY") || (await SecretManager.get("permissionGrantSecret"));
   }
 
   async _checkUser(user) {

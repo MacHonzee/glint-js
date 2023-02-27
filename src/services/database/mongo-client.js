@@ -1,19 +1,19 @@
-import mongoose from 'mongoose';
-import {Mutex} from 'async-mutex';
-import LoggerFactory from '../logging/logger-factory.js';
-import Config from '../utils/config.js';
-import SecretManager from '../secret-manager/secret-manager.js';
+import mongoose from "mongoose";
+import { Mutex } from "async-mutex";
+import LoggerFactory from "../logging/logger-factory.js";
+import Config from "../utils/config.js";
+import SecretManager from "../secret-manager/secret-manager.js";
 
 class MongoClient {
   static connections = {};
   static mutex = new Mutex();
 
-  constructor(envKey = 'PRIMARY', fallbackEnvKey) {
+  constructor(envKey = "PRIMARY", fallbackEnvKey) {
     this.envKey = envKey;
     this.fallbackEnvKey = fallbackEnvKey;
     this.connection = null;
     this.mongoUri = null;
-    this.logger = LoggerFactory.create('Service.MongoClient');
+    this.logger = LoggerFactory.create("Service.MongoClient");
   }
 
   static async getConnection(envKey, fallbackEnvKey) {
@@ -22,7 +22,7 @@ class MongoClient {
 
     // lazy initialization of connection (only PRIMARY is explicitly connected)
     if (!connection) {
-      await (new MongoClient(envKey, fallbackEnvKey)).init();
+      await new MongoClient(envKey, fallbackEnvKey).init();
       connection = this.connections[envKey] || this.connections[fallbackEnvKey];
     }
 
@@ -49,33 +49,33 @@ class MongoClient {
 
     if (!mongoUri) {
       throw new Error(
-          'MongoDB connection not specified. ' +
+        "MongoDB connection not specified. " +
           `Either ${this.envKey}_MONGODB_URI or ${this.envKey}_MONGODB_SECRET have to be set in ENV, ` +
-        'or you can use fallback parameter.',
+          "or you can use fallback parameter.",
       );
     }
 
     this.mongoUri = mongoUri;
 
     try {
-      this.connection = await mongoose.createConnection(mongoUri, {autoIndex: false});
+      this.connection = await mongoose.createConnection(mongoUri, { autoIndex: false });
     } catch (e) {
-      this.logger.error('Error when connecting to database:', e);
+      this.logger.error("Error when connecting to database:", e);
       throw e;
     }
 
     if (usedFallback) {
       this.logger.info(`Successfully connected to database: ${this.fallbackEnvKey} as a fallback from: ${this.envKey}`);
-      MongoClient.connections[this.fallbackEnvKey] = {connection: this.connection, uri: this.mongoUri};
+      MongoClient.connections[this.fallbackEnvKey] = { connection: this.connection, uri: this.mongoUri };
     } else {
       this.logger.info(`Successfully connected to database: ${this.envKey}`);
-      MongoClient.connections[this.envKey] = {connection: this.connection, uri: this.mongoUri};
+      MongoClient.connections[this.envKey] = { connection: this.connection, uri: this.mongoUri };
     }
   }
 
   async _getMongoUri(envKey) {
-    const envConfigKey = envKey.toUpperCase() + '_MONGODB_URI';
-    return Config.get(envConfigKey) || await SecretManager.get('mongoDbUri_' + envKey);
+    const envConfigKey = envKey.toUpperCase() + "_MONGODB_URI";
+    return Config.get(envConfigKey) || (await SecretManager.get("mongoDbUri_" + envKey));
   }
 
   _handleExistingConnection() {

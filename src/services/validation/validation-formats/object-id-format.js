@@ -1,8 +1,8 @@
 const ObjectIdFormat = {
-  name: 'objectId',
+  name: "objectId",
   format: {
     validate: (value) => {
-      if (typeof value !== 'string') return false;
+      if (typeof value !== "string") return false;
 
       // this matches email currently
       return value.match(/^[0-9a-f]{24}$/);

@@ -7,7 +7,7 @@ class AuthorizationResult {
    * @param {Array<String>} useCaseRoles List of roles that are valid for given useCase
    * @param {Array<String>} userRoles List of roles that the user currently possesses
    */
-  constructor({authorized, user, useCaseRoles, userRoles}) {
+  constructor({ authorized, user, useCaseRoles, userRoles }) {
     this.authorized = authorized;
     this.user = user;
     this.useCaseRoles = useCaseRoles;
