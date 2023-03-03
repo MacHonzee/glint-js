@@ -5,9 +5,7 @@ function isNumeric(str) {
   return !isNaN(str) && !isNaN(parseFloat(str));
 }
 
-// TODO find a different library I guess than lru-cache, since we are not easily able to pass
-//  numbers within <-1, Infinity) interval (ie. infinite, disabled or standard cache)
-
+// TODO find a different library I guess -> we might need multi-key cache
 // TODO also prepare mongo-distributed cache too (there are libs for that)
 class LruCache extends LRUCache {
   constructor(options) {
