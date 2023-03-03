@@ -1,32 +1,54 @@
-import { jest } from "@jest/globals";
-import { AppEventEmitter } from "../../../src/index.js";
+import { jest, describe, it, expect } from "@jest/globals";
+import { AppEventEmitter } from "../../../src/index";
 
-describe("AppEventEmitter test", () => {
-  test("HDS", async () => {
-    function validationSubscription(arg1, arg2) {
-      expect(arg1).toBe(69);
-      expect(arg2).toBe(420);
-    }
+jest.spyOn(AppEventEmitter.logger, "info");
 
-    AppEventEmitter.subscribe("customEvent", validationSubscription);
-
-    AppEventEmitter.publish("customEvent", 69, 420);
+// Authored by ChatGPT
+describe("AppEventEmitter", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  test("HDS - anonymous function", async () => {
-    AppEventEmitter.subscribe("secondEvent", (arg1) => {
-      expect(arg1).toBe("Hello world!");
+  describe("publish", () => {
+    it("should emit the event with the correct parameters", () => {
+      const callback = jest.fn();
+      AppEventEmitter.on("my-event", callback);
+      AppEventEmitter.publish("my-event", "param1", "param2");
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith("param1", "param2");
     });
 
-    AppEventEmitter.publish("secondEvent", "Hello world!");
+    it("should log the emitted event", () => {
+      AppEventEmitter.publish("my-event", "param1", "param2");
+      expect(AppEventEmitter.logger.info).toHaveBeenCalledTimes(1);
+      expect(AppEventEmitter.logger.info).toHaveBeenCalledWith(
+        "Emitted event 'my-event' with parameters param1,param2",
+      );
+    });
   });
 
-  test("HDS - nothing subscribed", async () => {
-    const spyFunc = jest.fn();
+  describe("subscribe", () => {
+    it("should subscribe to the event with the correct callback", () => {
+      const callback = jest.fn();
+      AppEventEmitter.subscribe("my-event", callback);
+      expect(AppEventEmitter.listeners("my-event")).toContain(callback);
+    });
 
-    AppEventEmitter.subscribe("nonexistentEvent", spyFunc);
-    AppEventEmitter.publish("thirdEvent", "I should be silent.");
+    it("should log the subscribed event", () => {
+      const callback = jest.fn();
+      AppEventEmitter.subscribe("my-event", callback);
+      expect(AppEventEmitter.logger.info).toHaveBeenCalledTimes(1);
+      expect(AppEventEmitter.logger.info).toHaveBeenCalledWith(
+        `Subscribed to event 'my-event' with callback '${callback.name}'`,
+      );
+    });
 
-    expect(spyFunc).not.toBeCalled();
+    it("should log the subscribed event as anonymous function", () => {
+      AppEventEmitter.subscribe("my-event", () => {});
+      expect(AppEventEmitter.logger.info).toHaveBeenCalledTimes(1);
+      expect(AppEventEmitter.logger.info).toHaveBeenCalledWith(
+        `Subscribed to event 'my-event' with callback 'anonymous function'`,
+      );
+    });
   });
 });
