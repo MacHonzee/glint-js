@@ -3,7 +3,7 @@ const Languages = {
   en: {},
 };
 
-Languages.all = Object.values(Languages);
+Languages.all = Object.keys(Languages);
 
 Languages.add = function add(language) {
   this[language] = {};

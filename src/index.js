@@ -7,7 +7,7 @@ import AuthorizationService from "./services/authorization/authorization-service
 import AuthorizationResult from "./services/authorization/authorization-result.js";
 
 // services - database
-import { AbstractModel, ModelWarehouse } from "./services/database/abstract-model.js";
+import { AbstractModel, ModelWarehouse, DuplicateKeyError } from "./services/database/abstract-model.js";
 import MongoClient from "./services/database/mongo-client.js";
 import mongoose from "mongoose"; // has to be exported because new Schema checks that we are using one Mongoose lib
 
@@ -45,6 +45,7 @@ export {
   AuthorizationResult,
   AbstractModel,
   ModelWarehouse,
+  DuplicateKeyError,
   MongoClient,
   LoggerFactory,
   SecretManager,

@@ -12,16 +12,19 @@ class DuplicateKeyError extends UseCaseError {
 const ModelWarehouse = {};
 
 class AbstractModel {
-  constructor(schema, options) {
+  constructor(schema, options = {}) {
     this.schema = new mongoose.Schema(schema, options);
 
     this._addErrorMiddleware();
   }
 
   async createModel(connectionKey = "PRIMARY", fallbackKey) {
-    if (Config.MONGODB_DISABLED) return;
-
-    const connection = await MongoClient.getConnection(connectionKey, fallbackKey);
+    let connection;
+    if (Config.MONGODB_DISABLED) {
+      connection = mongoose;
+    } else {
+      connection = await MongoClient.getConnection(connectionKey, fallbackKey);
+    }
 
     this.schema.loadClass(this.constructor);
 
@@ -42,4 +45,4 @@ class AbstractModel {
   }
 }
 
-export { AbstractModel, ModelWarehouse };
+export { AbstractModel, ModelWarehouse, DuplicateKeyError };
