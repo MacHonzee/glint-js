@@ -36,21 +36,12 @@ describe("RouteRegister", () => {
     });
 
     it("should return a route object specified in application's mappings.js", () => {
-      const route = RouteRegister.getRoute("testcase/hello");
-      expect(route.url).toBe("testcase/hello");
+      const route = RouteRegister.getRoute("/testcase/hello");
+      expect(route.url).toBe("/testcase/hello");
       expect(route.method).toBe("post");
       expect(typeof route.controller).toBe("function");
       expect(typeof route.config).toBe("object");
       expect(route.config.roles).toEqual(["Admin"]);
-    });
-
-    it("should throw an error if RouteRegister was not initialized properly", () => {
-      // Create a new instance of RouteRegister without calling init()
-      const routeRegister = new RouteRegister.constructor();
-
-      expect(() => {
-        routeRegister.getRoute("/test");
-      }).toThrowError("RouteRegister was not initialized properly, cannot load route metadata");
     });
   });
 });

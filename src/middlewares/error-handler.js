@@ -5,7 +5,7 @@ class ErrorHandler {
   ORDER = 100;
   logger = LoggerFactory.create("Middleware.ErrorHandler", "error");
 
-  // don't remove unused "next", otherwise it will stop being an error middlewares
+  // don't remove unused "next", otherwise it will stop being an error middleware
   // eslint-disable-next-line no-unused-vars
   async process(err, req, res, next) {
     const dtoOut = {

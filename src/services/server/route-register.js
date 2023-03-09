@@ -2,7 +2,6 @@ import path from "path";
 import Config from "../utils/config.js";
 
 class RouteRegister {
-  _active = false;
   _routes = {};
 
   async init() {
@@ -15,18 +14,11 @@ class RouteRegister {
     const appMappingsPath = path.join(Config.SERVER_ROOT, "app", "config", "mappings.js");
     const appMappings = await import("file://" + appMappingsPath);
     this._registerRoutesFromMappings(appMappings.default);
-
-    this._active = true;
   }
 
   _registerRoutesFromMappings(mappings) {
     for (const [url, config] of Object.entries(mappings)) {
-      this._routes[url] = {
-        url,
-        method: config.method,
-        controller: this._wrapController(config.controller),
-        config,
-      };
+      this.registerRoute(url, config);
     }
   }
 
@@ -38,19 +30,20 @@ class RouteRegister {
   }
 
   getRoutes() {
-    if (!this._active) {
-      throw new Error("RouteRegister was not initialized properly, cannot load route metadata");
-    }
-
     return Object.values(this._routes);
   }
 
   getRoute(routeUrl) {
-    if (!this._active) {
-      throw new Error("RouteRegister was not initialized properly, cannot load route metadata");
-    }
-
     return this._routes[routeUrl];
+  }
+
+  registerRoute(url, config) {
+    this._routes[url] = {
+      url,
+      method: config.method,
+      controller: this._wrapController(config.controller),
+      config,
+    };
   }
 }
 

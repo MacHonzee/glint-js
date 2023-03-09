@@ -27,7 +27,12 @@ class Server {
 
   async start() {
     await this._onBeforeStart();
-    this.app.listen(this.port, () => this._onAfterStart());
+    this.server = this.app.listen(this.port, () => this._onAfterStart());
+    return this;
+  }
+
+  async stop() {
+    await this.server.close();
   }
 
   async _onBeforeStart() {

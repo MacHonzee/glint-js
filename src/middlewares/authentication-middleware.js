@@ -2,9 +2,6 @@ import DefaultRoles from "../config/default-roles.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
 import UseCaseError from "../services/server/use-case-error.js";
 
-// TODO remove this dependency, rewrite it to some helper or maybe just private method
-import { ExtractJwt } from "passport-jwt";
-
 class AuthenticationError extends UseCaseError {
   constructor(cause) {
     super("User is not authenticated.", "userNotAuthenticated", { cause }, 401);
@@ -34,11 +31,22 @@ class AuthenticationMiddleware {
   }
 
   async _authenticate(request) {
+    const token = this._extractToken(request);
+    if (!token) {
+      throw new AuthenticationError("authorization header not found");
+    }
+
     try {
-      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
       return AuthenticationService.verifyToken(token);
     } catch (e) {
       throw new AuthenticationError(e);
+    }
+  }
+
+  _extractToken(request) {
+    let authHeader = request.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      return authHeader.substring("Bearer ".length);
     }
   }
 }

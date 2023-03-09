@@ -1,8 +1,18 @@
 const Mappings = {
-  "testcase/hello": {
+  "/testcase/hello": {
     method: "post",
-    controller: () => {},
+    controller: () => ({ hello: "world" }),
     roles: ["Admin"],
+  },
+  "/testcase/public": {
+    method: "post",
+    controller: () => ({ hello: "world" }),
+    roles: ["Public"],
+  },
+  "/testcase/authenticated": {
+    method: "post",
+    controller: () => ({ hello: "world" }),
+    roles: ["Authenticated"],
   },
 };
 

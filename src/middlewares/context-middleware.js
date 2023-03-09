@@ -17,13 +17,14 @@ class Error404 extends UseCaseError {
 }
 
 class InvalidMethod extends UseCaseError {
-  constructor(req) {
+  constructor(req, expectedMethod) {
     super(
       "Handler requested with invalid method.",
       "invalidHandlerMethod",
       {
         url: req.originalUrl,
         method: req.method,
+        expectedMethod,
       },
       405,
     );
@@ -31,7 +32,7 @@ class InvalidMethod extends UseCaseError {
 }
 
 class ContextMiddleware {
-  // this middlewares must be first at all costs
+  // this middleware must be first at all costs
   ORDER = -Infinity;
   logger = LoggerFactory.create("Middleware.Context");
 
@@ -52,7 +53,7 @@ class ContextMiddleware {
     }
 
     if (route.config.method !== req.method.toLowerCase()) {
-      throw new InvalidMethod(req);
+      throw new InvalidMethod(req, route.config.method);
     }
 
     ucEnv.mapping = route.config;
