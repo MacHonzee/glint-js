@@ -157,9 +157,20 @@ class Server {
       },
 
       credentials: true,
+      maxAge: 86400,
+      preflightContinue: true,
     };
 
     this.app.use(cors(corsOptions));
+    this.app.use((req, res, next) => {
+      if (req.method === "OPTIONS") {
+        res.setHeader("Cache-Control", "public, max-age=86400");
+        // No Vary required: cors sets it already set automatically
+        res.end();
+      } else {
+        next();
+      }
+    });
   }
 
   async _onAfterStart() {
