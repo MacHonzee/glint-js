@@ -24,10 +24,12 @@ const TEST_ROUTES = {
   },
 };
 
+let port;
 describe("AuthenticationMiddleware", () => {
   beforeAll(async () => {
     // start server
     const app = await TestService.startExpress();
+    port = TestService.expressServer.address().port;
 
     // register routes
     Object.keys(TEST_ROUTES).forEach((testRoute) => {
@@ -63,7 +65,7 @@ describe("AuthenticationMiddleware", () => {
     const token = jwt.sign(tokenPayload, "jwtKey", { expiresIn: "1h" });
 
     const response = await axios.post(
-      "http://localhost:8080/testcase/authenticated",
+      `http://localhost:${port}/testcase/authenticated`,
       {},
       {
         headers: {
@@ -77,7 +79,7 @@ describe("AuthenticationMiddleware", () => {
   });
 
   it("should return 401 when user is not authenticated", async () => {
-    await AssertionService.assertCallThrows(axios.post("http://localhost:8080/testcase/hello"), (response) => {
+    await AssertionService.assertCallThrows(axios.post(`http://localhost:${port}/testcase/hello`), (response) => {
       expect(response.status).toBe(401);
       expect(response.data).toMatchObject({
         message: "User is not authenticated.",
@@ -91,7 +93,7 @@ describe("AuthenticationMiddleware", () => {
 
   it("should not proceed with authentication since it is public route", async () => {
     jest.spyOn(AuthenticationService, "verifyToken");
-    const response = await axios.post("http://localhost:8080/testcase/public");
+    const response = await axios.post(`http://localhost:${port}/testcase/public`);
 
     expect(response.status).toBe(200);
     expect(response.data).toBeFalsy();

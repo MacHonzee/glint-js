@@ -21,12 +21,14 @@ const TEST_ROUTES = {
   },
 };
 
+let port;
 describe("AuthorizationMiddleware", () => {
   beforeAll(async () => {
     jest.spyOn(AuthorizationService, "authorize");
 
     // start server
     const app = await TestService.startExpress();
+    port = TestService.expressServer.address().port;
 
     // register routes
     Object.keys(TEST_ROUTES).forEach((testRoute) => {
@@ -65,7 +67,7 @@ describe("AuthorizationMiddleware", () => {
     const token = jwt.sign(tokenPayload, "jwtKey", { expiresIn: "1h" });
 
     const response = await axios.post(
-      "http://localhost:8080/testcase/hello",
+      `http://localhost:${port}/testcase/hello`,
       {},
       {
         headers: {
@@ -92,7 +94,7 @@ describe("AuthorizationMiddleware", () => {
         const token = jwt.sign(tokenPayload, "jwtKey", { expiresIn: "1h" });
 
         return axios.post(
-          "http://localhost:8080/testcase/hello",
+          `http://localhost:${port}/testcase/hello`,
           {},
           {
             headers: {
@@ -117,7 +119,7 @@ describe("AuthorizationMiddleware", () => {
 
   it("should not proceed with authorization since it is public route", async () => {
     jest.clearAllMocks();
-    const response = await axios.post("http://localhost:8080/testcase/public");
+    const response = await axios.post(`http://localhost:${port}/testcase/public`);
 
     expect(response.status).toBe(200);
     expect(response.data).toBeFalsy();

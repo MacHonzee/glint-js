@@ -13,18 +13,29 @@ class TestService {
     await this.app.stop();
   }
 
-  async startExpress() {
+  async startExpress(port) {
     const app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    this.expressServer = await app.listen(8080);
+    const serverPort = port || this.getRandomPort();
+    this.expressServer = await app.listen(serverPort);
 
     return app;
   }
 
   async stopExpress() {
     await this.expressServer?.close();
+  }
+
+  getRandomPort() {
+    global.usedPorts = global.usedPorts || [];
+    let randomPort;
+    do {
+      randomPort = Math.floor(Math.random() * 10_000) + 20_000;
+    } while (global.usedPorts.includes(randomPort));
+    global.usedPorts.push(randomPort);
+    return randomPort;
   }
 
   // async call() {}

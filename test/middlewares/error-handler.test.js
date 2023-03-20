@@ -15,10 +15,12 @@ const TEST_ROUTES = {
   },
 };
 
+let port;
 describe("ErrorHandler", () => {
   beforeAll(async () => {
     // start server
     const app = await TestService.startExpress();
+    port = TestService.expressServer.address().port;
 
     // register middlewares and routes
     app.use(ContextMiddleware.process.bind(ContextMiddleware));
@@ -37,7 +39,7 @@ describe("ErrorHandler", () => {
   });
 
   it("should fail on error 500 and produce trace", async () => {
-    await AssertionService.assertCallThrows(axios.post("http://localhost:8080/testcase/hello"), (response) => {
+    await AssertionService.assertCallThrows(axios.post(`http://localhost:${port}/testcase/hello`), (response) => {
       expect(response.status).toBe(500);
       expect(response.data).toMatchObject({
         message: "Some unexpected error",
@@ -49,7 +51,7 @@ describe("ErrorHandler", () => {
   it("should fail on error 500 and not produce trace", async () => {
     jest.spyOn(Config, "NODE_ENV", "get").mockReturnValue("production");
 
-    await AssertionService.assertCallThrows(axios.post("http://localhost:8080/testcase/hello"), (response) => {
+    await AssertionService.assertCallThrows(axios.post(`http://localhost:${port}/testcase/hello`), (response) => {
       expect(response.status).toBe(500);
       expect(response.data).toMatchObject({
         message: "Some unexpected error",

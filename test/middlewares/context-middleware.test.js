@@ -15,10 +15,12 @@ const TEST_ROUTES = {
   },
 };
 
+let port;
 describe("ContextMiddleware", () => {
   beforeAll(async () => {
     // start server
     const app = await TestService.startExpress();
+    port = TestService.expressServer.address().port;
 
     // register middlewares and routes
     app.use(ContextMiddleware.process.bind(ContextMiddleware));
@@ -37,7 +39,7 @@ describe("ContextMiddleware", () => {
   });
 
   it("should pass route handling and add UseCaseEnvironment to request", async () => {
-    const response = await axios.post("http://localhost:8080/testcase/hello");
+    const response = await axios.post(`http://localhost:${port}/testcase/hello`);
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({
@@ -46,25 +48,28 @@ describe("ContextMiddleware", () => {
         method: "post",
         roles: ["Public"],
       },
-      uri: "http://localhost:8080/testcase/hello",
+      uri: `http://localhost:${port}/testcase/hello`,
     });
   });
 
   it("should fail on error 404 when calling unknown route", async () => {
-    await AssertionService.assertCallThrows(axios.post("http://localhost:8080/testcase/doesNotExist"), (response) => {
-      expect(response.status).toBe(404);
-      expect(response.data).toMatchObject({
-        message: "Handler for request not found.",
-        code: "glint-js/handlerNotFound",
-        params: {
-          url: "/testcase/doesNotExist",
-        },
-      });
-    });
+    await AssertionService.assertCallThrows(
+      axios.post(`http://localhost:${port}/testcase/doesNotExist`),
+      (response) => {
+        expect(response.status).toBe(404);
+        expect(response.data).toMatchObject({
+          message: "Handler for request not found.",
+          code: "glint-js/handlerNotFound",
+          params: {
+            url: "/testcase/doesNotExist",
+          },
+        });
+      },
+    );
   });
 
   it("should fail on error 405 when calling route with different method", async () => {
-    await AssertionService.assertCallThrows(axios.patch("http://localhost:8080/testcase/hello"), (response) => {
+    await AssertionService.assertCallThrows(axios.patch(`http://localhost:${port}/testcase/hello`), (response) => {
       expect(response.status).toBe(405);
       expect(response.data).toMatchObject({
         message: "Handler requested with invalid method.",
