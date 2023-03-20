@@ -27,7 +27,7 @@ describe("MongoClient", () => {
     });
 
     it("creates a new connection and caches it if not already established", async () => {
-      const createConnectionSpy = jest.spyOn(mongoose, "createConnection");
+      const createConnectionSpy = jest.spyOn(mongoose, "createConnection").mockResolvedValue(new mongoose.Connection());
       const mongoUri = "mongodb://localhost:27017/primary";
       SecretManager.get.mockResolvedValue(mongoUri);
       await MongoClient.getConnection("PRIMARY", "FALLBACK");
@@ -64,7 +64,7 @@ describe("MongoClient", () => {
     });
 
     it("establishes a new connection and caches it if not already established", async () => {
-      const createConnectionSpy = jest.spyOn(mongoose, "createConnection");
+      const createConnectionSpy = jest.spyOn(mongoose, "createConnection").mockResolvedValue(new mongoose.Connection());
       const mongoUri = "mongodb://localhost:27017/primary";
       SecretManager.get.mockResolvedValue(mongoUri);
       const client = new MongoClient();
