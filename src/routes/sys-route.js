@@ -12,7 +12,15 @@ class SysRoute {
       this._pkgJson = JSON.parse(await fs.promises.readFile(pkgJsonPath, "utf8"));
     }
 
-    return { status: "OK", version: this._pkgJson.version, ts: new Date(), dtoIn: ucEnv.dtoIn };
+    return {
+      status: "OK",
+      version: this._pkgJson.version,
+      ts: new Date(),
+      nodeEnv: Config.NODE_ENV,
+      cloudEnv: Config.CLOUD_ENV,
+      buildTs: Config.BUILD_TS,
+      dtoIn: ucEnv.dtoIn,
+    };
   }
 
   async getEnvironment() {

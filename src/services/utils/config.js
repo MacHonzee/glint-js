@@ -69,6 +69,10 @@ class Config {
     return this.get("CLOUD_ENV");
   }
 
+  get BUILD_TS() {
+    return this.get("BUILD_TS");
+  }
+
   get PORT() {
     return this.get("PORT", Number);
   }
