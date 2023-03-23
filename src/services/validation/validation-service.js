@@ -34,10 +34,14 @@ class InvalidDtoIn extends Error {
 class ValidationService {
   constructor() {
     this._logger = LoggerFactory.create("Service.ValidationService");
-    // TODO make allErrors option configurable via some DEBUG config
-    this._ajv = new Ajv({ allErrors: false, coerceTypes: true });
+    this._ajv = new Ajv({ allErrors: true, coerceTypes: true, removeAdditional: true });
     addFormats(this._ajv);
   }
+
+  ERRORS = {
+    SchemaNotFoundError,
+    InvalidDtoIn,
+  };
 
   async init() {
     // TODO add API or auto-loading of custom formats
