@@ -1,4 +1,5 @@
-import { URL } from "url";
+import { URL, parse as parseUrl } from "url";
+import qs from "qs";
 
 class Uri extends URL {
   constructor(input, base) {
@@ -12,7 +13,8 @@ class UseCaseEnvironment {
     this._req = req;
     this._res = res;
 
-    this._dtoIn = { ...this._req.query, ...this._req.body, ...this._req.files };
+    const parsedQuery = qs.parse(parseUrl(this._req.url).query);
+    this._dtoIn = { ...parsedQuery, ...this._req.body, ...this._req.files };
 
     this._uri = new Uri(`${req.protocol}://${req.host}${req.originalUrl}`);
   }
