@@ -8,6 +8,7 @@ describe("UseCaseEnvironment", () => {
     req = {
       protocol: "http",
       host: "localhost:3000",
+      url: "/api/users?sortBy=name&page=1",
       originalUrl: "/api/users?sortBy=name",
       query: { sortBy: "name", page: "1" },
       body: { firstName: "John", lastName: "Doe" },
