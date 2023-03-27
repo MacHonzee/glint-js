@@ -68,7 +68,7 @@
     "testEnvironment": "jest-environment-node",
     "transform": {},
     "collectCoverage": true,
-    "collectCoverageFrom": ["**/*.{js,jsx}", "!**/node_modules/**"],
+    "collectCoverageFrom": ["src/**/*.{js,jsx}"],
     "coverageReporters": ["html"]
   }
 }
