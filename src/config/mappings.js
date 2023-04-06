@@ -7,14 +7,18 @@ import UserRoute from "../routes/user-route.js";
 const Get = "get";
 const Post = "post";
 
-// TODO add configurable optional middlewares or middlewarish functions,
-// for example we do not need to copy paste validations, when we can just configure it here for each request
-
 // TODO add the dto validation middleware to requests which need it (maybe by negative option, since most of the routes
 // will have some dto validation)
 
 // TODO add OpenAPI specifications somewhere (maybe generate them from Ajv?)
+
 // TODO add JSDoc specifications for dtoIn
+/**
+ * @typedef {object} RouteMapping
+ * @property {Get | Post} method
+ * @property {function} controller
+ * @property {Array<string>} roles
+ */
 const Mappings = {
   // sys
   "/sys/ping": {

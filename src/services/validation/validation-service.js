@@ -8,7 +8,7 @@ import LoggerFactory from "../logging/logger-factory.js";
 class SchemaNotFoundError extends Error {
   constructor(useCase, schemaName) {
     super();
-    this.message = "Schema not found for given usecase.";
+    this.message = "Schema not found for given use case.";
     this.code = "glint-js/schemaNotFound";
     this.params = {
       useCase,

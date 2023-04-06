@@ -92,13 +92,13 @@ class Server {
 
     // check structure of middlewares and sort them by ORDER
     for (const middlewareClass of middlewares) {
-      const mdlwrName = middlewareClass.constructor.name;
+      const middlewareName = middlewareClass.constructor.name;
       if (middlewareClass.ORDER == null) {
-        throw new Error("ORDER attribute is not set for middleware " + mdlwrName);
+        throw new Error("ORDER attribute is not set for middleware " + middlewareName);
       }
 
       if (!middlewareClass.process) {
-        throw new Error(`Middleware ${mdlwrName} does not have "process" method defined.`);
+        throw new Error(`Middleware ${middlewareName} does not have "process" method defined.`);
       }
     }
     middlewares.sort((a, b) => a.ORDER - b.ORDER);

@@ -20,7 +20,7 @@ General documentation is available on: [App Engine Application Platform | Google
 
 General documentation is available on: [MongoDB Atlas Database](https://www.mongodb.com/atlas/database)
 
-3) *Create all of the necessary secrets in Google's Secret Manager*
+3) *Create all the necessary secrets in Google's Secret Manager*
 
 General documentation is here: [Secret Manager | Google Cloud](https://cloud.google.com/secret-manager)
 These secrets are expected to exist and to be filled with values:

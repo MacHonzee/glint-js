@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import Config from "../utils/config.js";
 import UserModel from "../../models/user-model.js";
 import SecretManager from "../secret-manager/secret-manager.js";
+import Session from "./session.js";
 
 const CFG_DEFAULTS = {
   sessionExpiry: "12h",
@@ -68,10 +69,23 @@ class AuthenticationService {
     };
   }
 
+  /**
+   * Method verifies if the token is valid and returns instance of Session if it is.
+   *
+   * @param {string} token
+   * @returns {Session}
+   */
   verifyToken(token) {
     // TODO implement a blacklist of tokens in memcached / redis / something, that will
     // make sure that logout / password change will invalidate the token
-    return jwt.verify(token, this._tokenKey);
+
+    const tokenPayload = jwt.verify(token, this._tokenKey);
+    return new Session({
+      id: tokenPayload.id,
+      user: tokenPayload.user,
+      tokenIat: tokenPayload.iat,
+      tokenExp: tokenPayload.exp,
+    });
   }
 
   verifyRefreshToken(refreshToken) {

@@ -8,13 +8,13 @@ UserModel.findById = jest.fn();
 describe("UserService", () => {
   describe("findByUsername", () => {
     it("should call UserModel.findByUsername with the given username", async () => {
-      const username = "testuser";
+      const username = "testUser";
       await UserService.findByUsername(username);
       expect(UserModel.findByUsername).toHaveBeenCalledWith(username);
     });
 
     it("should return the result of UserModel.findByUsername", async () => {
-      const user = { _id: "123", username: "testuser" };
+      const user = { _id: "123", username: "testUser" };
       UserModel.findByUsername.mockResolvedValue(user);
       const result = await UserService.findByUsername(user.username);
       expect(result).toEqual(user);

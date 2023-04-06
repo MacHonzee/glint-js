@@ -13,6 +13,9 @@ describe("UseCaseEnvironment", () => {
       query: { sortBy: "name", page: "1" },
       body: { firstName: "John", lastName: "Doe" },
       files: {},
+      get: function (param) {
+        return this[param];
+      },
     };
 
     res = {};

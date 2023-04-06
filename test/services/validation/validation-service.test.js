@@ -49,9 +49,9 @@ describe("ValidationService", () => {
 
     it("should throw SchemaNotFoundError if schema for use case not found", async () => {
       const data = { id: "123" };
-      const useCase = "unknown/usecase";
+      const useCase = "unknown/useCase";
 
-      await expect(ValidationService.validate(data, useCase)).rejects.toThrow("Schema not found for given usecase.");
+      await expect(ValidationService.validate(data, useCase)).rejects.toThrow("Schema not found for given use case.");
     });
 
     it("should throw InvalidDtoIn with validation errors if data is invalid", async () => {

@@ -1,6 +1,7 @@
 // services - authentication
 import AuthenticationService from "./services/authentication/authentication-service.js";
 import UserService from "./services/authentication/user-service.js";
+import Session from "./services/authentication/session.js";
 
 // services - authorization
 import AuthorizationService from "./services/authorization/authorization-service.js";
@@ -40,6 +41,7 @@ import DefaultRoles from "./config/default-roles.js";
 // TODO describe everything with proper JSDoc
 export {
   AuthenticationService,
+  Session,
   UserService,
   AuthorizationService,
   AuthorizationResult,

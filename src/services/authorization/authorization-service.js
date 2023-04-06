@@ -14,13 +14,18 @@ class AuthorizationService {
     fetchMethod: this._fetchUserRoles,
   });
 
-  async authorize(useCase, user) {
+  /**
+   * @param {string} useCase
+   * @param {string} username
+   * @returns {Promise<AuthorizationResult>}
+   */
+  async authorize(useCase, username) {
     const useCaseRoles = RouteRegister.getRoute(useCase)?.config?.roles;
     if (!useCaseRoles) {
       throw new Error("Role configuration not found for use case " + useCase);
     }
 
-    const userRoles = await this.getUserRoles(user);
+    const userRoles = await this.getUserRoles(username);
 
     let authorized;
     if (useCaseRoles.includes(DefaultRoles.authenticated)) {
@@ -31,22 +36,34 @@ class AuthorizationService {
 
     return new AuthorizationResult({
       authorized,
-      user: user,
+      username,
       useCaseRoles,
       userRoles,
     });
   }
 
-  async getUserRoles(user) {
-    return await this._cache.fetch(user);
+  /**
+   * @param {string} username
+   * @returns {Promise<*>}
+   */
+  async getUserRoles(username) {
+    return await this._cache.fetch(username);
   }
 
-  clearUserCache(user) {
-    this._cache.delete(user);
+  /**
+   * @param username
+   */
+  clearUserCache(username) {
+    this._cache.delete(username);
   }
 
-  async _fetchUserRoles(user) {
-    const roles = await Permission.listByUser(user);
+  /**
+   * @private
+   * @param username
+   * @returns {Promise<Array<string>>}
+   */
+  async _fetchUserRoles(username) {
+    const roles = await Permission.listByUser(username);
     return roles.map((role) => role.role);
   }
 }

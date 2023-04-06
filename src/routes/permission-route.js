@@ -101,7 +101,7 @@ class PermissionRoute {
     // allow listing only of your permissions when you are not "Admin" or "Authority"
     const userRoles = authorizationResult.userRoles;
     if (dtoIn.user !== session.user.username) {
-      if (!LIST_PRIVILEGED_ROLES.find((privRole) => userRoles.includes(privRole))) {
+      if (!LIST_PRIVILEGED_ROLES.find((privateRole) => userRoles.includes(privateRole))) {
         throw new CannotLoadRoles(userRoles);
       }
     }

@@ -32,7 +32,7 @@ describe("AuthorizationService", () => {
       expect(result).toEqual(
         new AuthorizationResult({
           authorized: true,
-          user: "user",
+          username: "user",
           useCaseRoles: [DefaultRoles.authenticated],
           userRoles: [],
         }),
@@ -48,7 +48,7 @@ describe("AuthorizationService", () => {
       expect(result).toEqual(
         new AuthorizationResult({
           authorized: true,
-          user: "user",
+          username: "user",
           useCaseRoles: ["admin"],
           userRoles: ["admin"],
         }),
@@ -64,7 +64,7 @@ describe("AuthorizationService", () => {
       expect(result).toEqual(
         new AuthorizationResult({
           authorized: false,
-          user: "user",
+          username: "user",
           useCaseRoles: ["admin"],
           userRoles: ["user"],
         }),

@@ -1,4 +1,10 @@
 class UseCaseError extends Error {
+  /**
+   * @param {string} message
+   * @param {string} code
+   * @param {object?} params
+   * @param {number} [status = 400]
+   */
   constructor(message, code, params, status = 400) {
     super();
     this.message = message;
