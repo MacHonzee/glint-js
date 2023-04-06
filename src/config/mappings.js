@@ -14,6 +14,7 @@ const Post = "post";
 // will have some dto validation)
 
 // TODO add OpenAPI specifications somewhere (maybe generate them from Ajv?)
+// TODO add JSDoc specifications for dtoIn
 const Mappings = {
   // sys
   "/sys/ping": {

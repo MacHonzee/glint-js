@@ -9,7 +9,7 @@ const UserRegisterSchema = {
     firstName: { type: "string" },
     lastName: { type: "string" },
     email: { type: "string" },
-    language: { enum: Object.keys(Languages) }, // TODO test dynamic adding of languages from app and this validation
+    language: { enum: Object.keys(Languages) },
   },
   required: ["username", "password", "confirmPassword", "firstName", "lastName"],
   additionalProperties: false,
