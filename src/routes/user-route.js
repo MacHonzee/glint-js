@@ -39,12 +39,20 @@ class RefreshTokenMismatch extends UseCaseError {
 class UserRoute {
   logger = LoggerFactory.create("Route.UserRoute");
 
+  ERRORS = {
+    MismatchingPasswords,
+    RegistrationFailed,
+    LoginFailed,
+    RefreshTokenMismatch,
+    InvalidRefreshToken,
+  };
+
   async register({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // check matching password
     if (dtoIn.password !== dtoIn.confirmPassword) {
-      throw new MismatchingPasswords();
+      throw new this.ERRORS.MismatchingPasswords();
     }
 
     // create model for user
@@ -62,7 +70,7 @@ class UserRoute {
       registeredUser = await UserModel.register(newUser, dtoIn.password);
     } catch (e) {
       this.logger.error(e);
-      throw new RegistrationFailed(e.name, e.message);
+      throw new this.ERRORS.RegistrationFailed(e.name, e.message);
     }
 
     const token = await this._handleUserAndTokens(registeredUser, response);
@@ -81,7 +89,7 @@ class UserRoute {
 
     // check if authentication was successful and translate it to Http error
     if (error) {
-      throw new LoginFailed(error);
+      throw new this.ERRORS.LoginFailed(error);
     }
 
     const token = await this._handleUserAndTokens(user, response);
@@ -94,7 +102,7 @@ class UserRoute {
 
   async refreshToken({ request, response }) {
     const refreshToken = request.signedCookies?.refreshToken;
-    if (!refreshToken) throw new InvalidRefreshToken();
+    if (!refreshToken) throw new this.ERRORS.InvalidRefreshToken();
 
     // verify that token has been signed with correct secret
     const jwtData = AuthenticationService.verifyRefreshToken(refreshToken);
@@ -105,7 +113,7 @@ class UserRoute {
 
     // verify that the token is saved to given refreshToken (could be changed or deleted because of logout)
     if (!refreshTokenModel || refreshTokenModel.token !== refreshToken) {
-      throw new RefreshTokenMismatch();
+      throw new this.ERRORS.RefreshTokenMismatch();
     }
 
     const token = await this._handleUserAndTokens(refreshTokenModel.user, response, refreshTokenModel);
@@ -118,7 +126,7 @@ class UserRoute {
 
   async logout({ request, response, dtoIn }) {
     const refreshToken = request.signedCookies?.refreshToken;
-    if (!refreshToken) throw new InvalidRefreshToken();
+    if (!refreshToken) throw new this.ERRORS.InvalidRefreshToken();
 
     // TODO changePassword and logout have some common logic
     // delete refresh token from database
@@ -142,7 +150,7 @@ class UserRoute {
 
     // check matching password
     if (dtoIn.password !== dtoIn.confirmPassword) {
-      throw new MismatchingPasswords();
+      throw new this.ERRORS.MismatchingPasswords();
     }
 
     // change the password

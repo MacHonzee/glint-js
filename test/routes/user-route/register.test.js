@@ -2,6 +2,7 @@ import { describe, it, beforeAll } from "@jest/globals";
 import TestService from "../../test-utils/test-service.js";
 import AuthenticationService from "../../../src/services/authentication/authentication-service.js";
 import AssertionService from "../../test-utils/assertion-service.js";
+import TestUsers from "../../test-utils/test-users.js";
 
 describe("user/register", () => {
   let UserRoute;
@@ -20,16 +21,46 @@ describe("user/register", () => {
       email: "ownUser@mail.com",
       language: "en",
     };
-    const ucEnv = await TestService.getUcEnv("user/register", data);
-    const dtoOut = await UserRoute.register(ucEnv);
+    const dtoOut = await TestUsers.registerUser(data);
 
     AssertionService.assertToken(dtoOut.token);
     AssertionService.assertUser(dtoOut.user, data);
   });
 
-  // TODO
-  it.todo("should raise error MismatchingPasswords");
+  it("should raise error MismatchingPasswords", async () => {
+    const data = {
+      username: "ownUser@mail.com",
+      password: "ultraStrongPass123",
+      confirmPassword: "mismatchingPassword",
+      firstName: "John",
+      lastName: "Malkovich",
+      email: "ownUser@mail.com",
+      language: "en",
+    };
 
-  // TODO
-  it.todo("should raise error RegistrationFailed for duplicate users");
+    await AssertionService.assertThrows(
+      () => TestUsers.registerUser(data),
+      new UserRoute.ERRORS.MismatchingPasswords(),
+    );
+  });
+
+  it("should raise error RegistrationFailed for duplicate users", async () => {
+    const data = {
+      username: "ownUser@mail.com",
+      password: "ultraStrongPass123",
+      confirmPassword: "ultraStrongPass123",
+      firstName: "John",
+      lastName: "Malkovich",
+      email: "ownUser@mail.com",
+      language: "en",
+    };
+
+    await AssertionService.assertThrows(
+      () => TestUsers.registerUser(data),
+      new UserRoute.ERRORS.RegistrationFailed(
+        "UserExistsError",
+        "A user with the given username is already registered",
+      ),
+    );
+  });
 });

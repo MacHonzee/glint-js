@@ -81,6 +81,22 @@ class AssertionService {
 
     expect(responseUser).toMatchObject(data);
   }
+
+  async assertThrows(assertedFunction, expectedError) {
+    let hasThrown = false;
+    try {
+      await assertedFunction();
+    } catch (e) {
+      hasThrown = true;
+
+      expect(e.message).toBe(expectedError.message);
+      expect(e.code).toBe(expectedError.code);
+      expect(e.status).toBe(expectedError.status);
+      expect(e.params).toEqual(expectedError.params);
+    }
+
+    if (!hasThrown) throw new Error("Should have raised error but did not.");
+  }
 }
 
 export default new AssertionService();

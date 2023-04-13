@@ -1,10 +1,10 @@
 import TestService from "./test-service.js";
+import AuthenticationService from "../../src/services/authentication/authentication-service.js";
 
 const PERMISSION_SECRET = "testPermissionKey";
 
-// TODO refactor while it is unused - return some object or instance of user that contains his info, token and roles
 class TestUsers {
-  tokens = {
+  _cache = {
     admin: null,
     authority: null,
     trader: null,
@@ -18,8 +18,8 @@ class TestUsers {
    * @returns {Promise<string>}
    */
   async admin() {
-    if (this.tokens.admin) return this.tokens.admin;
-    const token = await this._getToken("admin");
+    if (this._cache.admin) return this._cache.admin;
+    const token = await this._registerTestUser("admin");
     await this.grantPermissions("admin", ["Admin"], true);
     return token;
   }
@@ -30,8 +30,8 @@ class TestUsers {
    * @returns {Promise<string>}
    */
   async authority() {
-    if (this.tokens.authority) return this.tokens.authority;
-    const token = await this._getToken("authority");
+    if (this._cache.authority) return this._cache.authority;
+    const token = await this._registerTestUser("authority");
     await this.grantPermissions("authority", ["Authority"]);
     return token;
   }
@@ -42,8 +42,8 @@ class TestUsers {
    * @returns {Promise<string>}
    */
   async trader() {
-    if (this.tokens.trader) return this.tokens.trader;
-    const token = await this._getToken("trader");
+    if (this._cache.trader) return this._cache.trader;
+    const token = await this._registerTestUser("trader");
     await this.grantPermissions("trader", ["Trader"]);
     return token;
   }
@@ -54,8 +54,8 @@ class TestUsers {
    * @returns {Promise<string>}
    */
   async technician() {
-    if (this.tokens.technician) return this.tokens.technician;
-    const token = await this._getToken("technician");
+    if (this._cache.technician) return this._cache.technician;
+    const token = await this._registerTestUser("technician");
     await this.grantPermissions("technician", ["Technician"]);
     return token;
   }
@@ -66,8 +66,8 @@ class TestUsers {
    * @returns {Promise<string>}
    */
   async client() {
-    if (this.tokens.client) return this.tokens.client;
-    const token = await this._getToken("client");
+    if (this._cache.client) return this._cache.client;
+    const token = await this._registerTestUser("client");
     await this.grantPermissions("client", ["Client"]);
     return token;
   }
@@ -79,8 +79,8 @@ class TestUsers {
    * @returns {Promise<string>}
    * @private
    */
-  async _getToken(user) {
-    const registeredUser = await TestService.callPost("user/register", {
+  async _registerTestUser(user) {
+    const userData = {
       username: this._getUserName(user),
       password: `123${user}Password`,
       confirmPassword: `123${user}Password`,
@@ -88,10 +88,10 @@ class TestUsers {
       lastName: user,
       email: this._getUserName(user),
       language: "en",
-    });
+    };
 
-    this.tokens[user] = "Bearer " + registeredUser.data.token;
-    return this.tokens[user];
+    this._cache[user] = await this.registerUser(userData);
+    return this._cache[user];
   }
 
   /**
@@ -128,6 +128,20 @@ class TestUsers {
       const routeMethod = useCase.replace("permission/", "");
       await PermissionRoute[routeMethod](ucEnv);
     }
+  }
+
+  /**
+   * Method registers user to application.
+   *
+   * @param {object} userData
+   * @returns {Promise<*>}
+   */
+  async registerUser(userData) {
+    const UserRoute = (await import("../../src/routes/user-route.js")).default;
+    await AuthenticationService.init();
+
+    const ucEnv = await TestService.getUcEnv("user/register", userData);
+    return await UserRoute.register(ucEnv);
   }
 }
 

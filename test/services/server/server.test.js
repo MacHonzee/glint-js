@@ -24,4 +24,16 @@ describe("Server", () => {
       dtoIn: { hello: "world" },
     });
   });
+
+  it.todo("should return success for testcase/hello");
+
+  it.todo("should pass authentication for non-public route");
+
+  it.todo("should pass authorization for non-public route");
+
+  it.todo("should accept file");
+
+  it.todo("should return file");
+
+  it.todo("should throw CORS error");
 });

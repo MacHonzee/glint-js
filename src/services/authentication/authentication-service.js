@@ -14,13 +14,25 @@ const CFG_DEFAULTS = {
 };
 
 class AuthenticationService {
-  async init() {
+  _initialized = false;
+
+  /**
+   * Method initializes all the required parameters, secrets and keys to make Authentication work
+   *
+   * @param {boolean} forceInit
+   * @returns {Promise<void>}
+   */
+  async init(forceInit = false) {
+    if (this._initialized && !forceInit) return;
+
     this._sessionExpiry = ms(Config.get("AUTH_SESSION_EXPIRY") || CFG_DEFAULTS.sessionExpiry) / 1000;
     this._refreshTokenExpiry = ms(Config.get("AUTH_REFRESH_TOKEN_EXPIRY") || CFG_DEFAULTS.refreshTokenExpiry) / 1000;
 
     this._cookieKey = Config.get("AUTH_COOKIE_KEY") || (await SecretManager.get("authCookieKey"));
     this._tokenKey = Config.get("AUTH_JWT_KEY") || (await SecretManager.get("authJwtKey"));
     this._refreshTokenKey = Config.get("AUTH_REFRESH_TOKEN_KEY") || (await SecretManager.get("authRefreshTokenKey"));
+
+    this._initialized = true;
   }
 
   async initCookieParser(app) {
