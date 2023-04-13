@@ -85,7 +85,7 @@ describe("AuthenticationMiddleware", () => {
         message: "User is not authenticated.",
         code: "glint-js/userNotAuthenticated",
         params: {
-          cause: "authorization header not found",
+          cause: "Header 'authorization' was not found.",
         },
       });
     });

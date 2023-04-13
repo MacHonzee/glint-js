@@ -33,7 +33,7 @@ class AuthenticationMiddleware {
   async _authenticate(request) {
     const token = this._extractToken(request);
     if (!token) {
-      throw new AuthenticationError("authorization header not found");
+      throw new AuthenticationError("Header 'authorization' was not found.");
     }
 
     try {

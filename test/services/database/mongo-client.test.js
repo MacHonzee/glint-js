@@ -7,6 +7,8 @@ describe("MongoClient", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Config.set("MONGODB_DISABLED", false);
+    Config.set("PRIMARY_MONGODB_URI", "");
+    Config.set("AUTH_MONGODB_URI", "");
     MongoClient.connections = {};
   });
 
