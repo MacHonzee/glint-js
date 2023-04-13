@@ -7,7 +7,6 @@ async function main() {
     await connection.close();
   }
   await TestService.stopMongo();
-  await TestService.stopServer();
 }
 
 export default main;

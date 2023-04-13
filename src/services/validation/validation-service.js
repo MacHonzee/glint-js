@@ -36,6 +36,7 @@ class ValidationService {
     this._logger = LoggerFactory.create("Service.ValidationService");
     this._ajv = new Ajv({ allErrors: true, coerceTypes: true, removeAdditional: true });
     addFormats(this._ajv);
+    this._initialized = false;
   }
 
   ERRORS = {
@@ -43,6 +44,11 @@ class ValidationService {
     InvalidDtoIn,
   };
 
+  /**
+   * Method initializes ValidationService by registering validation formats and schemas from app and GlintJs
+   *
+   * @returns {Promise<void>}
+   */
   async init() {
     // TODO add API or auto-loading of custom formats
     await this._registerFormats();
@@ -54,9 +60,20 @@ class ValidationService {
 
     const libSchemasFldPath = path.join(Config.GLINT_ROOT, "src", "validation-schemas");
     await this._registerFromPath(libSchemasFldPath);
+
+    this._initialized = true;
   }
 
+  /**
+   * Method checks that the data is valid against Ajv schema.
+   *
+   * @param {object} data
+   * @param {string} useCase
+   * @returns {Promise<{valid: *}>}
+   */
   async validate(data, useCase) {
+    if (!this._initialized) await this.init(); // lazy init to support specific setups
+
     const ucParts = useCase
       .split("/")
       .slice(1)
@@ -64,13 +81,13 @@ class ValidationService {
     const schemaName = ucParts.join("") + "Schema";
     const schema = this._ajv.getSchema(schemaName);
     if (!schema) {
-      throw new SchemaNotFoundError(useCase, schemaName);
+      throw new this.ERRORS.SchemaNotFoundError(useCase, schemaName);
     }
 
     const validationResult = schema(data);
     if (!validationResult) {
       const validationErrors = [...schema.errors];
-      throw new InvalidDtoIn(useCase, schemaName, validationErrors);
+      throw new this.ERRORS.InvalidDtoIn(useCase, schemaName, validationErrors);
     }
 
     return {

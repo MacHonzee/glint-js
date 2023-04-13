@@ -1,7 +1,9 @@
 import express from "express";
 import qs from "qs";
 import axios from "axios";
+import path from "path";
 import { MongoMemoryServer } from "mongodb-memory-server-core";
+import UseCaseEnvironment from "../../src/services/server/use-case-environment.js";
 
 class TestService {
   /**
@@ -11,8 +13,13 @@ class TestService {
    * @returns {Promise<void>}
    */
   async startServer(appPath = "test-app") {
-    const appExport = await import(`../${appPath}/app.js`);
-    this.app = await appExport.default;
+    const cwd = process.cwd();
+
+    process.chdir(path.join(cwd, "test", appPath));
+    const appExport = await import("../test-app/app");
+    process.chdir(cwd);
+
+    this.app = appExport.default;
   }
 
   /**
@@ -152,6 +159,37 @@ class TestService {
       console.error("Unexpected error when calling TestApp.", e.response.status, e.response.data);
       return e.response;
     }
+  }
+
+  /**
+   * Method creates instance of UseCaseEnvironment filled with basic context and optionally with
+   * dtoIn, session and authorizationResult.
+   *
+   * @param useCase
+   * @param data
+   * @returns {Promise<UseCaseEnvironment>}
+   */
+  async getUcEnv(useCase, data = {}) {
+    const { jest } = await import("@jest/globals");
+
+    const mockRequest = {
+      protocol: "http",
+      host: "localhost:8080",
+      url: "/" + useCase.replace(/^\//, ""),
+      originalUrl: "/" + useCase.replace(/^\//, ""),
+      query: {},
+      body: data,
+      files: {},
+      get: function (param) {
+        return this[param];
+      },
+    };
+
+    const mockResponse = {
+      cookie: jest.fn(),
+    };
+
+    return new UseCaseEnvironment(mockRequest, mockResponse);
   }
 }
 

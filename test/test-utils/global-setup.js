@@ -13,10 +13,6 @@ async function main() {
   process.chdir(appDir);
   await import("../../src/index.js");
   process.chdir(cwd);
-
-  // start the server
-  await TestService.startServer();
-  await TestService.callGet("sys/ping"); // check that it is already running
 }
 
 export default main;

@@ -2,6 +2,7 @@ import TestService from "./test-service.js";
 
 const PERMISSION_SECRET = "testPermissionKey";
 
+// TODO refactor while it is unused - return some object or instance of user that contains his info, token and roles
 class TestUsers {
   tokens = {
     admin: null,
@@ -117,11 +118,15 @@ class TestUsers {
       user: this._getUserName(user),
     };
     if (secretGrant) dtoIn.secret = PERMISSION_SECRET;
-    const useCase = secretGrant ? "permission/secretGrant" : "permission/grant";
 
+    const useCase = secretGrant ? "permission/secretGrant" : "permission/grant";
+    const ucEnv = TestService.getUcEnv(useCase, dtoIn);
+
+    const PermissionRoute = (await import("../../src/routes/permission-route.js")).default;
     for (const role of roles) {
       dtoIn.role = role;
-      await TestService.callPost(useCase, dtoIn, this.admin());
+      const routeMethod = useCase.replace("permission/", "");
+      await PermissionRoute[routeMethod](ucEnv);
     }
   }
 }
