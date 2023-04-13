@@ -24,7 +24,6 @@ describe("user/register", () => {
     const dtoOut = await UserRoute.register(ucEnv);
 
     AssertionService.assertToken(dtoOut.token);
-    AssertionService.assertBaseData(dtoOut.user);
     AssertionService.assertUser(dtoOut.user, data);
   });
 

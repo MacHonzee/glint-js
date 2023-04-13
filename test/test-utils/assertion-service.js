@@ -68,6 +68,8 @@ class AssertionService {
    * @param {object} expectedUser
    */
   assertUser(responseUser, expectedUser) {
+    this.assertBaseData(responseUser);
+
     const data = {
       username: expectedUser.username,
       firstName: expectedUser.firstName,
