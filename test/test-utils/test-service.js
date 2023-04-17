@@ -4,6 +4,7 @@ import axios from "axios";
 import path from "path";
 import { MongoMemoryServer } from "mongodb-memory-server-core";
 import UseCaseEnvironment from "../../src/services/server/use-case-environment.js";
+import Session from "../../src/services/authentication/session.js";
 
 class TestService {
   /**
@@ -165,11 +166,12 @@ class TestService {
    * Method creates instance of UseCaseEnvironment filled with basic context and optionally with
    * dtoIn, session and authorizationResult.
    *
-   * @param useCase
-   * @param data
+   * @param {string} useCase
+   * @param {object} [data = {}]
+   * @param {Function | Promise<string> | object?} user
    * @returns {Promise<UseCaseEnvironment>}
    */
-  async getUcEnv(useCase, data = {}) {
+  async getUcEnv(useCase, data = {}, user) {
     const { jest } = await import("@jest/globals");
 
     const mockRequest = {
@@ -187,9 +189,17 @@ class TestService {
 
     const mockResponse = {
       cookie: jest.fn(),
+      clearCookie: jest.fn(),
     };
 
-    return new UseCaseEnvironment(mockRequest, mockResponse);
+    const ucEnv = new UseCaseEnvironment(mockRequest, mockResponse);
+
+    if (user) {
+      const userData = typeof user === "function" ? await user() : await user;
+      ucEnv.session = new Session(userData);
+    }
+
+    return ucEnv;
   }
 }
 

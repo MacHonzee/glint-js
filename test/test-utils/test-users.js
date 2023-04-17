@@ -19,9 +19,9 @@ class TestUsers {
    */
   async admin() {
     if (this._cache.admin) return this._cache.admin;
-    const token = await this._registerTestUser("admin");
+    const user = await this._registerTestUser("admin");
     await this.grantPermissions("admin", ["Admin"], true);
-    return token;
+    return user;
   }
 
   /**
@@ -31,9 +31,9 @@ class TestUsers {
    */
   async authority() {
     if (this._cache.authority) return this._cache.authority;
-    const token = await this._registerTestUser("authority");
+    const user = await this._registerTestUser("authority");
     await this.grantPermissions("authority", ["Authority"]);
-    return token;
+    return user;
   }
 
   /**
@@ -43,9 +43,9 @@ class TestUsers {
    */
   async trader() {
     if (this._cache.trader) return this._cache.trader;
-    const token = await this._registerTestUser("trader");
+    const user = await this._registerTestUser("trader");
     await this.grantPermissions("trader", ["Trader"]);
-    return token;
+    return user;
   }
 
   /**
@@ -55,9 +55,9 @@ class TestUsers {
    */
   async technician() {
     if (this._cache.technician) return this._cache.technician;
-    const token = await this._registerTestUser("technician");
+    const user = await this._registerTestUser("technician");
     await this.grantPermissions("technician", ["Technician"]);
-    return token;
+    return user;
   }
 
   /**
@@ -67,9 +67,9 @@ class TestUsers {
    */
   async client() {
     if (this._cache.client) return this._cache.client;
-    const token = await this._registerTestUser("client");
+    const user = await this._registerTestUser("client");
     await this.grantPermissions("client", ["Client"]);
-    return token;
+    return user;
   }
 
   /**
@@ -142,6 +142,25 @@ class TestUsers {
 
     const ucEnv = await TestService.getUcEnv("user/register", userData);
     return await UserRoute.register(ucEnv);
+  }
+
+  /**
+   * Method returns refresh token for selected user
+   *
+   * @param username
+   * @param password
+   * @returns {Promise<string>}
+   */
+  async getRefreshToken(username, password) {
+    const loginData = {
+      username,
+      password,
+    };
+    const loginUcEnv = await TestService.getUcEnv("user/login", loginData);
+
+    const UserRoute = (await import("../../src/routes/user-route.js")).default;
+    await UserRoute.login(loginUcEnv);
+    return loginUcEnv.response.cookie.mock.calls[0][1];
   }
 }
 
