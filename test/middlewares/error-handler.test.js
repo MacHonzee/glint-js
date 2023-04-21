@@ -39,24 +39,30 @@ describe("ErrorHandler", () => {
   });
 
   it("should fail on error 500 and produce trace", async () => {
-    await AssertionService.assertCallThrows(axios.post(`http://localhost:${port}/testcase/hello`), (response) => {
-      expect(response.status).toBe(500);
-      expect(response.data).toMatchObject({
-        message: "Some unexpected error",
-        trace: expect.any(String),
-      });
-    });
+    await AssertionService.assertCallThrows(
+      () => axios.post(`http://localhost:${port}/testcase/hello`),
+      (response) => {
+        expect(response.status).toBe(500);
+        expect(response.data).toMatchObject({
+          message: "Some unexpected error",
+          trace: expect.any(String),
+        });
+      },
+    );
   });
 
   it("should fail on error 500 and not produce trace", async () => {
     jest.spyOn(Config, "NODE_ENV", "get").mockReturnValue("production");
 
-    await AssertionService.assertCallThrows(axios.post(`http://localhost:${port}/testcase/hello`), (response) => {
-      expect(response.status).toBe(500);
-      expect(response.data).toMatchObject({
-        message: "Some unexpected error",
-      });
-      expect(response.data.trace).not.toBeDefined();
-    });
+    await AssertionService.assertCallThrows(
+      () => axios.post(`http://localhost:${port}/testcase/hello`),
+      (response) => {
+        expect(response.status).toBe(500);
+        expect(response.data).toMatchObject({
+          message: "Some unexpected error",
+        });
+        expect(response.data.trace).not.toBeDefined();
+      },
+    );
   });
 });

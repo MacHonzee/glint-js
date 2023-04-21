@@ -54,7 +54,7 @@ describe("ContextMiddleware", () => {
 
   it("should fail on error 404 when calling unknown route", async () => {
     await AssertionService.assertCallThrows(
-      axios.post(`http://localhost:${port}/testcase/doesNotExist`),
+      () => axios.post(`http://localhost:${port}/testcase/doesNotExist`),
       (response) => {
         expect(response.status).toBe(404);
         expect(response.data).toMatchObject({
@@ -69,17 +69,20 @@ describe("ContextMiddleware", () => {
   });
 
   it("should fail on error 405 when calling route with different method", async () => {
-    await AssertionService.assertCallThrows(axios.patch(`http://localhost:${port}/testcase/hello`), (response) => {
-      expect(response.status).toBe(405);
-      expect(response.data).toMatchObject({
-        message: "Handler requested with invalid method.",
-        code: "glint-js/invalidHandlerMethod",
-        params: {
-          url: "/testcase/hello",
-          method: "PATCH",
-          expectedMethod: "post",
-        },
-      });
-    });
+    await AssertionService.assertCallThrows(
+      () => axios.patch(`http://localhost:${port}/testcase/hello`),
+      (response) => {
+        expect(response.status).toBe(405);
+        expect(response.data).toMatchObject({
+          message: "Handler requested with invalid method.",
+          code: "glint-js/invalidHandlerMethod",
+          params: {
+            url: "/testcase/hello",
+            method: "PATCH",
+            expectedMethod: "post",
+          },
+        });
+      },
+    );
   });
 });

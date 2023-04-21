@@ -98,11 +98,12 @@ class TestService {
    *
    * @param {string} useCase
    * @param {(object | File)?} data
-   * @param {Function | Promise<string>?} user
+   * @param {Promise<TestUser>?} user
+   * @param {object?} options
    * @returns {Promise<*>}
    */
-  async callGet(useCase, data, user) {
-    return await this.call("GET", useCase, data, user);
+  async callGet(useCase, data, user, options) {
+    return await this.call("GET", useCase, data, user, options);
   }
 
   /**
@@ -110,11 +111,12 @@ class TestService {
    *
    * @param {string} useCase
    * @param {(object | File)?} data
-   * @param {Function | Promise<string>?} user
+   * @param {Promise<TestUser>?} user
+   * @param {object?} options
    * @returns {Promise<*>}
    */
-  async callPost(useCase, data, user) {
-    return await this.call("POST", useCase, data, user);
+  async callPost(useCase, data, user, options) {
+    return await this.call("POST", useCase, data, user, options);
   }
 
   /**
@@ -123,22 +125,25 @@ class TestService {
    * @param {"GET" | "POST"} method
    * @param {string} useCase
    * @param {(object | File)?} data
-   * @param {Function | Promise<string>?} user
+   * @param {Promise<TestUser>?} user
+   * @param {object?} options
    * @returns {Promise<axios.AxiosResponse<any>>}
    */
-  async call(method, useCase, data, user) {
+  async call(method, useCase, data, user, options) {
     const { Config } = await import("../../src/index.js");
     const url = `http://localhost:${Config.PORT || 8080}/${useCase.replace(/^\//, "")}`;
 
     const requestOptions = {
       method,
       url,
+      ...options,
     };
 
     // get token of user
     if (user) {
-      const token = typeof user === "function" ? await user() : await user;
-      requestOptions.headers = { authorization: token };
+      const userData = await user;
+      requestOptions.headers = requestOptions.headers || {};
+      requestOptions.headers.authorization = "Bearer " + userData.token;
     }
 
     if (data) {
@@ -158,7 +163,7 @@ class TestService {
       return await axios.request(requestOptions);
     } catch (e) {
       console.error("Unexpected error when calling TestApp.", e.response.status, e.response.data);
-      return e.response;
+      return { error: e, response: e.response };
     }
   }
 

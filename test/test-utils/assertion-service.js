@@ -17,15 +17,20 @@ class AssertionService {
    * @returns {Promise<void>}
    */
   async assertCallThrows(call, assertThrow) {
-    let hasThrown = false;
+    let response;
     try {
-      typeof call === "function" ? await call() : await call; // can be promise or function
+      response = await call();
     } catch (e) {
-      hasThrown = true;
       assertThrow(e.response, e);
+      return;
     }
 
-    if (!hasThrown) throw new Error("Should have raised error but did not.");
+    if (response.error) {
+      assertThrow(response.response, response.error);
+      return;
+    }
+
+    throw new Error("Should have raised error but did not.");
   }
 
   /**

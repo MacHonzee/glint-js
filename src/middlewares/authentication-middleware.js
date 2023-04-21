@@ -32,9 +32,6 @@ class AuthenticationMiddleware {
 
   async _authenticate(request) {
     const token = this._extractToken(request);
-    if (!token) {
-      throw new AuthenticationError("Header 'authorization' was not found.");
-    }
 
     try {
       return AuthenticationService.verifyToken(token);
@@ -45,9 +42,15 @@ class AuthenticationMiddleware {
 
   _extractToken(request) {
     let authHeader = request.get("authorization");
-    if (authHeader?.startsWith("Bearer ")) {
-      return authHeader.substring("Bearer ".length);
+    if (!authHeader) {
+      throw new AuthenticationError("Header 'authorization' was not found.");
     }
+
+    if (!authHeader.startsWith("Bearer ")) {
+      throw new AuthenticationError("Header 'authorization' has invalid type, it should be Bearer type.");
+    }
+
+    return authHeader.substring("Bearer ".length);
   }
 }
 

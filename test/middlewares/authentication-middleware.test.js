@@ -79,16 +79,19 @@ describe("AuthenticationMiddleware", () => {
   });
 
   it("should return 401 when user is not authenticated", async () => {
-    await AssertionService.assertCallThrows(axios.post(`http://localhost:${port}/testcase/hello`), (response) => {
-      expect(response.status).toBe(401);
-      expect(response.data).toMatchObject({
-        message: "User is not authenticated.",
-        code: "glint-js/userNotAuthenticated",
-        params: {
-          cause: "Header 'authorization' was not found.",
-        },
-      });
-    });
+    await AssertionService.assertCallThrows(
+      () => axios.post(`http://localhost:${port}/testcase/hello`),
+      (response) => {
+        expect(response.status).toBe(401);
+        expect(response.data).toMatchObject({
+          message: "User is not authenticated.",
+          code: "glint-js/userNotAuthenticated",
+          params: {
+            cause: "Header 'authorization' was not found.",
+          },
+        });
+      },
+    );
   });
 
   it("should not proceed with authentication since it is public route", async () => {

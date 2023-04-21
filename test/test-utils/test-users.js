@@ -1,9 +1,23 @@
 import TestService from "./test-service.js";
 import AuthenticationService from "../../src/services/authentication/authentication-service.js";
+import DefaultRoles from "../../src/config/default-roles.js";
 
 const PERMISSION_SECRET = "testPermissionKey";
 
 class TestUsers {
+  constructor() {
+    DefaultRoles.add("Admin");
+    DefaultRoles.add("Trader");
+    DefaultRoles.add("Technician");
+    DefaultRoles.add("Client");
+  }
+
+  /**
+   * @typedef {object} TestUser
+   * @property {string} token
+   * @property {object} user
+   * @private
+   */
   _cache = {
     admin: null,
     authority: null,
@@ -15,7 +29,7 @@ class TestUsers {
   /**
    * Login as admin.
    *
-   * @returns {Promise<string>}
+   * @returns {Promise<TestUser>}
    */
   async admin() {
     if (this._cache.admin) return this._cache.admin;
@@ -27,7 +41,7 @@ class TestUsers {
   /**
    * Login as authority.
    *
-   * @returns {Promise<string>}
+   * @returns {Promise<TestUser>}
    */
   async authority() {
     if (this._cache.authority) return this._cache.authority;
@@ -39,7 +53,7 @@ class TestUsers {
   /**
    * Login as trader.
    *
-   * @returns {Promise<string>}
+   * @returns {Promise<TestUser>}
    */
   async trader() {
     if (this._cache.trader) return this._cache.trader;
@@ -51,7 +65,7 @@ class TestUsers {
   /**
    * Login as technician.
    *
-   * @returns {Promise<string>}
+   * @returns {Promise<TestUser>}
    */
   async technician() {
     if (this._cache.technician) return this._cache.technician;
@@ -63,7 +77,7 @@ class TestUsers {
   /**
    * Login as client.
    *
-   * @returns {Promise<string>}
+   * @returns {Promise<TestUser>}
    */
   async client() {
     if (this._cache.client) return this._cache.client;
@@ -76,7 +90,7 @@ class TestUsers {
    * Method returns user token from cache, otherwise it registers the user.
    *
    * @param {string} user
-   * @returns {Promise<string>}
+   * @returns {Promise<TestUser>}
    * @private
    */
   async _registerTestUser(user) {
@@ -120,11 +134,11 @@ class TestUsers {
     if (secretGrant) dtoIn.secret = PERMISSION_SECRET;
 
     const useCase = secretGrant ? "permission/secretGrant" : "permission/grant";
-    const ucEnv = TestService.getUcEnv(useCase, dtoIn);
+    const ucEnv = await TestService.getUcEnv(useCase, dtoIn);
 
     const PermissionRoute = (await import("../../src/routes/permission-route.js")).default;
     for (const role of roles) {
-      dtoIn.role = role;
+      ucEnv.dtoIn.role = role;
       const routeMethod = useCase.replace("permission/", "");
       await PermissionRoute[routeMethod](ucEnv);
     }
@@ -134,7 +148,7 @@ class TestUsers {
    * Method registers user to application.
    *
    * @param {object} userData
-   * @returns {Promise<*>}
+   * @returns {Promise<TestUser>}
    */
   async registerUser(userData) {
     const UserRoute = (await import("../../src/routes/user-route.js")).default;
