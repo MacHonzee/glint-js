@@ -2,10 +2,18 @@ import TestService from "./test-service.js";
 import mongoose from "mongoose";
 
 async function main() {
-  // disconnect from mongo, stop mongo and stop server
+  // disconnect from mongo in mongoose connections
   for (const connection of mongoose.connections) {
     await connection.close();
   }
+
+  // disconnect from internal connections
+  const MongoClient = await import("../../src/services/database/mongo-client.js");
+  for (const connection of MongoClient.default.connections) {
+    await connection.close();
+  }
+
+  // and stop mongo
   await TestService.stopMongo();
 }
 

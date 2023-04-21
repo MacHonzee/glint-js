@@ -118,6 +118,35 @@ describe("AuthenticationMiddleware", () => {
     );
   });
 
+  it("should return 401 when user is authenticated with wrong token", async () => {
+    // Creating a valid token
+    const tokenPayload = {
+      id: 1,
+      user: {
+        username: "test@user.com",
+      },
+    };
+    const token = jwt.sign(tokenPayload, "invalidJwtKey", { expiresIn: "1h" });
+
+    await AssertionService.assertCallThrows(
+      () =>
+        axios.post(`http://localhost:${port}/testcase/hello`, {}, { headers: { authorization: "Bearer " + token } }),
+      (response) => {
+        expect(response.status).toBe(401);
+        expect(response.data).toMatchObject({
+          message: "User is not authenticated.",
+          code: "glint-js/userNotAuthenticated",
+          params: {
+            cause: {
+              message: "invalid signature",
+              name: "JsonWebTokenError",
+            },
+          },
+        });
+      },
+    );
+  });
+
   it("should not proceed with authentication since it is public route", async () => {
     jest.spyOn(AuthenticationService, "verifyToken");
     const response = await axios.post(`http://localhost:${port}/testcase/public`);

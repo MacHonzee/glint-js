@@ -38,7 +38,7 @@ class Server {
 
   async _onBeforeStart() {
     await ValidationService.init();
-    await AuthenticationService.init(this.app);
+    await AuthenticationService.init(true);
 
     await new MongoClient().init();
 

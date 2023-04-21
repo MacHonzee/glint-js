@@ -78,7 +78,9 @@
       "src/**/*.{js,jsx}"
     ],
     "coverageReporters": [
-      "html"
+      "html",
+      "text",
+      "json"
     ]
   }
 }
