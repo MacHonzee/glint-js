@@ -1,12 +1,68 @@
 import path from "path";
 import { describe, beforeAll, it, expect } from "@jest/globals";
 import { RouteRegister, Config } from "../../../src/index";
+import AssertionService from "../../test-utils/assertion-service.js";
 
 describe("RouteRegister", () => {
   beforeAll(async () => {
     // Initialize RouteRegister before running tests
     Config.set("SERVER_ROOT", path.join(Config.SERVER_ROOT, "test", "test-app"));
     await RouteRegister.init();
+  });
+
+  describe("registerRoute", () => {
+    const VALID_ROUTE = {
+      controller: () => {},
+      roles: [],
+      method: "patch",
+    };
+
+    it("should successfully register valid route", () => {
+      RouteRegister.registerRoute("/route/hello", VALID_ROUTE);
+    });
+
+    it("should successfully register valid route without slash at beginning", () => {
+      RouteRegister.registerRoute("route/hello", VALID_ROUTE);
+    });
+
+    it("should successfully register valid route with multiple slashes", () => {
+      RouteRegister.registerRoute("route/hello/from/other/side", VALID_ROUTE);
+    });
+
+    it("should not register route with invalid url", () => {
+      AssertionService.assertThrows(
+        () => RouteRegister.registerRoute(false, VALID_ROUTE),
+        new Error("Url 'false' is not of string type."),
+      );
+    });
+
+    it("should not register route with invalid configuration", () => {
+      AssertionService.assertThrows(
+        () => RouteRegister.registerRoute("test/route", 123),
+        new Error("Route configuration '123' is not of object type."),
+      );
+    });
+
+    it("should not register route with unknown method", () => {
+      AssertionService.assertThrows(
+        () => RouteRegister.registerRoute("test/route", { method: "wtf" }),
+        new Error("Route method 'wtf' is not one of allowed methods: get,post,patch,put,delete,head"),
+      );
+    });
+
+    it("should not register route with unknown method", () => {
+      AssertionService.assertThrows(
+        () => RouteRegister.registerRoute("test/route", { method: "post", controller: false }),
+        new Error("Route controller 'false' is not of function type."),
+      );
+    });
+
+    it("should not register route with unknown method", () => {
+      AssertionService.assertThrows(
+        () => RouteRegister.registerRoute("test/route", { method: "post", controller: () => {}, roles: "hello" }),
+        new Error("Route roles 'hello' are not of Array type."),
+      );
+    });
   });
 
   describe("getRoutes()", () => {

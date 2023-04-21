@@ -85,6 +85,8 @@ class AssertionService {
     };
 
     expect(responseUser).toMatchObject(data);
+    expect(responseUser.hash).not.toBeDefined();
+    expect(responseUser.salt).not.toBeDefined();
   }
 
   async assertThrows(assertedFunction, expectedError) {

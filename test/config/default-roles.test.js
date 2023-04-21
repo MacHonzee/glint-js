@@ -36,5 +36,10 @@ describe("DefaultRoles", () => {
       DefaultRoles.add("Test", "privileged");
       expect(DefaultRoles.privileged).toContain("Test");
     });
+
+    it("should add a new role to a new role type", () => {
+      DefaultRoles.add("Test", "customRoleType");
+      expect(DefaultRoles.customRoleType).toContain("Test");
+    });
   });
 });

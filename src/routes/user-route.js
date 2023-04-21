@@ -188,6 +188,10 @@ class UserRoute {
   // method handles common logic for creating new token, creating new refresh token
   // and updating or adding the refreshToken to user
   async _handleUserAndTokens(user, response, refreshTokenToUpdate) {
+    // make sure that we do not return hash and salt under any circumstance
+    user.hash = undefined;
+    user.salt = undefined;
+
     // create new refresh token
     // TODO optimize it, we probably dont need to create new token every ~5 minutes, but after some timeout
     const userPayload = {

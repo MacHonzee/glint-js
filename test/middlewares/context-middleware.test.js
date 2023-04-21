@@ -1,4 +1,4 @@
-import { beforeAll, describe, it, expect, afterAll } from "@jest/globals";
+import { jest, beforeAll, describe, it, expect, afterAll } from "@jest/globals";
 import axios from "axios";
 import ContextMiddleware from "../../src/middlewares/context-middleware.js";
 import ErrorHandler from "../../src/middlewares/error-handler.js";
@@ -51,6 +51,16 @@ describe("ContextMiddleware", () => {
       },
       uri: `http://localhost:${port}/testcase/hello`,
     });
+  });
+
+  it("should debug call information to logger", async () => {
+    jest.spyOn(ContextMiddleware.logger, "isDebugEnabled").mockReturnValueOnce(true);
+    jest.spyOn(ContextMiddleware.logger, "debug");
+
+    await axios.post(`http://localhost:${port}/testcase/hello`);
+
+    expect(ContextMiddleware.logger.debug).toHaveBeenCalledTimes(1);
+    expect(ContextMiddleware.logger.debug).toHaveBeenCalledWith(`Path: /testcase/hello Method: POST`);
   });
 
   it("should fail on error 404 when calling unknown route", async () => {

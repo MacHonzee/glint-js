@@ -9,7 +9,7 @@ describe("sys/getEnvironment", () => {
     expect(dtoOut.AUTH_COOKIE_KEY).toBe("cookieKey");
     expect(dtoOut.AUTH_JWT_KEY).toBe("jwtKey");
     expect(dtoOut.AUTH_REFRESH_TOKEN_KEY).toBe("refreshTokenKey");
-    expect(dtoOut.LOG_LEVEL_GLOBAL).toBe("DEBUG");
+    expect(dtoOut.LOG_LEVEL_GLOBAL).toBe("INFO");
     expect(dtoOut.PERMISSION_GRANT_KEY).toBe("testPermissionKey");
     expect(dtoOut.NODE_ENV).toBe("test");
     expect(typeof dtoOut.PRIMARY_MONGODB_URI).toBe("string");

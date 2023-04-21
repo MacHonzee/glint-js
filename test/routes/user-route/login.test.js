@@ -29,6 +29,7 @@ describe("user/login", () => {
     };
     const ucEnv = await TestService.getUcEnv("user/login", data);
     const dtoOut = await UserRoute.login(ucEnv);
+    console.log("-> dtoOut", dtoOut);
 
     AssertionService.assertToken(dtoOut.token);
     AssertionService.assertUser(dtoOut.user, USER);

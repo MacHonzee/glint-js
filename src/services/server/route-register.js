@@ -4,7 +4,7 @@ import Config from "../utils/config.js";
 const ALLOWED_METHODS = ["get", "post", "patch", "put", "delete", "head"];
 /**
  * @typedef {object} RouteConfig
- * @property {ALLOWED_METHODS} method
+ * @property {string} method
  * @property {Function} controller
  * @property {Array<string>} roles
  */
@@ -78,7 +78,7 @@ class RouteRegister {
     if (typeof url !== "string") throw new Error(`Url '${url}' is not of string type.`);
     if (typeof config !== "object") throw new Error(`Route configuration '${config}' is not of object type.`);
     if (!ALLOWED_METHODS.includes(config.method)) {
-      throw new Error(`Route method '${config.method}' is not one of allowed method: ${ALLOWED_METHODS}`);
+      throw new Error(`Route method '${config.method}' is not one of allowed methods: ${ALLOWED_METHODS}`);
     }
     if (typeof config.controller !== "function") {
       throw new Error(`Route controller '${config.controller}' is not of function type.`);

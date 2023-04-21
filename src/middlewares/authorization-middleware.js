@@ -29,7 +29,7 @@ class AuthorizationMiddleware {
 
   // Authenticated and Public requests can be skipped
   _shouldBeAuthorized(req) {
-    const roles = req.ucEnv.mapping.roles || [];
+    const roles = req.ucEnv.mapping.roles;
     return !roles.includes(DefaultRoles.public);
   }
 }

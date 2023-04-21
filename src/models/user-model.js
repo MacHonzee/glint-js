@@ -27,7 +27,6 @@ class UserModel extends AbstractModel {
     // Remove refreshToken from the response
     this.schema.set("toJSON", {
       transform: (doc, ret) => {
-        delete ret.refreshTokens;
         delete ret.salt;
         delete ret.hash;
         return ret;
