@@ -10,15 +10,8 @@ const Post = "post";
 // TODO add the dto validation middleware to requests which need it (maybe by negative option, since most of the routes
 // will have some dto validation)
 
-// TODO add OpenAPI specifications somewhere (maybe generate them from Ajv?)
+// TODO add OpenAPI specifications somewhere (maybe generate them from Ajv?) and add the JsDocs
 
-// TODO add JSDoc specifications for dtoIn
-/**
- * @typedef {object} RouteMapping
- * @property {Get | Post} method
- * @property {function} controller
- * @property {Array<string>} roles
- */
 const Mappings = {
   // sys
   "/sys/ping": {

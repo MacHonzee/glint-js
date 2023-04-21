@@ -13,10 +13,12 @@ import AssertionService from "../test-utils/assertion-service.js";
 const TEST_ROUTES = {
   "/testcase/hello": {
     method: "post",
+    controller: () => {},
     roles: ["Admin"],
   },
   "/testcase/public": {
     method: "post",
+    controller: () => {},
     roles: ["Public"],
   },
 };

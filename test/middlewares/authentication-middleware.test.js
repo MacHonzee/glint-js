@@ -12,14 +12,17 @@ import AssertionService from "../test-utils/assertion-service.js";
 const TEST_ROUTES = {
   "/testcase/hello": {
     method: "post",
+    controller: () => {},
     roles: ["Admin"],
   },
   "/testcase/public": {
     method: "post",
+    controller: () => {},
     roles: ["Public"],
   },
   "/testcase/authenticated": {
     method: "post",
+    controller: () => {},
     roles: ["Authenticated"],
   },
 };
@@ -88,6 +91,27 @@ describe("AuthenticationMiddleware", () => {
           code: "glint-js/userNotAuthenticated",
           params: {
             cause: "Header 'authorization' was not found.",
+          },
+        });
+      },
+    );
+  });
+
+  it("should return 401 when user is authenticated with wrong type", async () => {
+    await AssertionService.assertCallThrows(
+      () =>
+        axios.post(
+          `http://localhost:${port}/testcase/hello`,
+          {},
+          { headers: { authorization: "NoType asddfd156asd" } },
+        ),
+      (response) => {
+        expect(response.status).toBe(401);
+        expect(response.data).toMatchObject({
+          message: "User is not authenticated.",
+          code: "glint-js/userNotAuthenticated",
+          params: {
+            cause: "Header 'authorization' has invalid type, it should be Bearer type.",
           },
         });
       },

@@ -31,14 +31,14 @@ class UseCaseEnvironment {
   }
 
   /**
-   * @param {RouteMapping} mapping
+   * @param {RouteConfig} mapping
    */
   set mapping(mapping) {
     this._mapping = mapping;
   }
 
   /**
-   * @returns {RouteMapping}
+   * @returns {RouteConfig}
    */
   get mapping() {
     return this._mapping;

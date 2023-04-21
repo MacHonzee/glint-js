@@ -16,17 +16,13 @@ class AuthenticationMiddleware {
       return next();
     }
 
-    if (req.ucEnv.session) {
-      return next();
-    }
-
     req.ucEnv.session = await this._authenticate(req);
 
     next();
   }
 
   _shouldBeAuthenticated(req) {
-    const roles = req.ucEnv.mapping.roles || [];
+    const roles = req.ucEnv.mapping.roles;
     return !roles.includes(DefaultRoles.public);
   }
 

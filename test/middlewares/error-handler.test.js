@@ -10,6 +10,7 @@ import AssertionService from "../test-utils/assertion-service.js";
 const TEST_ROUTES = {
   "/testcase/hello": {
     method: "post",
+    controller: () => {},
     hello: "world",
     roles: ["Public"],
   },
