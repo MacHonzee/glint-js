@@ -23,9 +23,8 @@ class RouteRegister {
   }
 
   _wrapController(controllerMethod) {
-    // TODO we might need some responseHandler here probably in order to handle binary, HEAD requests etc
-    return async function handleController(req, res) {
-      res.send(await controllerMethod(req.ucEnv));
+    return function handleController(req, res) {
+      Promise.resolve(controllerMethod(req.ucEnv)).then((result) => res.send(result));
     };
   }
 

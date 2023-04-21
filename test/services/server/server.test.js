@@ -29,6 +29,7 @@ describe("Server", () => {
 
   it("should return success for testcase/public", async () => {
     const response = await TestService.callPost("testcase/public");
+    console.log("-> response", response);
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({
@@ -40,6 +41,7 @@ describe("Server", () => {
     const TestUsers = (await import("../../test-utils/test-users.js")).default;
     const trader = await TestUsers.trader();
     const response = await TestService.callPost("testcase/authenticated", null, trader);
+    console.log("-> response", response);
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({
@@ -73,6 +75,7 @@ describe("Server", () => {
     const TestUsers = (await import("../../test-utils/test-users.js")).default;
     const client = await TestUsers.client();
     const response = await TestService.callPost("testcase/authorized", null, client);
+    console.log("-> response", response);
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({
@@ -121,6 +124,7 @@ describe("Server", () => {
     const response = await TestService.callPost("testcase/acceptFile", formData, null, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    console.log("-> response", response);
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({

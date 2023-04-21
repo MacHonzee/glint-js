@@ -5,6 +5,7 @@ import cors from "cors";
 import compression from "compression";
 import fileUpload from "express-fileupload";
 import helmet from "helmet";
+import "express-async-errors";
 
 import Config from "../utils/config.js";
 import LoggerFactory from "../logging/logger-factory.js";
@@ -130,7 +131,8 @@ class Server {
 
     // then register them to app
     for (const middleware of preprocessMiddlewares) {
-      this.app.use(middleware.process.bind(middleware));
+      const boundMiddleware = middleware.process.bind(middleware);
+      this.app.use(boundMiddleware);
       this.logger.info(`Registered middleware [${middleware.ORDER}] ${middleware.constructor.name}`);
     }
 
@@ -139,7 +141,8 @@ class Server {
 
   async _registerErrorMiddlewares(errorMiddlewares) {
     for (const middleware of errorMiddlewares) {
-      this.app.use(middleware.process.bind(middleware));
+      const boundErrorMiddleware = middleware.process.bind(middleware);
+      this.app.use(boundErrorMiddleware);
       this.logger.info(`Registered error middleware [${middleware.ORDER}] ${middleware.constructor.name}`);
     }
   }
