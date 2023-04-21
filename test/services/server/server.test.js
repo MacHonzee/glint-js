@@ -142,4 +142,14 @@ describe("Server", () => {
   it.todo("should return file");
 
   it.todo("should throw CORS error");
+
+  it.todo("should register custom middleware");
+
+  it.todo("should not register middleware because it does not have ORDER");
+
+  it.todo("should not register middleware because it has duplicit ORDER");
+
+  it.todo("should not register middleware because it wrong parameter count");
+
+  it.todo("should not register middleware because it does not have process method");
 });
