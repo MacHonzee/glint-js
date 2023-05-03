@@ -1,4 +1,4 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it } from "@jest/globals";
 import UserModel from "../../src/models/user-model.js";
 import AssertionService from "../test-utils/assertion-service.js";
 

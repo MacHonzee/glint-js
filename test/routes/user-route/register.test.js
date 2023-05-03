@@ -1,5 +1,4 @@
 import { describe, it, beforeAll } from "@jest/globals";
-import TestService from "../../test-utils/test-service.js";
 import AuthenticationService from "../../../src/services/authentication/authentication-service.js";
 import AssertionService from "../../test-utils/assertion-service.js";
 import TestUsers from "../../test-utils/test-users.js";
