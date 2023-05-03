@@ -8,10 +8,10 @@ async function main() {
   }
 
   // disconnect from internal connections (if available)
-  // const MongoClient = await import("../../src/services/database/mongo-client.js");
-  // for (const connection of MongoClient.default.connections) {
-  //   await connection.close();
-  // }
+  const MongoClient = await import("../../src/services/database/mongo-client.js");
+  for (const connectionCache of Object.values(MongoClient.default.connections)) {
+    await connectionCache.connection.close();
+  }
 
   // and stop mongo
   await TestService.stopMongo();
