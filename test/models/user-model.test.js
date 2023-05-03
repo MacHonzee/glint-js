@@ -1,6 +1,10 @@
-import { describe, it } from "@jest/globals";
+import { describe, it, afterAll } from "@jest/globals";
 import UserModel from "../../src/models/user-model.js";
 import AssertionService from "../test-utils/assertion-service.js";
+
+afterAll(async () => {
+  await UserModel.db.close();
+});
 
 describe("UserModel", () => {
   it("should not return hash and salt in JSON", async () => {
