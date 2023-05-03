@@ -9,12 +9,8 @@ async function main() {
 
   // disconnect from internal connections (if available)
   const MongoClient = await import("../../src/services/database/mongo-client.js");
-  console.log("=>(global-teardown.js:12) MongoClient.default.connections", MongoClient.default.connections);
-
-  if (MongoClient.default.connections) {
-    for (const connection of MongoClient.default.connections) {
-      await connection.close();
-    }
+  for (const connection of Object.values(MongoClient.default.connections)) {
+    await connection.close();
   }
 
   // and stop mongo
