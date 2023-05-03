@@ -73,6 +73,7 @@
     "testTimeout": 15000,
     "globalSetup": "./test/test-utils/global-setup.js",
     "globalTeardown": "./test/test-utils/global-teardown.js",
+    "setupFilesAfterEnv": ["./test/test-utils/disconnect-from-db.js"],
     "collectCoverage": true,
     "collectCoverageFrom": [
       "src/**/*.{js,jsx}"
