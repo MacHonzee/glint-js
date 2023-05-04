@@ -31,8 +31,13 @@ class RouteRegister {
   }
 
   _wrapController(controllerMethod) {
-    return function handleController(req, res) {
-      Promise.resolve(controllerMethod(req.ucEnv)).then((result) => res.send(result));
+    return async function handleController(req, res, next) {
+      try {
+        const result = await controllerMethod(req.ucEnv);
+        res.send(result);
+      } catch (e) {
+        next(e);
+      }
     };
   }
 
