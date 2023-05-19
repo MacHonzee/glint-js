@@ -4,10 +4,10 @@ class AuthorizationResult {
    *
    * @param {Boolean} authorized Represents whether user has rights for given useCase or not
    * @param {String} username E-mail of given user
-   * @param {Array<String>} useCaseRoles List of roles that are valid for given useCase
-   * @param {Array<String>} userRoles List of roles that the user currently possesses
+   * @param {Array<String>} [useCaseRoles = []] List of roles that are valid for given useCase
+   * @param {Array<String>} [userRoles = []] List of roles that the user currently possesses
    */
-  constructor({ authorized, username, useCaseRoles, userRoles }) {
+  constructor({ authorized, username, useCaseRoles = [], userRoles = [] }) {
     this.authorized = authorized;
     this.username = username;
     this.useCaseRoles = useCaseRoles;
