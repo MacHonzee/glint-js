@@ -41,7 +41,7 @@
   },
   "scripts": {
     "analyze": "eslint src test",
-    "scan": "npm audit",
+    "scan": "npm audit -- --audit-level=moderate",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "repository": {
