@@ -56,7 +56,7 @@ describe("user/refreshToken", () => {
     const ucEnv = await TestService.getUcEnv("user/refreshToken");
     ucEnv.request.signedCookies = {
       refreshToken:
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOiI2NDNkMWRkNjk2YTJjNTlmZDk5MGEwMWIiLCJ1c2VyIjp7ImlkIjoiNjQzZDFkZDU5NmEyYzU5ZmQ5OTBhMDEzIiwidXNlcm5hbWUiOiJ1c2VyRm9yUmVmcmVzaFRva2VuQG1haWwuY29tIiwiZmlyc3ROYW1lIjoiQWxleCIsImxhc3ROYW1lIjoiSG9ubm9sZCJ9LCJpYXQiOjE2ODE3MjY5MzQsImV4cCI6MTY4NDMxODkzNH0.MKTddHNEbcjSbOlNFkPRsu1zdxNy1lI5A0TDAhZHTzk",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.5h3MeiIYYw3FF856wkg0ukAH1cSgfN5NGXvhN9HmVwA",
     };
 
     await AssertionService.assertThrows(
