@@ -56,12 +56,13 @@ class UserRoute {
     }
 
     // create model for user
+    const normalizedUsername = this._normalizeUsername(dtoIn.username);
     const newUser = new UserModel({
       username: dtoIn.username,
       firstName: dtoIn.firstName,
       lastName: dtoIn.lastName,
       language: dtoIn.language,
-      email: dtoIn.email || dtoIn.username,
+      email: dtoIn.email || normalizedUsername,
     });
 
     // save user to database to check constraints
@@ -85,7 +86,8 @@ class UserRoute {
     await ValidationService.validate(dtoIn, uri.useCase);
 
     // authenticate based on username and password
-    const { user, error } = await AuthenticationService.login(dtoIn.username, dtoIn.password);
+    const normalizedUsername = this._normalizeUsername(dtoIn.username);
+    const { user, error } = await AuthenticationService.login(normalizedUsername, dtoIn.password);
 
     // check if authentication was successful and translate it to Http error
     if (error) {
@@ -221,6 +223,10 @@ class UserRoute {
     response.cookie("refreshToken", refreshToken, AuthenticationService.COOKIE_OPTIONS);
 
     return token;
+  }
+
+  _normalizeUsername(username) {
+    return username.toLowerCase();
   }
 }
 

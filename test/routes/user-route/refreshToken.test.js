@@ -5,12 +5,12 @@ import AssertionService from "../../test-utils/assertion-service.js";
 import TestUsers from "../../test-utils/test-users.js";
 
 const USER = {
-  username: "userForRefreshToken@mail.com",
+  username: "user_for_refresh_token@mail.com",
   password: "qwertzuiopú",
   confirmPassword: "qwertzuiopú",
   firstName: "Alex",
   lastName: "Honnold",
-  email: "userForRefreshToken@mail.com",
+  email: "user_for_refresh_token@mail.com",
   language: "en",
 };
 
