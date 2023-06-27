@@ -27,6 +27,14 @@ class SecretManager {
     return secretContent;
   }
 
+  async mustGet(secretName, version = "latest") {
+    const secret = await this.get(secretName, version);
+    if (secret === undefined) {
+      throw new Error(`Secret ${secretName} in version ${version} was not found.`);
+    }
+    return secret;
+  }
+
   async getSecretPath(secretName, version = "latest") {
     if (!this._active) await this._init(); // lazy initialization during first call
 

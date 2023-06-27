@@ -15,6 +15,9 @@ import mongoose from "mongoose"; // has to be exported because new Schema checks
 // services - logging
 import LoggerFactory from "./services/logging/logger-factory.js";
 
+// services - mail
+import MailService from "./services/mail/mail-service.js";
+
 // services - secret-manager
 import SecretManager from "./services/secret-manager/secret-manager.js";
 
@@ -50,6 +53,7 @@ export {
   DuplicateKeyError,
   MongoClient,
   LoggerFactory,
+  MailService,
   SecretManager,
   Server,
   RouteRegister,
