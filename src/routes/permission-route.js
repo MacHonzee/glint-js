@@ -33,6 +33,12 @@ class PermissionSecretNotMatching extends UseCaseError {
 }
 
 class PermissionRoute {
+  ERRORS = {
+    CannotLoadRoles,
+    PermissionSecretNotMatching,
+    PermissionSecretNotAvailable,
+  };
+
   async grant({ dtoIn, uri }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 

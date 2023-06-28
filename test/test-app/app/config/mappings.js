@@ -28,7 +28,7 @@ const Mappings = {
   },
   "/testcase/returnFile": {
     method: "post",
-    controller: () => ({ hello: "world" }),
+    controller: () => ({ hello: "world" }), // TODO finish this to return some file
     roles: ["Public"],
   },
 };
