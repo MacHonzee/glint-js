@@ -1,5 +1,4 @@
 import PermissionModel from "../models/permission-model.js";
-import UserModel from "../models/user-model.js";
 import ValidationService from "../services/validation/validation-service.js";
 import UseCaseError from "../services/server/use-case-error.js";
 import DefaultRoles from "../config/default-roles.js";
@@ -33,17 +32,9 @@ class PermissionSecretNotMatching extends UseCaseError {
   }
 }
 
-class UserNotFound extends UseCaseError {
-  constructor(user) {
-    super("User with given username was not found.", "userNotFound", { user });
-  }
-}
-
 class PermissionRoute {
   async grant({ dtoIn, uri }) {
     await ValidationService.validate(dtoIn, uri.useCase);
-
-    await this._checkUser(dtoIn.user);
 
     const permission = await new PermissionModel({ user: dtoIn.user, role: dtoIn.role }).save();
 
@@ -61,8 +52,6 @@ class PermissionRoute {
     if (!permissionKey) throw new PermissionSecretNotAvailable();
 
     if (permissionKey !== dtoIn.secret) throw new PermissionSecretNotMatching(dtoIn.secret);
-
-    await this._checkUser(dtoIn.user);
 
     const permission = await new PermissionModel({ user: dtoIn.user, role: dtoIn.role }).save();
 
@@ -123,14 +112,6 @@ class PermissionRoute {
 
   async _getPermissionKey() {
     return Config.get("PERMISSION_GRANT_KEY") || (await SecretManager.get("permissionGrantSecret"));
-  }
-
-  async _checkUser(user) {
-    const userObject = await UserModel.findByUsername(user);
-    if (!userObject) {
-      throw new UserNotFound(user);
-    }
-    return userObject;
   }
 }
 
