@@ -1,12 +1,10 @@
 import { describe, it, beforeAll } from "@jest/globals";
-import AuthenticationService from "../../../src/services/authentication/authentication-service.js";
-import AssertionService from "../../test-utils/assertion-service.js";
-import TestUsers from "../../test-utils/test-users.js";
+import { TestUsers, AssertionService } from "../../test-utils/index.js";
+import { AuthenticationService } from "../../../src/index.js";
+import UserRoute from "../../../src/routes/user-route.js";
 
 describe("user/register", () => {
-  let UserRoute;
   beforeAll(async () => {
-    UserRoute = (await import("../../../src/routes/user-route.js")).default;
     await AuthenticationService.init();
   });
 

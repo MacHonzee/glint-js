@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import Languages from "../../src/config/languages.js";
+import { Languages } from "../../src/index.js";
 
 describe("Languages", () => {
   it('should have an "all" property containing all defined languages', () => {

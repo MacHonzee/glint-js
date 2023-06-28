@@ -1,15 +1,28 @@
-import { describe, it, expect } from "@jest/globals";
-import TestService from "../../test-utils/test-service.js";
-import TestUsers from "../../test-utils/test-users.js";
-import AssertionService from "../../test-utils/assertion-service.js";
+import { describe, it, expect, beforeAll } from "@jest/globals";
+import { TestService, TestUsers, AssertionService } from "../../test-utils/index.js";
 import PermissionRoute from "../../../src/routes/permission-route.js";
 import { AuthorizationService } from "../../../src/index.js";
 
+const USER = {
+  username: "userforgrant@mail.com",
+  password: "123456",
+  confirmPassword: "123456",
+  firstName: "Permission",
+  lastName: "Grant",
+  email: "userforgrant@mail.com",
+  language: "en",
+};
+
 describe("permission/grant", () => {
+  let testUser;
+  beforeAll(async () => {
+    testUser = await TestUsers.registerUser(USER);
+    USER.id = testUser.user.id;
+  });
+
   it("should return success", async () => {
-    const authority = await TestUsers.authority();
     const grant = {
-      user: authority.user.username,
+      user: testUser.user.username,
       role: "Technician",
     };
     const ucEnv = await TestService.getUcEnv("permission/grant", grant);
@@ -19,6 +32,6 @@ describe("permission/grant", () => {
 
     AssertionService.assertBaseData(dtoOut.permission);
     expect(dtoOut.permission).toMatchObject(grant);
-    expect(userRoles).toContain("Technician");
+    expect(userRoles).toMatchObject(["Technician"]);
   });
 });

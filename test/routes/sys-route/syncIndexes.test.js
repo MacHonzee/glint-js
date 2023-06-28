@@ -1,5 +1,5 @@
 import { jest, describe, it, expect } from "@jest/globals";
-import { ModelWarehouse } from "../../../src/services/database/abstract-model.js";
+import { ModelWarehouse } from "../../../src/index.js";
 
 describe("sys/syncIndexes", () => {
   it("should return success", async () => {

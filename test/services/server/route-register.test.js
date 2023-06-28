@@ -1,7 +1,7 @@
 import path from "path";
 import { describe, beforeAll, it, expect } from "@jest/globals";
 import { RouteRegister, Config } from "../../../src/index";
-import AssertionService from "../../test-utils/assertion-service.js";
+import { AssertionService } from "../../test-utils/index.js";
 
 describe("RouteRegister", () => {
   beforeAll(async () => {

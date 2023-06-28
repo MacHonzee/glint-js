@@ -1,8 +1,7 @@
 import { describe, it, beforeAll, expect } from "@jest/globals";
-import TestService from "../../test-utils/test-service.js";
-import AuthenticationService from "../../../src/services/authentication/authentication-service.js";
-import AssertionService from "../../test-utils/assertion-service.js";
-import TestUsers from "../../test-utils/test-users.js";
+import { TestService, TestUsers, AssertionService } from "../../test-utils/index.js";
+import { AuthenticationService } from "../../../src/index.js";
+import UserRoute from "../../../src/routes/user-route.js";
 
 const USER = {
   username: "user_for_login@mail.com",
@@ -15,9 +14,7 @@ const USER = {
 };
 
 describe("user/login", () => {
-  let UserRoute;
   beforeAll(async () => {
-    UserRoute = (await import("../../../src/routes/user-route.js")).default;
     await AuthenticationService.init();
     await TestUsers.registerUser(USER);
   });

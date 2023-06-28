@@ -1,9 +1,7 @@
 import { jest, describe, it, beforeAll, expect } from "@jest/globals";
-import TestService from "../../test-utils/test-service.js";
-import AuthenticationService from "../../../src/services/authentication/authentication-service.js";
-import UserService from "../../../src/services/authentication/user-service.js";
-import MailService from "../../../src/services/mail/mail-service.js";
-import TestUsers from "../../test-utils/test-users.js";
+import { TestService, TestUsers } from "../../test-utils/index.js";
+import { AuthenticationService, UserService, MailService } from "../../../src/index.js";
+import UserRoute from "../../../src/routes/user-route.js";
 
 const USER = {
   username: "userForResetPassword@mail.com",
@@ -18,9 +16,7 @@ const USER = {
 jest.spyOn(MailService, "send").mockImplementation();
 
 describe("user/resetPassword", () => {
-  let UserRoute;
   beforeAll(async () => {
-    UserRoute = (await import("../../../src/routes/user-route.js")).default;
     await AuthenticationService.init();
     const registeredUser = await TestUsers.registerUser(USER);
     USER.id = registeredUser.user.id;

@@ -40,6 +40,7 @@ import BlobStore from "./services/blob-store/blob-store.js";
 
 // configs
 import DefaultRoles from "./config/default-roles.js";
+import Languages from "./config/languages.js";
 
 // TODO describe everything with proper JSDoc
 export {
@@ -64,6 +65,7 @@ export {
   AppEventEmitter,
   ValidationService,
   DefaultRoles,
+  Languages,
   mongoose,
   BlobStore,
 };
