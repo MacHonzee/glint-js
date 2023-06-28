@@ -24,7 +24,7 @@ class CorsError extends UseCaseError {
 class Server {
   app = express();
   logger = LoggerFactory.create("Server.Startup");
-  port = Config.PORT || 8080;
+  port = Config.PORT || 56123;
 
   async start() {
     await this._onBeforeStart();
@@ -37,6 +37,7 @@ class Server {
   }
 
   async _onBeforeStart() {
+    await this._logServerStart();
     await ValidationService.init();
     await AuthenticationService.init(true);
 
@@ -45,6 +46,12 @@ class Server {
     const errorMiddlewares = await this._registerMiddlewares();
     await this._registerRoutes();
     await this._registerErrorMiddlewares(errorMiddlewares);
+  }
+
+  async _logServerStart() {
+    const glintPkgVersion = (await import("../../../package.json")).version;
+    this.logger.info(`Glint.js running in version "${glintPkgVersion}".`);
+    this.logger.info(`Application is running in version "${process.env.npm_package_version}".`);
   }
 
   async _registerRoutes() {
