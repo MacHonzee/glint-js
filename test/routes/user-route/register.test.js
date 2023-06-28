@@ -12,7 +12,7 @@ describe("user/register", () => {
 
   it("should return success", async () => {
     const data = {
-      username: "ownUser@mail.com",
+      username: "ownuser@mail.com",
       password: "ultraStrongPass123",
       confirmPassword: "ultraStrongPass123",
       firstName: "John",

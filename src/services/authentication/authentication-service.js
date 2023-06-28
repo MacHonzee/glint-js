@@ -54,9 +54,9 @@ class AuthenticationService {
     app.use(cookieParser(this._cookieKey));
   }
 
-  getToken(userPayload) {
+  getToken(userPayload, sessionExpiry) {
     return jwt.sign({ id: userPayload.id, user: userPayload }, this._tokenKey, {
-      expiresIn: this._sessionExpiry,
+      expiresIn: sessionExpiry || this._sessionExpiry,
     });
   }
 

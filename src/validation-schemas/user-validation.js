@@ -36,6 +36,27 @@ const UserChangePasswordSchema = {
   additionalProperties: false,
 };
 
+const UserResetPasswordSchema = {
+  type: "object",
+  properties: {
+    username: { type: "string" },
+    hostUri: { type: "string" },
+  },
+  required: ["username", "hostUri"],
+  additionalProperties: false,
+};
+
+const UserChangePasswordByResetSchema = {
+  type: "object",
+  properties: {
+    token: { type: "string" },
+    password: { type: "string" },
+    confirmPassword: { type: "string" },
+  },
+  required: ["token", "password", "confirmPassword"],
+  additionalProperties: false,
+};
+
 const UserRefreshTokenSchema = {};
 
 const UserLogoutSchema = {
@@ -60,6 +81,8 @@ export default {
   UserRegisterSchema,
   UserLoginSchema,
   UserChangePasswordSchema,
+  UserResetPasswordSchema,
+  UserChangePasswordByResetSchema,
   UserRefreshTokenSchema,
   UserLogoutSchema,
   UserListSchema,

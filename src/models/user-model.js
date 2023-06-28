@@ -18,6 +18,7 @@ class UserModel extends AbstractModel {
           type: String,
           default: "cs",
         },
+        resetToken: String,
       },
       { timestamps: true },
     );
@@ -29,6 +30,7 @@ class UserModel extends AbstractModel {
       transform: (doc, ret) => {
         delete ret.salt;
         delete ret.hash;
+        delete ret.resetToken;
         return ret;
       },
     });
@@ -57,6 +59,7 @@ class UserModel extends AbstractModel {
         $project: {
           salt: 0,
           hash: 0,
+          resetToken: 0,
           "permissions._id": 0,
           "permissions.user": 0,
           "permissions.createdAt": 0,

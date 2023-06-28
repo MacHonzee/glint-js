@@ -5,6 +5,7 @@ import UseCaseError from "../services/server/use-case-error.js";
 import LoggerFactory from "../services/logging/logger-factory.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
 import UserService from "../services/authentication/user-service.js";
+import MailService from "../services/mail/mail-service.js";
 
 class MismatchingPasswords extends UseCaseError {
   constructor() {
@@ -47,6 +48,25 @@ class UserRoute {
     InvalidRefreshToken,
   };
 
+  RESET_PASS_MAIL = {
+    subject: "Obnova hesla do aplikace Energetická bilance",
+    html: ({ resetToken, hostUri }) => `<div>
+    Dobrý den,
+    <br/><br/>
+    Obdrželi jsme žádost o obnovu hesla do aplikace Energetická bilance. Pokud jste obnovu hesla nevyžádali, můžete tento e-mail ignorovat.
+    <br/><br/>
+    Klikněte na odkaz níže pro nastavení nového hesla. Odkaz je platný pouze 24 hodin.<br/>
+    <ul><li><b>
+        <a href="${hostUri}/resetPassword?token=${resetToken}">OBNOVA HESLA</a>
+    </b></li></ul>
+    <br/><br/>
+    Na tento e-mail neodpovídejte, byl automaticky generován systémem.
+    <br/><br/>
+    S pozdravem,<br/>
+    tým Energetická bilance
+</div>`,
+  };
+
   async register({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -58,7 +78,7 @@ class UserRoute {
     // create model for user
     const normalizedUsername = this._normalizeUsername(dtoIn.username);
     const newUser = new UserModel({
-      username: dtoIn.username,
+      username: normalizedUsername,
       firstName: dtoIn.firstName,
       lastName: dtoIn.lastName,
       language: dtoIn.language,
@@ -159,7 +179,7 @@ class UserRoute {
     const user = await UserService.findByUsername(session.user.username);
     await user.changePassword(dtoIn.currentPassword, dtoIn.password);
 
-    // perform "global logout" by deleting all refresh tokens
+    // perform global logout by deleting all refresh tokens
     // TODO "blacklist" the username and whitelist the new JWT token
     await RefreshTokenModel.deleteByUsername(session.user.username);
 
@@ -170,6 +190,51 @@ class UserRoute {
       user,
       token,
     };
+  }
+
+  async resetPassword({ uri, dtoIn }) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    // generate the reset token
+    const normalizedUsername = this._normalizeUsername(dtoIn.username);
+    const resetToken = this._createResetToken(normalizedUsername);
+
+    // save the reset token to DB
+    const user = await UserService.findByUsername(normalizedUsername);
+    user.resetToken = resetToken;
+    await user.save();
+
+    // perform "global logout" by deleting all refresh tokens
+    await RefreshTokenModel.deleteByUsername(normalizedUsername);
+
+    // send email that contains some information about the new password
+    await MailService.send({
+      to: dtoIn.username,
+      subject: this.RESET_PASS_MAIL.subject,
+      html: this.RESET_PASS_MAIL.html({ resetToken, hostUri: dtoIn.hostUri }),
+    });
+
+    return { status: "OK" };
+  }
+
+  async changePasswordByReset({ uri, dtoIn }) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    // check matching password
+    if (dtoIn.password !== dtoIn.confirmPassword) {
+      throw new this.ERRORS.MismatchingPasswords();
+    }
+
+    // verify token
+    const resetSession = await AuthenticationService.verifyToken(dtoIn.token);
+
+    // set new password
+    const user = await UserService.findByUsername(resetSession.user);
+    await user.setPassword(dtoIn.password);
+    user.resetToken = undefined;
+    await user.save();
+
+    return { status: "OK" };
   }
 
   async list({ uri, dtoIn }) {
@@ -227,6 +292,10 @@ class UserRoute {
 
   _normalizeUsername(username) {
     return username.toLowerCase();
+  }
+
+  _createResetToken(username) {
+    return AuthenticationService.getToken(username, "24h");
   }
 }
 

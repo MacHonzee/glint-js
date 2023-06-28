@@ -83,6 +83,16 @@ const Mappings = {
     controller: UserRoute.changePassword.bind(UserRoute),
     roles: [DefaultRoles.authenticated],
   },
+  "/user/resetPassword": {
+    method: Post,
+    controller: UserRoute.resetPassword.bind(UserRoute),
+    roles: [DefaultRoles.public],
+  },
+  "/user/changePasswordByReset": {
+    method: Post,
+    controller: UserRoute.changePasswordByReset.bind(UserRoute),
+    roles: [DefaultRoles.public],
+  },
   "/user/list": {
     method: Get,
     controller: UserRoute.list.bind(UserRoute),
