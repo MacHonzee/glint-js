@@ -39,6 +39,7 @@ class AuthorizationService {
       username,
       useCaseRoles,
       userRoles,
+      useCase,
     });
   }
 

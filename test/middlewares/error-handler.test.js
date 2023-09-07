@@ -15,6 +15,8 @@ const TEST_ROUTES = {
   },
 };
 
+const TRACE_ID_HEADER = "X-Cloud-Trace-Context";
+
 let port;
 describe("ErrorHandler", () => {
   beforeAll(async () => {
@@ -44,6 +46,23 @@ describe("ErrorHandler", () => {
       (response) => {
         expect(response.status).toBe(500);
         expect(response.data).toMatchObject({
+          timestamp: expect.any(String),
+          message: "Some unexpected error",
+          trace: expect.any(String),
+        });
+      },
+    );
+  });
+
+  it("should fail on error 500 and include traceId in dtoOut", async () => {
+    await AssertionService.assertCallThrows(
+      () =>
+        axios.post(`http://localhost:${port}/testcase/hello`, {}, { headers: { [TRACE_ID_HEADER]: "myRequestId" } }),
+      (response) => {
+        expect(response.status).toBe(500);
+        expect(response.data).toMatchObject({
+          timestamp: expect.any(String),
+          traceId: "myRequestId",
           message: "Some unexpected error",
           trace: expect.any(String),
         });
@@ -59,6 +78,7 @@ describe("ErrorHandler", () => {
       (response) => {
         expect(response.status).toBe(500);
         expect(response.data).toMatchObject({
+          timestamp: expect.any(String),
           message: "Some unexpected error",
         });
         expect(response.data.trace).not.toBeDefined();

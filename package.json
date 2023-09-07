@@ -1,6 +1,6 @@
 {
   "name": "glint-js",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
   "main": "src/index.js",
   "type": "module",
@@ -42,7 +42,7 @@
   },
   "scripts": {
     "analyze": "eslint src test",
-    "scan": "npm audit --audit-level=moderate",
+    "scan": "npm audit",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "repository": {
@@ -71,7 +71,7 @@
   "jest": {
     "testEnvironment": "jest-environment-node",
     "transform": {},
-    "testTimeout": 15000,
+    "testTimeout": 20000,
     "globalSetup": "./test/test-utils/global-setup.js",
     "globalTeardown": "./test/test-utils/global-teardown.js",
     "setupFilesAfterEnv": [

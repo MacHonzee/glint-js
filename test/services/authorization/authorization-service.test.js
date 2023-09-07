@@ -35,6 +35,7 @@ describe("AuthorizationService", () => {
           username: "user",
           useCaseRoles: [DefaultRoles.authenticated],
           userRoles: [],
+          useCase: "useCase",
         }),
       );
     });
@@ -51,6 +52,7 @@ describe("AuthorizationService", () => {
           username: "user",
           useCaseRoles: ["admin"],
           userRoles: ["admin"],
+          useCase: "useCase",
         }),
       );
     });
@@ -67,6 +69,7 @@ describe("AuthorizationService", () => {
           username: "user",
           useCaseRoles: ["admin"],
           userRoles: ["user"],
+          useCase: "useCase",
         }),
       );
     });

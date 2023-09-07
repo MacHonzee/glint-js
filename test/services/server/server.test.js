@@ -58,6 +58,7 @@ describe("Server", () => {
       () => TestService.callPost("testcase/authenticated"),
       (e) => {
         expect(e.data).toEqual({
+          timestamp: expect.any(String),
           code: "glint-js/userNotAuthenticated",
           message: "User is not authenticated.",
           params: {
@@ -82,6 +83,7 @@ describe("Server", () => {
         authorized: true,
         useCaseRoles: ["Admin", "Client"],
         userRoles: ["Client"],
+        useCase: "/testcase/authorized",
       },
     });
   });
@@ -94,6 +96,7 @@ describe("Server", () => {
       () => TestService.callPost("testcase/authorized", null, authority),
       (e) => {
         expect(e.data).toEqual({
+          timestamp: expect.any(String),
           code: "glint-js/userNotAuthorized",
           message: "User is not authorized for given route.",
           params: {
@@ -101,6 +104,7 @@ describe("Server", () => {
             useCaseRoles: ["Admin", "Client"],
             userRoles: ["Authority"],
             username: authority.user.username,
+            useCase: "/testcase/authorized",
           },
           trace: expect.any(String),
         });

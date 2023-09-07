@@ -7,6 +7,7 @@ describe("AuthorizationResult", () => {
     username: "test@example.com",
     useCaseRoles: ["admin", "editor"],
     userRoles: ["admin", "author"],
+    useCase: "/",
   });
 
   it("should have the correct properties", () => {
