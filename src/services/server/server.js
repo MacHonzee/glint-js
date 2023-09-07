@@ -49,7 +49,9 @@ class Server {
   }
 
   async _logServerStart() {
-    const glintPkgVersion = (await import("../../../package.json")).version;
+    const pkgJsonPath = path.join(Config.GLINT_ROOT, "package.json");
+    const glintPkgVersion = JSON.parse(await fs.promises.readFile(pkgJsonPath, "utf8")).version;
+
     this.logger.info(`Glint.js running in version "${glintPkgVersion}".`);
     this.logger.info(`Application is running in version "${process.env.npm_package_version}".`);
   }
