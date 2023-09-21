@@ -3,7 +3,7 @@ import Languages from "../config/languages.js";
 const UserRegisterSchema = {
   type: "object",
   properties: {
-    username: { type: "string" },
+    username: { format: "identity", type: "string" },
     password: { type: "string" },
     confirmPassword: { type: "string" },
     firstName: { type: "string" },
@@ -18,7 +18,7 @@ const UserRegisterSchema = {
 const UserLoginSchema = {
   type: "object",
   properties: {
-    username: { type: "string" },
+    username: { format: "identity", type: "string" },
     password: { type: "string" },
   },
   required: ["username", "password"],
@@ -39,7 +39,7 @@ const UserChangePasswordSchema = {
 const UserResetPasswordSchema = {
   type: "object",
   properties: {
-    username: { type: "string" },
+    username: { format: "identity", type: "string" },
     hostUri: { type: "string" },
   },
   required: ["username", "hostUri"],

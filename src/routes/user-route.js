@@ -291,7 +291,7 @@ class UserRoute {
   }
 
   _normalizeUsername(username) {
-    return username.toLowerCase();
+    return username.toLowerCase().trim();
   }
 
   _createResetToken(username) {
