@@ -1,8 +1,9 @@
-import SgMail from "@sendgrid/mail";
 import { jest, beforeEach, describe, it, expect } from "@jest/globals";
 import { MailService, SecretManager, Config } from "../../../src/index.js";
 
 jest.spyOn(SecretManager, "mustGet");
+
+const SgMail = MailService.sgMail;
 jest.spyOn(SgMail, "setApiKey").mockImplementation();
 jest.spyOn(SgMail, "send").mockImplementation();
 

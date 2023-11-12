@@ -4,7 +4,10 @@ import Config from "../utils/config.js";
 
 class EmailService {
   constructor() {
-    this.sgMail = "Some mail service";
+    this.sgMail = {
+      setApiKey: () => {},
+      send: () => {},
+    };
     this.isInitialized = false;
   }
 
