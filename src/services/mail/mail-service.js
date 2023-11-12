@@ -1,10 +1,10 @@
-import SgMail from "@sendgrid/mail";
+// TODO import SomeMailClient
 import SecretManager from "../secret-manager/secret-manager.js";
 import Config from "../utils/config.js";
 
 class EmailService {
   constructor() {
-    this.sgMail = SgMail;
+    this.sgMail = "Some mail service";
     this.isInitialized = false;
   }
 
