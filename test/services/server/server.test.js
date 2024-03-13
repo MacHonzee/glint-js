@@ -1,11 +1,10 @@
 import { describe, beforeAll, it, expect, afterAll } from "@jest/globals";
 import { FormData, fileFromSync } from "node-fetch";
-import TestService from "../../test-utils/test-service.js";
-import AssertionService from "../../test-utils/assertion-service.js";
+import { TestService, AssertionService } from "glint-js-kit";
 
 describe("Server", () => {
   beforeAll(async () => {
-    await TestService.startServer();
+    await TestService.startServer("./test/test-app/app.js");
   });
 
   afterAll(async () => {

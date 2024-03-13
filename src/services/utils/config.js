@@ -91,7 +91,7 @@ class Config {
 
   _initAppRoot() {
     // we save root of the server
-    this.set("SERVER_ROOT", process.cwd());
+    this.set("SERVER_ROOT", process.env["DEFAULT_SERVER_ROOT"] || process.cwd());
 
     // and we also save root of the library (dynamically find out the nearest package.json)
     let currentDirname = path.dirname(url.fileURLToPath(import.meta.url));

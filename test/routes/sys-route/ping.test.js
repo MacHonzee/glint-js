@@ -1,6 +1,6 @@
 import { jest, describe, it, expect } from "@jest/globals";
 import fs from "fs";
-import { TestService } from "../../test-utils/index.js";
+import { TestService } from "glint-js-kit";
 
 describe("sys/ping", () => {
   it("should return success", async () => {

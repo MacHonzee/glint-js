@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from "@jest/globals";
-import { TestService, TestUsers, AssertionService } from "../../test-utils/index.js";
+import { TestService, AssertionService } from "glint-js-kit";
+import { TestUsers } from "../../test-utils/index.js";
 import PermissionRoute from "../../../src/routes/permission-route.js";
 import { AuthorizationService } from "../../../src/index.js";
 

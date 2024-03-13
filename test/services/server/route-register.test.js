@@ -1,13 +1,19 @@
 import path from "path";
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect, afterAll } from "@jest/globals";
 import { RouteRegister, Config } from "../../../src/index";
-import { AssertionService } from "../../test-utils/index.js";
+import { AssertionService } from "glint-js-kit";
 
 describe("RouteRegister", () => {
+  let originalServerRoot;
   beforeAll(async () => {
     // Initialize RouteRegister before running tests
+    originalServerRoot = Config.SERVER_ROOT;
     Config.set("SERVER_ROOT", path.join(Config.SERVER_ROOT, "test", "test-app"));
     await RouteRegister.init();
+  });
+
+  afterAll(async () => {
+    Config.set("SERVER_ROOT", originalServerRoot);
   });
 
   describe("registerRoute", () => {

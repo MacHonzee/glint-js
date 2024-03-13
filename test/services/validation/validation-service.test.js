@@ -5,10 +5,6 @@ import { ValidationService, Config } from "../../../src/index.js";
 import { UsersCreateSchema } from "../../test-app/app/validation-schemas/test-validation";
 
 describe("ValidationService", () => {
-  beforeAll(() => {
-    Config.set("SERVER_ROOT", path.join(Config.SERVER_ROOT, "test", "test-app"));
-  });
-
   beforeEach(() => {
     ValidationService._ajv = new Ajv({ allErrors: false, coerceTypes: true });
     jest.restoreAllMocks();

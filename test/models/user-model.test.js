@@ -1,6 +1,6 @@
 import { describe, it, afterAll } from "@jest/globals";
+import { AssertionService } from "glint-js-kit";
 import UserModel from "../../src/models/user-model.js";
-import { AssertionService } from "../test-utils/index.js";
 
 afterAll(async () => {
   await UserModel.db.close();

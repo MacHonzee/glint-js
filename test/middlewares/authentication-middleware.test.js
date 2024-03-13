@@ -1,11 +1,11 @@
 import { jest, beforeAll, describe, it, expect, afterAll } from "@jest/globals";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import { TestService, AssertionService } from "glint-js-kit";
 import AuthenticationMiddleware from "../../src/middlewares/authentication-middleware.js";
 import ContextMiddleware from "../../src/middlewares/context-middleware.js";
 import ErrorHandler from "../../src/middlewares/error-handler.js";
 import { AuthenticationService, RouteRegister } from "../../src/index.js";
-import { TestService, AssertionService } from "../test-utils/index.js";
 
 // lite version of routes
 const TEST_ROUTES = {
