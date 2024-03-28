@@ -1,12 +1,6 @@
-import { URL, parse as parseUrl } from "url";
+import { parse as parseUrl } from "url";
 import qs from "qs";
-
-class Uri extends URL {
-  constructor(input, base) {
-    super(input, base);
-    this.useCase = this.pathname;
-  }
-}
+import Uri from "./uri.js";
 
 class UseCaseEnvironment {
   /**

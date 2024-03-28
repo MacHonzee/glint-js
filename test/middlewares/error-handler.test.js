@@ -61,6 +61,7 @@ describe("ErrorHandler", () => {
       (response) => {
         expect(response.status).toBe(500);
         expect(response.data).toMatchObject({
+          uri: `http://localhost:${port}/testcase/hello`,
           timestamp: expect.any(String),
           traceId: "myRequestId",
           message: "Some unexpected error",

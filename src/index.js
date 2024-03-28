@@ -26,6 +26,7 @@ import Server from "./services/server/server.js";
 import RouteRegister from "./services/server/route-register.js";
 import UseCaseEnvironment from "./services/server/use-case-environment.js";
 import UseCaseError from "./services/server/use-case-error.js";
+import Uri from "./services/server/uri.js";
 
 // services - utils
 import LruCache from "./services/utils/lru-cache.js";
@@ -60,6 +61,7 @@ export {
   RouteRegister,
   UseCaseEnvironment,
   UseCaseError,
+  Uri,
   LruCache,
   Config,
   AppEventEmitter,

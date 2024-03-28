@@ -64,6 +64,7 @@ describe("Server", () => {
             cause: "Header 'authorization' was not found.",
           },
           trace: expect.any(String),
+          uri: expect.any(String),
         });
       },
     );
@@ -106,6 +107,7 @@ describe("Server", () => {
             useCase: "/testcase/authorized",
           },
           trace: expect.any(String),
+          uri: expect.any(String),
         });
       },
     );

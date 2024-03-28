@@ -11,6 +11,7 @@ class ErrorHandler {
   // eslint-disable-next-line no-unused-vars
   async process(err, req, res, next) {
     const dtoOut = {
+      uri: req.ucEnv?.uri || req.originalUrl,
       traceId: err.id || req.get(TRACE_ID_HEADER), // valid for Google Cloud environments
       timestamp: new Date(),
       message: err.message,
