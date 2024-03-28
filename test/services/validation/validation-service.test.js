@@ -1,7 +1,6 @@
-import path from "path";
 import Ajv from "ajv";
-import { jest, describe, it, expect, beforeEach, beforeAll } from "@jest/globals";
-import { ValidationService, Config } from "../../../src/index.js";
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
+import { ValidationService } from "../../../src/index.js";
 import { UsersCreateSchema } from "../../test-app/app/validation-schemas/test-validation";
 
 describe("ValidationService", () => {
