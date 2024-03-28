@@ -1,4 +1,4 @@
-import { jest, beforeEach, describe, it, expect } from "@jest/globals";
+import { jest, beforeEach, describe, it, expect, afterAll } from "@jest/globals";
 import { MongoClient, Config, SecretManager, mongoose } from "../../../src/index.js";
 
 jest.spyOn(SecretManager, "get");
@@ -10,6 +10,10 @@ describe("MongoClient", () => {
     Config.set("PRIMARY_MONGODB_URI", "");
     Config.set("AUTH_MONGODB_URI", "");
     MongoClient.connections = {};
+  });
+
+  afterAll(async () => {
+    Config.set("MONGODB_DISABLED", true);
   });
 
   describe("getConnection", () => {
