@@ -37,6 +37,12 @@ class RefreshTokenMismatch extends UseCaseError {
   }
 }
 
+class UserNotFound extends UseCaseError {
+  constructor(username) {
+    super("User not found.", "userNotFound", { username });
+  }
+}
+
 class UserRoute {
   logger = LoggerFactory.create("Route.UserRoute");
 
@@ -46,6 +52,7 @@ class UserRoute {
     LoginFailed,
     RefreshTokenMismatch,
     InvalidRefreshToken,
+    UserNotFound,
   };
 
   RESET_PASS_MAIL = {
@@ -250,6 +257,17 @@ class UserRoute {
     return {
       users,
     };
+  }
+
+  async get({ uri, dtoIn }) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    const user = await UserModel.safeFindByUsername(dtoIn.username);
+    if (!user) {
+      throw new UserNotFound(dtoIn.username);
+    }
+
+    return user;
   }
 
   // method handles common logic for creating new token, creating new refresh token

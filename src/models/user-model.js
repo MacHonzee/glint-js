@@ -2,6 +2,8 @@ import passportLocalMongoose from "passport-local-mongoose";
 
 import { AbstractModel } from "../services/database/abstract-model.js";
 
+const DEFAULT_PROJECTION = { salt: 0, hash: 0, resetToken: 0 };
+
 class UserModel extends AbstractModel {
   constructor() {
     super(
@@ -42,7 +44,7 @@ class UserModel extends AbstractModel {
   }
 
   static async list() {
-    return await this.find({}, { salt: 0, hash: 0 });
+    return await this.find({}, DEFAULT_PROJECTION);
   }
 
   static async listWithPermissions() {
@@ -57,9 +59,7 @@ class UserModel extends AbstractModel {
       },
       {
         $project: {
-          salt: 0,
-          hash: 0,
-          resetToken: 0,
+          ...DEFAULT_PROJECTION,
           "permissions._id": 0,
           "permissions.user": 0,
           "permissions.createdAt": 0,
@@ -68,6 +68,10 @@ class UserModel extends AbstractModel {
         },
       },
     ]);
+  }
+
+  static async safeFindByUsername(username) {
+    return await this.findOne({ username }, DEFAULT_PROJECTION);
   }
 }
 

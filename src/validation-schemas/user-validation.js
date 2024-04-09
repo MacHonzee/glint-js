@@ -77,6 +77,15 @@ const UserListSchema = {
   additionalProperties: false,
 };
 
+const UserGetSchema = {
+  type: "object",
+  properties: {
+    username: { format: "identity", type: "string" },
+  },
+  required: ["username"],
+  additionalProperties: false,
+};
+
 export default {
   UserRegisterSchema,
   UserLoginSchema,
@@ -86,4 +95,5 @@ export default {
   UserRefreshTokenSchema,
   UserLogoutSchema,
   UserListSchema,
+  UserGetSchema,
 };
