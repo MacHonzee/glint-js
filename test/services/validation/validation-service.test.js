@@ -13,7 +13,7 @@ describe("ValidationService", () => {
     it("should register schemas from app and lib folders", async () => {
       const addSchemaSpy = jest.spyOn(ValidationService._ajv, "addSchema");
 
-      await ValidationService.init();
+      await ValidationService.init(true);
 
       expect(addSchemaSpy).toHaveBeenCalled();
       expect(addSchemaSpy).toHaveBeenCalledWith(UsersCreateSchema, "UsersCreateSchema");
@@ -22,7 +22,7 @@ describe("ValidationService", () => {
     it("should register custom formats", async () => {
       const addFormatSpy = jest.spyOn(ValidationService._ajv, "addFormat");
 
-      await ValidationService.init();
+      await ValidationService.init(true);
 
       expect(addFormatSpy).toHaveBeenCalledTimes(2);
       expect(addFormatSpy).toHaveBeenCalledWith("identity", { validate: expect.any(Function) });
@@ -32,7 +32,7 @@ describe("ValidationService", () => {
 
   describe("validate", () => {
     beforeEach(async () => {
-      await ValidationService.init();
+      await ValidationService.init(true);
     });
 
     it("should validate data against schema and return valid:true if successful", async () => {

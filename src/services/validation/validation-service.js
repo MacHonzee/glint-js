@@ -49,7 +49,9 @@ class ValidationService {
    *
    * @returns {Promise<void>}
    */
-  async init() {
+  async init(forceReload = false) {
+    if (!forceReload && this._initialized) return;
+
     // TODO add API or auto-loading of custom formats
     await this._registerFormats();
 
