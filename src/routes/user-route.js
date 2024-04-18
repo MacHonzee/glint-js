@@ -270,6 +270,16 @@ class UserRoute {
     return user;
   }
 
+  async setPassword({ uri, dtoIn }) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    const user = await UserService.findByUsername(dtoIn.username);
+    await user.setPassword(dtoIn.password);
+    await user.save();
+
+    return { user, status: "OK" };
+  }
+
   // method handles common logic for creating new token, creating new refresh token
   // and updating or adding the refreshToken to user
   async _handleUserAndTokens(user, response, refreshTokenToUpdate) {

@@ -103,6 +103,11 @@ const Mappings = {
     controller: UserRoute.get.bind(UserRoute),
     roles: [DefaultRoles.admin, DefaultRoles.authority],
   },
+  "/user/setPassword": {
+    method: Get,
+    controller: UserRoute.setPassword.bind(UserRoute),
+    roles: [DefaultRoles.admin],
+  },
 };
 
 export default Mappings;

@@ -19,8 +19,8 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run analyze
-      - run: npm run scan
-#      - run: npm test
+#      - run: npm run scan
+      - run: npm test
 
   publish-npm:
     needs: build

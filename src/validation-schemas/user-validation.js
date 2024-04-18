@@ -86,6 +86,16 @@ const UserGetSchema = {
   additionalProperties: false,
 };
 
+const UserSetPasswordSchema = {
+  type: "object",
+  properties: {
+    username: { format: "identity", type: "string" },
+    password: { type: "string" },
+  },
+  required: ["username", "password"],
+  additionalProperties: false,
+};
+
 export default {
   UserRegisterSchema,
   UserLoginSchema,
@@ -96,4 +106,5 @@ export default {
   UserLogoutSchema,
   UserListSchema,
   UserGetSchema,
+  UserSetPasswordSchema,
 };
