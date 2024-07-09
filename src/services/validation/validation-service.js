@@ -118,6 +118,8 @@ class ValidationService {
     const entries = await fs.promises.readdir(schemasFldPath);
     for (const entry of entries) {
       const schemaPath = path.join(schemasFldPath, entry);
+      if (!schemaPath.endsWith(".js")) continue; // import only javascript files, skip folders and other configs
+
       const schemas = await import("file://" + schemaPath);
 
       for (const [schemaName, schema] of Object.entries(schemas.default)) {

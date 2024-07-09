@@ -18,7 +18,6 @@ describe("user/setPassword", () => {
   beforeAll(async () => {
     await AuthenticationService.init();
     const registeredUser = await TestUsers.registerUser(USER);
-    console.log("=>(setPassword.test.js:21) registeredUser", registeredUser);
     USER.id = registeredUser.user.id;
   });
 
