@@ -1,12 +1,12 @@
 {
   "name": "glint-js",
-  "version": "0.6.14",
+  "version": "0.6.15",
   "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
   "main": "src/index.js",
   "type": "module",
   "dependencies": {
-    "@google-cloud/logging-winston": "^5.1.0",
-    "@google-cloud/secret-manager": "^4.0.0",
+    "@google-cloud/logging-winston": "^6.0.0",
+    "@google-cloud/secret-manager": "^5.6.0",
     "@google-cloud/storage": "^6.7.0",
     "ajv": "^8.11.0",
     "ajv-formats": "^2.1.1",
@@ -19,6 +19,7 @@
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
     "express-fileupload": "^1.4.0",
+    "google-gax": "^4.3.4",
     "helmet": "^6.0.1",
     "jsonwebtoken": "^9.0.0",
     "lru-cache": "^7.10.2",
