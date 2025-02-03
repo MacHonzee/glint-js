@@ -1,0 +1,52 @@
+{
+    "name": "glint-js-kit",
+    "version": "0.4.10",
+    "description": "Library for easier development with Glint.js. It is supposed to be added as a dependency in devDependencies key in package.json.",
+    "main": "src/index.js",
+    "type": "module",
+    "dependencies": {
+      "@jest/globals": "^29.7.0",
+      "axios": "^1.6.7",
+      "dotenv": "^16.0.1",
+      "eslint": "^8.23.0",
+      "eslint-config-prettier": "^8.6.0",
+      "eslint-plugin-prettier": "^4.2.1",
+      "express": "^4.18.3",
+      "express-async-errors": "^3.1.1",
+      "glint-js-core": "^0.1.0",
+      "jest": "^28.1.1",
+      "mongodb-memory-server-core": "^10.1.3",
+      "nodemon": "^3.0.1",
+      "prettier": "^2.8.3",
+      "qs": "^6.12.0",
+      "yargs": "^17.5.1"
+    },
+    "peerDependencies": {
+      "mongoose": "*"
+    },
+    "bin": {
+      "glint": "./src/scripts/glint-cli.js"
+    },
+    "scripts": {
+      "scan": "npm audit",
+      "analyze": "eslint src test",
+      "test": "jest"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/MacHonzee/glint-js-kit.git"
+    },
+    "keywords": [
+      "glintjs",
+      "jest",
+      "developmentKit",
+      "eslint"
+    ],
+    "author": "Jan Rudolf",
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/MacHonzee/glint-js-kit/issues"
+    },
+    "homepage": "https://github.com/MacHonzee/glint-js-kit#readme"
+  }
+  

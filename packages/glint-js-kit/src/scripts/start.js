@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+import fs from "node:fs";
+import path from "node:path";
+import { spawn } from "node:child_process";
+
+function spawnCmd(cmd, opts) {
+  const spawnedProcess = spawn(cmd, [], { shell: true, ...opts });
+
+  spawnedProcess.stdout.on("data", (data) => {
+    process.stdout.write(`[${opts.name}]: ${data}`);
+  });
+
+  spawnedProcess.stderr.on("data", (data) => {
+    process.stderr.write(`[${opts.name}]: ${data}`);
+  });
+}
+
+async function start() {
+  const cwd = process.cwd();
+
+  const clientPath = cwd.replace(/-server/, "-client");
+  if (fs.existsSync(clientPath)) {
+    spawnCmd("npm start", { name: "client", cwd: path.resolve(clientPath) });
+  }
+
+  const nodeEnv = process.env.NODE_ENV || "local";
+  spawnCmd("nodemon", { name: "server", cwd, env: { NODE_ENV: nodeEnv } });
+}
+
+export default start;

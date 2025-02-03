@@ -1,4 +1,4 @@
-import { URL } from "url";
+import { URL } from "node:url";
 
 /**
  * Uri class that extends the URL class.

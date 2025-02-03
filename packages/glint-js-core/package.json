@@ -1,0 +1,32 @@
+{
+  "name": "glint-js-core",
+  "version": "0.1.0",
+  "description": "Shared core functionality for glint-js ecosystem",
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {
+    "qs": "^6.11.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0"
+  },
+  "scripts": {
+    "analyze": "eslint src test",
+    "scan": "npm audit",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
+  },
+  "jest": {
+    "testEnvironment": "jest-environment-node",
+    "transform": {},
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}"
+    ],
+    "coverageReporters": [
+      "html",
+      "text",
+      "json"
+    ]
+  }
+}

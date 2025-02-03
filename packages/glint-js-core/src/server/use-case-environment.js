@@ -1,4 +1,4 @@
-import { parse as parseUrl } from "url";
+import { parse as parseUrl } from "node:url";
 import qs from "qs";
 import Uri from "./uri.js";
 

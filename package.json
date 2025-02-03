@@ -1,87 +1,13 @@
 {
-  "name": "glint-js",
-  "version": "0.6.19",
-  "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
-  "main": "src/index.js",
-  "type": "module",
-  "dependencies": {
-    "@google-cloud/logging-winston": "^6.0.0",
-    "@google-cloud/secret-manager": "^5.6.0",
-    "@google-cloud/storage": "^6.7.0",
-    "ajv": "^8.11.0",
-    "ajv-formats": "^2.1.1",
-    "async-mutex": "^0.4.0",
-    "axios": "^1.3.4",
-    "compression": "^1.7.4",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.1",
-    "express": "^4.18.2",
-    "express-async-errors": "^3.1.1",
-    "express-fileupload": "^1.4.0",
-    "glint-js": "^0.6.16",
-    "google-gax": "^4.3.4",
-    "helmet": "^6.0.1",
-    "jsonwebtoken": "^9.0.0",
-    "lru-cache": "^7.10.2",
-    "mongoose": "^8.8.3",
-    "ms": "^2.1.3",
-    "node-fetch": "^3.2.10",
-    "passport-local-mongoose": "^7.1.2",
-    "qs": "^6.11.0",
-    "uuid": "^9.0.0",
-    "winston": "^3.8.0"
-  },
-  "devDependencies": {
-    "@jest/globals": "^28.1.3",
-    "cross-env": "^7.0.3",
-    "glint-js-kit": "^0.4.8"
-  },
-  "scripts": {
-    "analyze": "eslint src test",
-    "scan": "npm audit",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MacHonzee/glint-js.git"
-  },
-  "keywords": [
-    "serverside",
-    "webapp",
-    "npm",
-    "express",
-    "mongoose",
-    "ajv",
-    "jwt",
-    "fullstack",
-    "framework",
-    "google cloud",
-    "google app engine"
+  "name": "glint-js-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
-  "author": "Jan Rudolf",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/MacHonzee/glint-js/issues"
+  "scripts": {
+    "analyze": "npm run analyze --workspaces",
+    "scan": "npm run scan --workspaces",
+    "test": "npm run test --workspaces"
   },
-  "homepage": "https://github.com/MacHonzee/glint-js#readme",
-  "jest": {
-    "testEnvironment": "jest-environment-node",
-    "transform": {},
-    "testTimeout": 20000,
-    "globalSetup": "glint-js-kit/src/test-utils/globals/global-setup.js",
-    "globalTeardown": "glint-js-kit/src/test-utils/globals/global-teardown.js",
-    "setupFilesAfterEnv": [
-      "glint-js-kit/src/test-utils/globals/disconnect-from-db.js"
-    ],
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}"
-    ],
-    "coverageReporters": [
-      "html",
-      "text",
-      "json"
-    ]
-  }
+  "devDependencies": {}
 }

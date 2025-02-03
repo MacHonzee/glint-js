@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import Config from "../utils/config.js";
 import UserModel from "../../models/user-model.js";
 import SecretManager from "../secret-manager/secret-manager.js";
-import Session from "./session.js";
+import Session from "glint-js-core/src/authentication/session.js";
 
 const CFG_DEFAULTS = {
   sessionExpiry: "12h",
