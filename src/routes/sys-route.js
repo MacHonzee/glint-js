@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import { ModelWarehouse } from "../services/database/abstract-model.js";
 import Config from "../services/utils/config.js";
+import AppStateService from "../services/app-state/app-state-service.js";
 
 class SysRoute {
   _pkgJson;
@@ -39,8 +40,23 @@ class SysRoute {
         });
       }
     }
-
     return { results };
+  }
+
+  /**
+   * Schedules a new application state change.
+   * Requires admin privileges.
+   * @param {object} ucEnv The use case environment.
+   * @param {object} ucEnv.dtoIn The validated data transfer object.
+   * @returns {Promise<object>} The result of scheduling the state change.
+   */
+  async scheduleStateChange(ucEnv) { // Renamed from setAppState
+    // DtoIn is validated by ValidationService based on schema name convention
+    const scheduleResult = await AppStateService.scheduleStateChange(ucEnv.dtoIn); // Renamed service call
+    return {
+      message: "Application state change scheduled successfully.",
+      scheduleResult, // Contains the updated schedule from the service
+    };
   }
 }
 
