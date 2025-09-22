@@ -1,6 +1,5 @@
 import { describe, beforeAll, it, expect } from "@jest/globals";
-import { RouteRegister } from "../../../src/index";
-import { AssertionService } from "glint-js-kit";
+import { RouteRegister, AssertionService } from "../../../src/index";
 
 describe("RouteRegister", () => {
   beforeAll(async () => {

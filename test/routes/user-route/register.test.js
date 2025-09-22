@@ -1,9 +1,7 @@
 import { describe, it, beforeAll } from "@jest/globals";
-import { AssertionService } from "glint-js-kit";
 import { TestUsers } from "../../test-utils/index.js";
-import { AuthenticationService } from "../../../src/index.js";
+import { AuthenticationService, AssertionService, TestService } from "../../../src/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
-import TestService from "glint-js-kit/src/test-utils/test-service.js";
 
 describe("user/register", () => {
   beforeAll(async () => {

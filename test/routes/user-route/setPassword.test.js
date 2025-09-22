@@ -1,7 +1,6 @@
 import { describe, it, beforeAll, expect } from "@jest/globals";
-import { TestService } from "glint-js-kit";
 import { TestUsers } from "../../test-utils/index.js";
-import { AuthenticationService } from "../../../src/index.js";
+import { AuthenticationService, TestService } from "../../../src/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
 
 const USER = {

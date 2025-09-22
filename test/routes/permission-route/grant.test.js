@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeAll } from "@jest/globals";
-import { TestService, AssertionService } from "glint-js-kit";
 import { TestUsers } from "../../test-utils/index.js";
 import PermissionRoute from "../../../src/routes/permission-route.js";
-import { AuthorizationService } from "../../../src/index.js";
+import { AuthorizationService, TestService, AssertionService } from "../../../src/index.js";
 
 const USER = {
   username: "userforgrant@mail.com",

@@ -1,5 +1,5 @@
 import { describe, it, afterAll } from "@jest/globals";
-import { AssertionService } from "glint-js-kit";
+import { AssertionService } from "../../src/index.js";
 import UserModel from "../../src/models/user-model.js";
 
 afterAll(async () => {

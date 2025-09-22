@@ -43,6 +43,11 @@ import BlobStore from "./services/blob-store/blob-store.js";
 import DefaultRoles from "./config/default-roles.js";
 import Languages from "./config/languages.js";
 
+// test utils
+import AbstractTestUsers from "./test-utils/test-users.js";
+import TestService from "./test-utils/test-service.js";
+import AssertionService from "./test-utils/assertion-service.js";
+
 // TODO describe everything with proper JSDoc
 export {
   AuthenticationService,
@@ -70,4 +75,7 @@ export {
   Languages,
   mongoose,
   BlobStore,
+  AbstractTestUsers,
+  TestService,
+  AssertionService,
 };
