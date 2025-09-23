@@ -1,6 +1,7 @@
 import { describe, it, beforeAll } from "@jest/globals";
 import { TestUsers } from "../../test-utils/index.js";
-import { AuthenticationService, AssertionService, TestService } from "../../../src/index.js";
+import { AuthenticationService } from "../../../src/index.js";
+import { TestService, AssertionService } from "../../../src/test-utils/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
 
 describe("user/register", () => {

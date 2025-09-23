@@ -1,6 +1,7 @@
 import { jest, describe, it, beforeAll, expect } from "@jest/globals";
 import { TestUsers } from "../../test-utils/index.js";
-import { AuthenticationService, UserService, MailService, TestService } from "../../../src/index.js";
+import { AuthenticationService, UserService, MailService } from "../../../src/index.js";
+import { TestService } from "../../../src/test-utils/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
 
 const USER = {

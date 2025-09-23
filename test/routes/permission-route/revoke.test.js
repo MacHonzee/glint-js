@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach } from "@jest/globals";
 import { TestUsers } from "../../test-utils/index.js";
-import { AuthorizationService, TestService } from "../../../src/index.js";
+import { AuthorizationService } from "../../../src/index.js";
+import { TestService } from "../../../src/test-utils/index.js";
 import PermissionRoute from "../../../src/routes/permission-route.js";
 
 const USER = {

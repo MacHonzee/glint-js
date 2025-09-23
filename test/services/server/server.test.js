@@ -1,6 +1,6 @@
 import { describe, beforeAll, it, expect, afterAll } from "@jest/globals";
 import { FormData, fileFromSync } from "node-fetch";
-import { TestService, AssertionService } from "../../../src/index.js";
+import { TestService, AssertionService } from "../../../src/test-utils/index.js";
 
 describe("Server", () => {
   beforeAll(async () => {

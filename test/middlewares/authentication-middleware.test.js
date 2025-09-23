@@ -4,7 +4,8 @@ import axios from "axios";
 import AuthenticationMiddleware from "../../src/middlewares/authentication-middleware.js";
 import ContextMiddleware from "../../src/middlewares/context-middleware.js";
 import ErrorHandler from "../../src/middlewares/error-handler.js";
-import { AuthenticationService, RouteRegister, TestService, AssertionService } from "../../src/index.js";
+import { AuthenticationService, RouteRegister } from "../../src/index.js";
+import { TestService, AssertionService } from "../../src/test-utils/index.js";
 
 // lite version of routes
 const TEST_ROUTES = {

@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll } from "@jest/globals";
 import { TestUsers } from "../../test-utils/index.js";
 import PermissionRoute from "../../../src/routes/permission-route.js";
-import { AuthorizationService, TestService, AssertionService } from "../../../src/index.js";
+import { AuthorizationService } from "../../../src/index.js";
+import { TestService, AssertionService } from "../../../src/test-utils/index.js";
 
 const USER = {
   username: "userforgrant@mail.com",

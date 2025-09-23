@@ -1,5 +1,5 @@
 import DefaultRoles from "../../src/config/default-roles.js";
-import { AbstractTestUsers } from "../../src/index.js";
+import { AbstractTestUsers } from "../../src/test-utils/index.js";
 
 class TestUsers extends AbstractTestUsers {
   constructor() {

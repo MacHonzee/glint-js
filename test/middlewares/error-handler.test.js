@@ -2,7 +2,8 @@ import { jest, beforeAll, describe, it, expect, afterAll } from "@jest/globals";
 import axios from "axios";
 import ContextMiddleware from "../../src/middlewares/context-middleware.js";
 import ErrorHandler from "../../src/middlewares/error-handler.js";
-import { Config, RouteRegister, TestService, AssertionService } from "../../src/index.js";
+import { Config, RouteRegister } from "../../src/index.js";
+import { TestService, AssertionService } from "../../src/test-utils/index.js";
 
 // lite version of routes
 const TEST_ROUTES = {

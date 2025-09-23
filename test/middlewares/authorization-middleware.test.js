@@ -5,13 +5,8 @@ import AuthenticationMiddleware from "../../src/middlewares/authentication-middl
 import ContextMiddleware from "../../src/middlewares/context-middleware.js";
 import ErrorHandler from "../../src/middlewares/error-handler.js";
 import AuthorizationMiddleware from "../../src/middlewares/authorization-middleware.js";
-import {
-  AuthenticationService,
-  AuthorizationService,
-  RouteRegister,
-  TestService,
-  AssertionService,
-} from "../../src/index.js";
+import { AuthenticationService, AuthorizationService, RouteRegister } from "../../src/index.js";
+import { TestService, AssertionService } from "../../src/test-utils/index.js";
 
 // lite version of routes
 const TEST_ROUTES = {
