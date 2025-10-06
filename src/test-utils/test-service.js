@@ -3,7 +3,6 @@ import qs from "qs";
 import axios from "axios";
 import path from "path";
 import { MongoMemoryServer } from "mongodb-memory-server-core";
-import "express-async-errors";
 
 class TestService {
   /**

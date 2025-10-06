@@ -5,7 +5,6 @@ import cors from "cors";
 import compression from "compression";
 import fileUpload from "express-fileupload";
 import helmet from "helmet";
-import "express-async-errors";
 
 import Config from "../utils/config.js";
 import LoggerFactory from "../logging/logger-factory.js";
