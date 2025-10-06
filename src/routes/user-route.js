@@ -6,10 +6,11 @@ import LoggerFactory from "../services/logging/logger-factory.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
 import UserService from "../services/authentication/user-service.js";
 import MailService from "../services/mail/mail-service.js";
+import { randomBytes } from "crypto";
 
 class MismatchingPasswords extends UseCaseError {
   constructor() {
-    super("Password is not repeated properly and is not matching.", "mismatchingPasswords");
+    super("Password is not repeated properly and is not matching.", "mismatchingPasswords", {}, 401);
   }
 }
 
@@ -21,25 +22,37 @@ class RegistrationFailed extends UseCaseError {
 
 class LoginFailed extends UseCaseError {
   constructor(cause) {
-    super("Login has failed.", "loginFailed", { cause });
+    super("Login has failed.", "loginFailed", { cause }, 401);
   }
 }
 
 class InvalidRefreshToken extends UseCaseError {
   constructor() {
-    super("Invalid or missing refreshToken cookie.", "invalidRefreshToken");
+    super("Invalid or missing refreshToken cookie.", "invalidRefreshToken", {}, 401);
   }
 }
 
 class RefreshTokenMismatch extends UseCaseError {
   constructor() {
-    super("Refresh token has not been matched.", "refreshTokenMismatch");
+    super("Refresh token has not been matched.", "refreshTokenMismatch", {}, 401);
+  }
+}
+
+class MissingCsrfToken extends UseCaseError {
+  constructor() {
+    super("Missing CSRF protection header.", "missingCsrfToken", {}, 401);
+  }
+}
+
+class InvalidCsrfToken extends UseCaseError {
+  constructor() {
+    super("Invalid CSRF token.", "invalidCsrfToken", {}, 401);
   }
 }
 
 class UserNotFound extends UseCaseError {
   constructor(username) {
-    super("User not found.", "userNotFound", { username });
+    super("User not found.", "userNotFound", { username }, 404);
   }
 }
 
@@ -52,6 +65,8 @@ class UserRoute {
     LoginFailed,
     RefreshTokenMismatch,
     InvalidRefreshToken,
+    MissingCsrfToken,
+    InvalidCsrfToken,
     UserNotFound,
   };
 
@@ -130,8 +145,13 @@ class UserRoute {
   }
 
   async refreshToken({ request, response }) {
+    // Check refreshToken cookie exists first
     const refreshToken = request.signedCookies?.refreshToken;
     if (!refreshToken) throw new this.ERRORS.InvalidRefreshToken();
+
+    // CSRF protection: require header and verify against DB-stored token
+    const csrfHeader = request.headers["x-xsrf-token"] || request.headers["x-csrf-token"];
+    if (!csrfHeader) throw new this.ERRORS.MissingCsrfToken();
 
     // verify that token has been signed with correct secret
     const jwtData = AuthenticationService.verifyRefreshToken(refreshToken);
@@ -143,6 +163,11 @@ class UserRoute {
     // verify that the token is saved to given refreshToken (could be changed or deleted because of logout)
     if (!refreshTokenModel || refreshTokenModel.token !== refreshToken) {
       throw new this.ERRORS.RefreshTokenMismatch();
+    }
+
+    // compare CSRF header to stored token
+    if (!refreshTokenModel.csrfToken || refreshTokenModel.csrfToken !== csrfHeader) {
+      throw new this.ERRORS.InvalidCsrfToken();
     }
 
     const token = await this._handleUserAndTokens(refreshTokenModel.user, response, refreshTokenModel);
@@ -296,12 +321,14 @@ class UserRoute {
       lastName: user.lastName,
     };
     const { refreshToken, refreshTokenId, refreshTokenTtl } = AuthenticationService.getRefreshToken(userPayload);
+    const csrfToken = randomBytes(32).toString("hex");
 
     // and create or update the token in the database (in register and login we create, in refreshToken we update)
     const refreshTokenData = {
       token: refreshToken,
       tid: refreshTokenId,
       expiresAt: refreshTokenTtl,
+      csrfToken,
       user: userPayload,
     };
     if (refreshTokenToUpdate) {
@@ -314,6 +341,15 @@ class UserRoute {
     // then create new short-lived token and save the long-lived refreshToken to response
     const token = AuthenticationService.getToken(userPayload);
     response.cookie("refreshToken", refreshToken, AuthenticationService.COOKIE_OPTIONS);
+
+    // set readable CSRF token cookie for frontend
+    response.cookie("XSRF-TOKEN", csrfToken, {
+      httpOnly: false,
+      secure: AuthenticationService.COOKIE_OPTIONS.secure,
+      sameSite: AuthenticationService.COOKIE_OPTIONS.sameSite,
+      maxAge: AuthenticationService.COOKIE_OPTIONS.maxAge,
+      path: "/user",
+    });
 
     return token;
   }

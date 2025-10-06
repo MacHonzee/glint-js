@@ -190,6 +190,7 @@ class TestService {
       query: {},
       body: data,
       files: {},
+      headers: {},
       get: function (param) {
         return this[param];
       },

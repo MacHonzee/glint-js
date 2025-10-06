@@ -6,6 +6,7 @@ class RefreshTokenModel extends AbstractModel {
       {
         token: String,
         tid: String,
+        csrfToken: String,
         expiresAt: Date,
         user: {
           id: String,

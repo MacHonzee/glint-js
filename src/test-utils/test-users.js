@@ -115,11 +115,11 @@ class AbstractTestUsers {
   }
 
   /**
-   * Method returns refresh token for selected user
+   * Method returns refresh token and CSRF token for selected user
    *
    * @param username
    * @param password
-   * @returns {Promise<string>}
+   * @returns {Promise<{refreshToken: string, csrfToken: string}>}
    */
   async getRefreshToken(username, password) {
     const loginData = {
@@ -130,7 +130,12 @@ class AbstractTestUsers {
 
     const UserRoute = (await import("../../src/routes/user-route.js")).default;
     await UserRoute.login(loginUcEnv);
-    return loginUcEnv.response.cookie.mock.calls[0][1];
+
+    // First call is refreshToken cookie, second call is XSRF-TOKEN cookie
+    const refreshToken = loginUcEnv.response.cookie.mock.calls[0][1];
+    const csrfToken = loginUcEnv.response.cookie.mock.calls[1][1];
+
+    return { refreshToken, csrfToken };
   }
 
   /**

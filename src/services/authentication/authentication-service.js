@@ -9,7 +9,7 @@ import SecretManager from "../secret-manager/secret-manager.js";
 import Session from "./session.js";
 
 const CFG_DEFAULTS = {
-  sessionExpiry: "12h",
+  sessionExpiry: "15m",
   refreshTokenExpiry: "30d",
 };
 
@@ -32,11 +32,7 @@ class AuthenticationService {
     this._tokenKey = Config.get("AUTH_JWT_KEY") || (await SecretManager.get("authJwtKey"));
     this._refreshTokenKey = Config.get("AUTH_REFRESH_TOKEN_KEY") || (await SecretManager.get("authRefreshTokenKey"));
 
-    this._initialized = true;
-  }
-
-  async initCookieParser(app) {
-    const isProduction = Config.NODE_ENV === "production";
+    const isProduction = Config.get("NODE_ENV") === "production";
 
     this.COOKIE_OPTIONS = {
       httpOnly: true,
@@ -51,6 +47,10 @@ class AuthenticationService {
       path: "/user",
     };
 
+    this._initialized = true;
+  }
+
+  async initCookieParser(app) {
     app.use(cookieParser(this._cookieKey));
   }
 

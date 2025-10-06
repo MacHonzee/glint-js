@@ -22,12 +22,13 @@ describe("user/refreshToken", () => {
   });
 
   it("should return success", async () => {
-    const refreshToken = await TestUsers.getRefreshToken(USER.username, USER.password);
+    const { refreshToken, csrfToken } = await TestUsers.getRefreshToken(USER.username, USER.password);
 
     const ucEnv = await TestService.getUcEnv("user/refreshToken");
     ucEnv.request.signedCookies = {
       refreshToken: refreshToken,
     };
+    ucEnv.request.headers["x-xsrf-token"] = csrfToken;
 
     const dtoOut = await UserRoute.refreshToken(ucEnv);
 
@@ -56,6 +57,8 @@ describe("user/refreshToken", () => {
       refreshToken:
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.5h3MeiIYYw3FF856wkg0ukAH1cSgfN5NGXvhN9HmVwA",
     };
+    // Provide CSRF token to get past CSRF check and test refreshToken validation
+    ucEnv.request.headers["x-xsrf-token"] = "dummy-csrf-token";
 
     await AssertionService.assertThrows(
       () => UserRoute.refreshToken(ucEnv),

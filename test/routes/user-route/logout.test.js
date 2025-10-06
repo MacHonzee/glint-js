@@ -22,7 +22,7 @@ describe("user/logout", () => {
   });
 
   it("should return success", async () => {
-    const refreshToken = await TestUsers.getRefreshToken(USER.username, USER.password);
+    const { refreshToken } = await TestUsers.getRefreshToken(USER.username, USER.password);
     const ucEnv = await TestService.getUcEnv("user/logout");
     ucEnv.request.signedCookies = {
       refreshToken,
@@ -34,7 +34,7 @@ describe("user/logout", () => {
   });
 
   it("should check that refreshToken is invalid", async () => {
-    const refreshToken = await TestUsers.getRefreshToken(USER.username, USER.password);
+    const { refreshToken, csrfToken } = await TestUsers.getRefreshToken(USER.username, USER.password);
     const ucEnv = await TestService.getUcEnv("user/logout");
     ucEnv.request.signedCookies = {
       refreshToken,
@@ -46,6 +46,7 @@ describe("user/logout", () => {
     refreshUcEnv.request.signedCookies = {
       refreshToken,
     };
+    refreshUcEnv.request.headers["x-xsrf-token"] = csrfToken;
     await AssertionService.assertThrows(
       () => UserRoute.refreshToken(refreshUcEnv),
       new UserRoute.ERRORS.RefreshTokenMismatch(),
@@ -53,8 +54,14 @@ describe("user/logout", () => {
   });
 
   it("should perform global logout", async () => {
-    const refreshTokenOne = await TestUsers.getRefreshToken(USER.username, USER.password);
-    const refreshTokenTwo = await TestUsers.getRefreshToken(USER.username, USER.password);
+    const { refreshToken: refreshTokenOne, csrfToken: csrfTokenOne } = await TestUsers.getRefreshToken(
+      USER.username,
+      USER.password,
+    );
+    const { refreshToken: refreshTokenTwo, csrfToken: csrfTokenTwo } = await TestUsers.getRefreshToken(
+      USER.username,
+      USER.password,
+    );
     const ucEnv = await TestService.getUcEnv("user/logout", { global: true });
     ucEnv.request.signedCookies = {
       refreshToken: refreshTokenOne,
@@ -66,6 +73,7 @@ describe("user/logout", () => {
     refreshUcEnv.request.signedCookies = {
       refreshToken: refreshTokenTwo,
     };
+    refreshUcEnv.request.headers["x-xsrf-token"] = csrfTokenTwo;
     await AssertionService.assertThrows(
       () => UserRoute.refreshToken(refreshUcEnv),
       new UserRoute.ERRORS.RefreshTokenMismatch(),
@@ -73,8 +81,14 @@ describe("user/logout", () => {
   });
 
   it("should keep other refresh token valid", async () => {
-    const refreshTokenOne = await TestUsers.getRefreshToken(USER.username, USER.password);
-    const refreshTokenTwo = await TestUsers.getRefreshToken(USER.username, USER.password);
+    const { refreshToken: refreshTokenOne, csrfToken: csrfTokenOne } = await TestUsers.getRefreshToken(
+      USER.username,
+      USER.password,
+    );
+    const { refreshToken: refreshTokenTwo, csrfToken: csrfTokenTwo } = await TestUsers.getRefreshToken(
+      USER.username,
+      USER.password,
+    );
     const ucEnv = await TestService.getUcEnv("user/logout", { global: false });
     ucEnv.request.signedCookies = {
       refreshToken: refreshTokenOne,
@@ -86,6 +100,7 @@ describe("user/logout", () => {
     refreshUcEnv.request.signedCookies = {
       refreshToken: refreshTokenTwo,
     };
+    refreshUcEnv.request.headers["x-xsrf-token"] = csrfTokenTwo;
     await UserRoute.refreshToken(refreshUcEnv);
   });
 
