@@ -1,6 +1,6 @@
 {
   "name": "glint-js",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
   "main": "src/index.js",
   "exports": {
