@@ -166,6 +166,7 @@ class Server {
       credentials: true,
       maxAge: 86400,
       preflightContinue: true,
+      exposedHeaders: ["X-Csrf-Token"],
     };
 
     this.app.use(cors(corsOptions));

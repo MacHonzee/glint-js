@@ -342,14 +342,8 @@ class UserRoute {
     const token = AuthenticationService.getToken(userPayload);
     response.cookie("refreshToken", refreshToken, AuthenticationService.COOKIE_OPTIONS);
 
-    // set readable CSRF token cookie for frontend
-    response.cookie("XSRF-TOKEN", csrfToken, {
-      httpOnly: false,
-      secure: AuthenticationService.COOKIE_OPTIONS.secure,
-      sameSite: AuthenticationService.COOKIE_OPTIONS.sameSite,
-      maxAge: AuthenticationService.COOKIE_OPTIONS.maxAge,
-      path: "/user",
-    });
+    // set readable CSRF token header for frontend
+    response.set("X-Csrf-Token", csrfToken);
 
     return token;
   }

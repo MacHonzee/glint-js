@@ -198,7 +198,14 @@ class TestService {
     const mockResponse = {
       cookie: jest.fn(),
       clearCookie: jest.fn(),
+      set: jest.fn(),
+      _headers: {},
     };
+
+    // Mock the set method to actually store headers so we can read them in tests
+    mockResponse.set.mockImplementation((name, value) => {
+      mockResponse._headers[name.toLowerCase()] = value;
+    });
 
     const ucEnv = new UseCaseEnvironment(mockRequest, mockResponse);
 

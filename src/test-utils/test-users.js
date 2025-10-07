@@ -131,9 +131,9 @@ class AbstractTestUsers {
     const UserRoute = (await import("../../src/routes/user-route.js")).default;
     await UserRoute.login(loginUcEnv);
 
-    // First call is refreshToken cookie, second call is XSRF-TOKEN cookie
+    // Get refreshToken from cookie and CSRF token from response header
     const refreshToken = loginUcEnv.response.cookie.mock.calls[0][1];
-    const csrfToken = loginUcEnv.response.cookie.mock.calls[1][1];
+    const csrfToken = loginUcEnv.response._headers["x-csrf-token"];
 
     return { refreshToken, csrfToken };
   }
