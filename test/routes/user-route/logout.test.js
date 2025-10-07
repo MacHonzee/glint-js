@@ -54,10 +54,7 @@ describe("user/logout", () => {
   });
 
   it("should perform global logout", async () => {
-    const { refreshToken: refreshTokenOne, csrfToken: csrfTokenOne } = await TestUsers.getRefreshToken(
-      USER.username,
-      USER.password,
-    );
+    const { refreshToken: refreshTokenOne } = await TestUsers.getRefreshToken(USER.username, USER.password);
     const { refreshToken: refreshTokenTwo, csrfToken: csrfTokenTwo } = await TestUsers.getRefreshToken(
       USER.username,
       USER.password,
@@ -81,10 +78,7 @@ describe("user/logout", () => {
   });
 
   it("should keep other refresh token valid", async () => {
-    const { refreshToken: refreshTokenOne, csrfToken: csrfTokenOne } = await TestUsers.getRefreshToken(
-      USER.username,
-      USER.password,
-    );
+    const { refreshToken: refreshTokenOne } = await TestUsers.getRefreshToken(USER.username, USER.password);
     const { refreshToken: refreshTokenTwo, csrfToken: csrfTokenTwo } = await TestUsers.getRefreshToken(
       USER.username,
       USER.password,
