@@ -10,49 +10,49 @@ import { randomBytes } from "crypto";
 
 class MismatchingPasswords extends UseCaseError {
   constructor() {
-    super("Password is not repeated properly and is not matching.", "mismatchingPasswords", {}, 401);
+    super("Password is not repeated properly and is not matching.", {}, 401);
   }
 }
 
 class RegistrationFailed extends UseCaseError {
   constructor(name, cause) {
-    super("Registration has failed.", "registrationFailed", { name, cause });
+    super("Registration has failed.", { name, cause });
   }
 }
 
 class LoginFailed extends UseCaseError {
   constructor(cause) {
-    super("Login has failed.", "loginFailed", { cause }, 401);
+    super("Login has failed.", { cause }, 401);
   }
 }
 
 class InvalidRefreshToken extends UseCaseError {
   constructor() {
-    super("Invalid or missing refreshToken cookie.", "invalidRefreshToken", {}, 401);
+    super("Invalid or missing refreshToken cookie.", {}, 401);
   }
 }
 
 class RefreshTokenMismatch extends UseCaseError {
   constructor() {
-    super("Refresh token has not been matched.", "refreshTokenMismatch", {}, 401);
+    super("Refresh token has not been matched.", {}, 401);
   }
 }
 
 class MissingCsrfToken extends UseCaseError {
   constructor() {
-    super("Missing CSRF protection header.", "missingCsrfToken", {}, 401);
+    super("Missing CSRF protection header.", {}, 401);
   }
 }
 
 class InvalidCsrfToken extends UseCaseError {
   constructor() {
-    super("Invalid CSRF token.", "invalidCsrfToken", {}, 401);
+    super("Invalid CSRF token.", {}, 401);
   }
 }
 
 class UserNotFound extends UseCaseError {
   constructor(username) {
-    super("User not found.", "userNotFound", { username }, 404);
+    super("User not found.", { username }, 404);
   }
 }
 

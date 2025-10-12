@@ -3,11 +3,10 @@ import UseCaseError from "../services/server/use-case-error.js";
 import RouteRegister from "../services/server/route-register.js";
 import LoggerFactory from "../services/logging/logger-factory.js";
 
-class Error404 extends UseCaseError {
+class HandlerNotFound extends UseCaseError {
   constructor(req) {
     super(
       "Handler for request not found.",
-      "handlerNotFound",
       {
         url: req.originalUrl,
       },
@@ -16,11 +15,10 @@ class Error404 extends UseCaseError {
   }
 }
 
-class InvalidMethod extends UseCaseError {
+class InvalidHandlerMethod extends UseCaseError {
   constructor(req, expectedMethod) {
     super(
       "Handler requested with invalid method.",
-      "invalidHandlerMethod",
       {
         url: req.originalUrl,
         method: req.method,
@@ -49,11 +47,11 @@ class ContextMiddleware {
 
     const route = RouteRegister.getRoute(ucEnv.uri.useCase);
     if (!route) {
-      throw new Error404(req);
+      throw new HandlerNotFound(req);
     }
 
     if (route.config.method !== req.method.toLowerCase()) {
-      throw new InvalidMethod(req, route.config.method);
+      throw new InvalidHandlerMethod(req, route.config.method);
     }
 
     ucEnv.mapping = route.config;

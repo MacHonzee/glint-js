@@ -2,9 +2,9 @@ import AuthorizationService from "../services/authorization/authorization-servic
 import DefaultRoles from "../config/default-roles.js";
 import UseCaseError from "../services/server/use-case-error.js";
 
-class AuthorizationError extends UseCaseError {
+class UserNotAuthorized extends UseCaseError {
   constructor(authorizationResult) {
-    super("User is not authorized for given route.", "userNotAuthorized", authorizationResult, 403);
+    super("User is not authorized for given route.", authorizationResult, 403);
   }
 }
 
@@ -21,7 +21,7 @@ class AuthorizationMiddleware {
     req.ucEnv.authorizationResult = authorizationResult;
 
     if (!authorizationResult.authorized) {
-      throw new AuthorizationError(authorizationResult);
+      throw new UserNotAuthorized(authorizationResult);
     }
 
     next();

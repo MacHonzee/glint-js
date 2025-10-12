@@ -2,32 +2,19 @@ import fs from "fs";
 import path from "path";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
+import UseCaseError from "../server/use-case-error.js";
 import Config from "../utils/config.js";
 import LoggerFactory from "../logging/logger-factory.js";
 
-class SchemaNotFoundError extends Error {
+class SchemaNotFoundError extends UseCaseError {
   constructor(useCase, schemaName) {
-    super();
-    this.message = "Schema not found for given use case.";
-    this.code = "glint-js/schemaNotFound";
-    this.params = {
-      useCase,
-      schemaName,
-    };
+    super("Schema not found for given use case.", { useCase, schemaName });
   }
 }
 
-class InvalidDtoIn extends Error {
+class InvalidDtoIn extends UseCaseError {
   constructor(useCase, schemaName, errors) {
-    super();
-    this.message = "Invalid dtoIn.";
-    this.code = "glint-js/invalidDtoIn";
-    this.status = 400;
-    this.params = {
-      useCase,
-      schemaName,
-      errors,
-    };
+    super("Invalid dtoIn.", { useCase, schemaName, errors });
   }
 }
 

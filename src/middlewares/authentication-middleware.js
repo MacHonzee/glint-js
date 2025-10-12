@@ -2,9 +2,9 @@ import DefaultRoles from "../config/default-roles.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
 import UseCaseError from "../services/server/use-case-error.js";
 
-class AuthenticationError extends UseCaseError {
+class UserNotAuthenticated extends UseCaseError {
   constructor(cause) {
-    super("User is not authenticated.", "userNotAuthenticated", { cause }, 401);
+    super("User is not authenticated.", { cause }, 401);
   }
 }
 
@@ -32,18 +32,18 @@ class AuthenticationMiddleware {
     try {
       return AuthenticationService.verifyToken(token);
     } catch (e) {
-      throw new AuthenticationError(e);
+      throw new UserNotAuthenticated(e);
     }
   }
 
   _extractToken(request) {
     let authHeader = request.get("authorization");
     if (!authHeader) {
-      throw new AuthenticationError("Header 'authorization' was not found.");
+      throw new UserNotAuthenticated("Header 'authorization' was not found.");
     }
 
     if (!authHeader.startsWith("Bearer ")) {
-      throw new AuthenticationError("Header 'authorization' has invalid type, it should be Bearer type.");
+      throw new UserNotAuthenticated("Header 'authorization' has invalid type, it should be Bearer type.");
     }
 
     return authHeader.substring("Bearer ".length);

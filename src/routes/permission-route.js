@@ -10,7 +10,7 @@ const LIST_PRIVILEGED_ROLES = [DefaultRoles.admin, DefaultRoles.authority];
 
 class CannotLoadRoles extends UseCaseError {
   constructor(userRoles) {
-    super("You are not authorized to load roles of other users.", "cannotLoadRoles", {
+    super("You are not authorized to load roles of other users.", {
       userRoles,
       privilegedRoles: LIST_PRIVILEGED_ROLES,
     });
@@ -19,16 +19,13 @@ class CannotLoadRoles extends UseCaseError {
 
 class PermissionSecretNotAvailable extends UseCaseError {
   constructor() {
-    super(
-      "Application is not deployed with any configuration to permission secret, contact administrator.",
-      "permissionSecretNotAvailable",
-    );
+    super("Application is not deployed with any configuration to permission secret, contact administrator.");
   }
 }
 
 class PermissionSecretNotMatching extends UseCaseError {
   constructor(secret) {
-    super("Permission secret is not matching", "permissionSecretNotMatching", { secret });
+    super("Permission secret is not matching", { secret });
   }
 }
 

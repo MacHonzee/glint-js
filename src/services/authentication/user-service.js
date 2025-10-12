@@ -3,7 +3,7 @@ import UseCaseError from "../server/use-case-error.js";
 
 class UserNotFound extends UseCaseError {
   constructor(userOrId) {
-    super("User with given username / id was not found.", "userNotFound", { user: userOrId, id: userOrId });
+    super("User with given username / id was not found.", { user: userOrId, id: userOrId });
   }
 }
 

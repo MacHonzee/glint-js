@@ -14,9 +14,9 @@ import ValidationService from "../validation/validation-service.js";
 import AuthenticationService from "../authentication/authentication-service.js";
 import UseCaseError from "./use-case-error.js";
 
-class CorsError extends UseCaseError {
+class BlockedByCors extends UseCaseError {
   constructor() {
-    super("Request was blocked by CORS policy.", "blockedByCors");
+    super("Request was blocked by CORS policy.");
   }
 }
 
@@ -159,7 +159,7 @@ class Server {
         if (!origin || whitelist.includes(normalizedOrigin)) {
           callback(null, true);
         } else {
-          callback(new CorsError());
+          callback(new BlockedByCors());
         }
       },
 

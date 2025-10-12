@@ -5,7 +5,7 @@ import Config from "../utils/config.js";
 
 class DuplicateKeyError extends UseCaseError {
   constructor(keyValue, keyPattern) {
-    super("A duplicate key error occurred in a database.", "duplicateKeyError", { keyValue, keyPattern });
+    super("A duplicate key error occurred in a database.", { keyValue, keyPattern });
   }
 }
 
