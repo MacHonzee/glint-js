@@ -1,0 +1,20 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        /* Production build - no source maps, remove comments */
+        "sourceMap": false,
+        "declarationMap": false,
+        "removeComments": true,
+        "inlineSourceMap": false,
+        "inlineSources": false
+    },
+    "exclude": [
+        "node_modules",
+        "dist",
+        "coverage",
+        "test",
+        "**/*.test.ts",
+        "**/*.test.js",
+        "src/test-utils/**/*"
+    ]
+}

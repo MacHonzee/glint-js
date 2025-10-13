@@ -1,0 +1,26 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        /* Test configuration - allow JS files, more lenient */
+        "allowJs": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "types": [
+            "jest",
+            "node"
+        ],
+        /* Relax some strict checks for tests */
+        "strict": false,
+        "skipLibCheck": true
+    },
+    "include": [
+        "src/**/*",
+        "test/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "coverage"
+    ]
+}

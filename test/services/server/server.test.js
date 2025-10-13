@@ -1,6 +1,7 @@
 import { describe, beforeAll, it, expect, afterAll } from "@jest/globals";
 import { FormData, fileFromSync } from "node-fetch";
 import { TestService, AssertionService } from "../../../src/test-utils/index.js";
+import TestUsers from "../../test-utils/test-users.js";
 
 describe("Server", () => {
   beforeAll(async () => {
@@ -36,18 +37,17 @@ describe("Server", () => {
   });
 
   it("should pass authentication for non-public route", async () => {
-    const TestUsers = (await import("../../test-utils/test-users.js")).default;
-    const trader = await TestUsers.trader();
-    const response = await TestService.callPost("testcase/authenticated", null, trader);
+    const authority = await TestUsers.authority();
+    const response = await TestService.callPost("testcase/authenticated", null, authority);
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({
       hello: "authenticated world",
       user: {
         id: expect.any(String),
-        firstName: trader.user.firstName,
-        lastName: trader.user.lastName,
-        username: trader.user.username,
+        firstName: authority.user.firstName,
+        lastName: authority.user.lastName,
+        username: authority.user.username,
       },
     });
   });
@@ -71,29 +71,27 @@ describe("Server", () => {
   });
 
   it("should pass authorization for non-public route", async () => {
-    const TestUsers = (await import("../../test-utils/test-users.js")).default;
-    const client = await TestUsers.client();
-    const response = await TestService.callPost("testcase/authorized", null, client);
+    const authority = await TestUsers.authority();
+    const response = await TestService.callPost("testcase/authorized", null, authority);
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({
       hello: "authorized world",
       authorizationResult: {
-        username: client.user.username,
+        username: authority.user.username,
         authorized: true,
-        useCaseRoles: ["Admin", "Client"],
-        userRoles: ["Client"],
+        useCaseRoles: ["Authority"],
+        userRoles: ["Authority"],
         useCase: "/testcase/authorized",
       },
     });
   });
 
   it("should not pass authorization because of missing role", async () => {
-    const TestUsers = (await import("../../test-utils/test-users.js")).default;
-    const authority = await TestUsers.authority();
+    const admin = await TestUsers.admin();
 
     await AssertionService.assertCallThrows(
-      () => TestService.callPost("testcase/authorized", null, authority),
+      () => TestService.callPost("testcase/authorized", null, admin),
       (e) => {
         expect(e.data).toEqual({
           timestamp: expect.any(String),
@@ -101,9 +99,9 @@ describe("Server", () => {
           message: "User is not authorized for given route.",
           params: {
             authorized: false,
-            useCaseRoles: ["Admin", "Client"],
-            userRoles: ["Authority"],
-            username: authority.user.username,
+            useCaseRoles: ["Authority"],
+            userRoles: ["Admin"],
+            username: admin.user.username,
             useCase: "/testcase/authorized",
           },
           trace: expect.any(String),

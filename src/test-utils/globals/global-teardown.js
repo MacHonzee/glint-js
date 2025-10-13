@@ -1,7 +1,10 @@
-import TestService from "../test-service.js";
 import mongoose from "mongoose";
 
 async function main() {
+  // Use compiled version from dist
+  const testServicePath = new URL("../../../dist/test-utils/test-service.js", import.meta.url);
+  const TestService = (await import(testServicePath)).default;
+
   // stop mongo
   await TestService.stopMongo();
 

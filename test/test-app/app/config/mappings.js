@@ -19,7 +19,7 @@ const Mappings = {
   "/testcase/authorized": {
     method: "post",
     controller: ({ authorizationResult }) => ({ hello: "authorized world", authorizationResult }),
-    roles: ["Admin", "Client"],
+    roles: ["Authority"],
   },
   "/testcase/acceptFile": {
     method: "post",

@@ -13,7 +13,9 @@ async function main() {
   }
 
   // start mongo and save it to process, so it will get propagated to config
-  const TestService = await import("../test-service.js");
+  // Use compiled version from dist
+  const testServicePath = new URL("../../../dist/test-utils/test-service.js", import.meta.url);
+  const TestService = await import(testServicePath);
   const mongoUri = await TestService.default.startMongo();
   process.env["PRIMARY_MONGODB_URI"] = mongoUri;
   process.env["AUTH_MONGODB_URI"] = mongoUri;
@@ -21,7 +23,9 @@ async function main() {
   // to make sure that it loads properly
   await import("glint-js");
 
-  const SysRoute = (await import("../../../src/routes/sys-route.js")).default;
+  // Use compiled route from dist
+  const sysRoutePath = new URL("../../../dist/routes/sys-route.js", import.meta.url);
+  const SysRoute = (await import(sysRoutePath)).default;
   await SysRoute.syncIndexes();
 }
 

@@ -1,0 +1,21 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        /* Test utilities compilation config */
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "declaration": false,
+        "declarationMap": false,
+        "sourceMap": false,
+        "removeComments": false
+    },
+    "include": [
+        "src/test-utils/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "coverage",
+        "test"
+    ]
+}

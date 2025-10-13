@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run build
+      - run: npm run type-check
       - run: npm run analyze
       - run: npm run scan
       - run: npm test
@@ -35,6 +37,7 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: npm ci
+      - run: npm run build
       - run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

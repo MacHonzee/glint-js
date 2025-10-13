@@ -57,7 +57,7 @@ describe("RouteRegister", () => {
     it("should not register route with unknown method", () => {
       AssertionService.assertThrows(
         () => RouteRegister.registerRoute("test/route", { method: "post", controller: () => {}, roles: "hello" }),
-        new Error("Route roles 'hello' are not of Array type."),
+        new Error('Route roles "hello" are not of Array type.'),
       );
     });
   });
