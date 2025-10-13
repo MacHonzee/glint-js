@@ -1,6 +1,6 @@
 {
   "name": "glint-js",
-  "version": "0.10.0-beta.1",
+  "version": "0.10.0-beta.2",
   "description": "Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,6 +15,7 @@
       "import": "./dist/test-utils/index.js",
       "source": "./src/test-utils/index.ts"
     },
+    "./test-utils/globals/*.js": "./src/test-utils/globals/*.js",
     "./services/*": {
       "types": "./dist/services/*.d.ts",
       "import": "./dist/services/*.js",
@@ -31,6 +32,7 @@
   "files": [
     "dist/**/*",
     "src/**/*.ts",
+    "src/test-utils/globals/*.js",
     "!src/**/*.test.ts",
     "README.md",
     "LICENSE"

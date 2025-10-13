@@ -72,7 +72,6 @@ DefaultRoles.application = [DefaultRoles.authority];
  * DefaultRoles.add("subscriber"); // Defaults to "application" category
  */
 DefaultRoles.add = function add(role: string, roleType: RoleType = "application"): void {
-  console.log("add role", role, roleType);
   DefaultRoles[role] = role;
 
   // Initialize the role type array if it doesn't exist
@@ -82,7 +81,6 @@ DefaultRoles.add = function add(role: string, roleType: RoleType = "application"
 
   DefaultRoles[roleType].push(role);
   DefaultRoles.all.push(role);
-  console.log("DefaultRoles", DefaultRoles);
 };
 
 export default DefaultRoles;
