@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import { ModelWarehouse } from "../services/database/abstract-model.js";
 import Config from "../services/utils/config.js";
+import { RouteRegister } from "glint-js";
 
 class SysRoute {
   _pkgJson;
@@ -25,6 +26,16 @@ class SysRoute {
 
   async getEnvironment() {
     return process.env;
+  }
+
+  async getMappings() {
+    const routes = RouteRegister.getRoutes().map((route) => ({
+      ...route.config,
+      url: route.url,
+      method: route.method,
+      controller: undefined, // do not return the controller function
+    }));
+    return { routes };
   }
 
   async syncIndexes() {

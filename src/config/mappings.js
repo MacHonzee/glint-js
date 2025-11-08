@@ -24,6 +24,11 @@ const Mappings = {
     controller: SysRoute.getEnvironment.bind(SysRoute),
     roles: [DefaultRoles.admin],
   },
+  "/sys/getMappings": {
+    method: Get,
+    controller: SysRoute.getMappings.bind(SysRoute),
+    roles: [DefaultRoles.admin],
+  },
   "/sys/syncIndexes": {
     method: Post,
     controller: SysRoute.syncIndexes.bind(SysRoute),
