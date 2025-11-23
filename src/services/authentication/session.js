@@ -1,5 +1,6 @@
 /**
  * @typedef {object} User
+ * @property {string} id Database id of a user
  * @property {string} username E-mail address of a user
  * @property {string} firstName
  * @property {string} lastName
