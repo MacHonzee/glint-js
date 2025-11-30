@@ -1,4 +1,5 @@
 import passportLocalMongoose from "passport-local-mongoose";
+import mongoose from "mongoose";
 
 import { AbstractModel } from "../services/database/abstract-model.js";
 
@@ -21,6 +22,10 @@ class UserModel extends AbstractModel {
           default: "cs",
         },
         resetToken: String,
+        metadata: {
+          type: mongoose.Schema.Types.Mixed,
+          default: {},
+        },
       },
       { timestamps: true },
     );

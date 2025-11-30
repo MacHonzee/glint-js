@@ -113,6 +113,11 @@ const Mappings = {
     controller: UserRoute.setPassword.bind(UserRoute),
     roles: [DefaultRoles.admin],
   },
+  "/user/updateMetadata": {
+    method: Post,
+    controller: UserRoute.updateMetadata.bind(UserRoute),
+    roles: [DefaultRoles.authenticated],
+  },
 };
 
 export default Mappings;

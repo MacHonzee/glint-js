@@ -6,6 +6,7 @@ import LoggerFactory from "../services/logging/logger-factory.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
 import UserService from "../services/authentication/user-service.js";
 import MailService from "../services/mail/mail-service.js";
+import DefaultRoles from "../config/default-roles.js";
 import { randomBytes } from "crypto";
 
 class MismatchingPasswords extends UseCaseError {
@@ -56,6 +57,12 @@ class UserNotFound extends UseCaseError {
   }
 }
 
+class UnauthorizedMetadataUpdate extends UseCaseError {
+  constructor() {
+    super("You are not authorized to update metadata for this user.", {}, 403);
+  }
+}
+
 class UserRoute {
   logger = LoggerFactory.create("Route.UserRoute");
 
@@ -68,6 +75,7 @@ class UserRoute {
     MissingCsrfToken,
     InvalidCsrfToken,
     UserNotFound,
+    UnauthorizedMetadataUpdate,
   };
 
   RESET_PASS_MAIL = {
@@ -303,6 +311,29 @@ class UserRoute {
     await user.save();
 
     return { user, status: "OK" };
+  }
+
+  async updateMetadata({ uri, dtoIn, session, authorizationResult }) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    // Check authorization: userId must match session.user.id OR user must have Admin/Authority roles
+    const isOwnUser = dtoIn.userId === session.user.id;
+    const userRoles = authorizationResult.userRoles;
+    const hasPrivilegedRole = userRoles.includes(DefaultRoles.admin) || userRoles.includes(DefaultRoles.authority);
+
+    if (!isOwnUser && !hasPrivilegedRole) {
+      throw new this.ERRORS.UnauthorizedMetadataUpdate();
+    }
+
+    // Find user by ID
+    const user = await UserService.findById(dtoIn.userId);
+
+    // Update metadata (replace entire metadata object)
+    user.metadata = dtoIn.metadata || {};
+    await user.save();
+
+    // Return updated user (metadata is included, sensitive fields excluded via toJSON transform)
+    return user;
   }
 
   // method handles common logic for creating new token, creating new refresh token

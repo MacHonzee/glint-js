@@ -96,6 +96,16 @@ const UserSetPasswordSchema = {
   additionalProperties: false,
 };
 
+const UserUpdateMetadataSchema = {
+  type: "object",
+  properties: {
+    userId: { format: "objectId", type: "string" },
+    metadata: { type: "object" },
+  },
+  required: ["userId"],
+  additionalProperties: true,
+};
+
 export default {
   UserRegisterSchema,
   UserLoginSchema,
@@ -107,4 +117,5 @@ export default {
   UserListSchema,
   UserGetSchema,
   UserSetPasswordSchema,
+  UserUpdateMetadataSchema,
 };
