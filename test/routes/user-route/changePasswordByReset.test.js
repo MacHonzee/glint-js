@@ -14,7 +14,14 @@ const USER = {
   language: "cs",
 };
 
-jest.spyOn(MailService, "send").mockImplementation();
+// Create a mock mail provider and register it
+class MockMailProvider extends MailService {
+  async send() {}
+}
+
+const mockMailProvider = new MockMailProvider();
+MailService.setInstance(mockMailProvider);
+jest.spyOn(mockMailProvider, "sendResetPasswordMail").mockResolvedValue();
 
 describe("user/changePasswordByReset", () => {
   let resetToken;

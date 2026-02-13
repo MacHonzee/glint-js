@@ -78,25 +78,6 @@ class UserRoute {
     UnauthorizedMetadataUpdate,
   };
 
-  RESET_PASS_MAIL = {
-    subject: "Obnova hesla do aplikace Energetická bilance",
-    html: ({ resetToken, hostUri }) => `<div>
-    Dobrý den,
-    <br/><br/>
-    Obdrželi jsme žádost o obnovu hesla do aplikace Energetická bilance. Pokud jste obnovu hesla nevyžádali, můžete tento e-mail ignorovat.
-    <br/><br/>
-    Klikněte na odkaz níže pro nastavení nového hesla. Odkaz je platný pouze 24 hodin.<br/>
-    <ul><li><b>
-        <a href="${hostUri}/resetPassword?token=${resetToken}">OBNOVA HESLA</a>
-    </b></li></ul>
-    <br/><br/>
-    Na tento e-mail neodpovídejte, byl automaticky generován systémem.
-    <br/><br/>
-    S pozdravem,<br/>
-    tým Energetická bilance
-</div>`,
-  };
-
   async register({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -247,11 +228,11 @@ class UserRoute {
     // perform "global logout" by deleting all refresh tokens
     await RefreshTokenModel.deleteByUsername(normalizedUsername);
 
-    // send email that contains some information about the new password
-    await MailService.send({
+    // send reset password email via the registered mail provider
+    await MailService.getInstance().sendResetPasswordMail({
       to: dtoIn.username,
-      subject: this.RESET_PASS_MAIL.subject,
-      html: this.RESET_PASS_MAIL.html({ resetToken, hostUri: dtoIn.hostUri }),
+      resetToken,
+      hostUri: dtoIn.hostUri,
     });
 
     return { status: "OK" };

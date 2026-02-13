@@ -14,7 +14,14 @@ const USER = {
   language: "cs",
 };
 
-jest.spyOn(MailService, "send").mockImplementation();
+// Create a mock mail provider and register it
+class MockMailProvider extends MailService {
+  async send() {}
+}
+
+const mockMailProvider = new MockMailProvider();
+MailService.setInstance(mockMailProvider);
+jest.spyOn(mockMailProvider, "sendResetPasswordMail").mockResolvedValue();
 
 describe("user/resetPassword", () => {
   beforeAll(async () => {
@@ -38,10 +45,10 @@ describe("user/resetPassword", () => {
     // check that we have sent the mail
     expect(dtoOut.status).toBe("OK");
     expect(resetToken).toBeTruthy();
-    expect(MailService.send).toHaveBeenCalledWith({
+    expect(mockMailProvider.sendResetPasswordMail).toHaveBeenCalledWith({
       to: USER.username,
-      subject: UserRoute.RESET_PASS_MAIL.subject,
-      html: UserRoute.RESET_PASS_MAIL.html({ resetToken, hostUri: resetPassword.hostUri }),
+      resetToken,
+      hostUri: resetPassword.hostUri,
     });
   });
 });

@@ -1,47 +1,86 @@
-import { jest, beforeEach, describe, it, expect } from "@jest/globals";
-import { MailService, SecretManager, Config } from "../../../src/index.js";
-
-jest.spyOn(SecretManager, "mustGet");
-
-const SgMail = MailService.sgMail;
-jest.spyOn(SgMail, "setApiKey").mockImplementation();
-jest.spyOn(SgMail, "send").mockImplementation();
+import { jest, afterEach, describe, it, expect } from "@jest/globals";
+import { MailService } from "../../../src/index.js";
 
 describe("MailService", () => {
-  const mockApiKey = "MOCK_API_KEY";
-  const mockSender = "MOCK_SENDER";
-  const mockEmail = {
-    to: "test@example.com",
-    subject: "Test Email",
-    text: "This is a test email",
-    html: "<p>This is a test email</p>",
-  };
+  afterEach(() => {
+    // Reset the singleton between tests
+    MailService._instance = null;
+  });
 
-  beforeEach(() => {
-    // Setup mock for SecretManager
-    SecretManager.mustGet.mockImplementation((key) => {
-      if (key === "SENDGRID_API_KEY") return mockApiKey;
-      throw new Error("Invalid key");
+  describe("send()", () => {
+    it("throws when called on the base class (no provider)", async () => {
+      const service = new MailService();
+      await expect(service.send({ to: "a@b.com", subject: "Hi" })).rejects.toThrow(
+        "MailService.send() is not implemented",
+      );
+    });
+  });
+
+  describe("setInstance / getInstance", () => {
+    it("stores and returns the provider instance", () => {
+      class TestProvider extends MailService {
+        async send() {}
+      }
+
+      const provider = new TestProvider();
+      MailService.setInstance(provider);
+      expect(MailService.getInstance()).toBe(provider);
     });
 
-    // Setup configuration values
-    Config.set("SENDGRID_SENDER_ADDRESS", mockSender);
+    it("throws when getInstance is called without setInstance", () => {
+      expect(() => MailService.getInstance()).toThrow("MailService has not been initialized");
+    });
 
-    // Clear any previous mock implementation or calls
-    jest.clearAllMocks();
+    it("throws when setInstance receives a non-MailService object", () => {
+      expect(() => MailService.setInstance({})).toThrow("expects an instance of MailService");
+    });
   });
 
-  it("initializes correctly", async () => {
-    await MailService.initialize();
-    expect(SgMail.setApiKey).toHaveBeenCalledWith(mockApiKey);
-    expect(SecretManager.mustGet).toHaveBeenCalledWith("SENDGRID_API_KEY");
+  describe("sendResetPasswordMail()", () => {
+    it("calls send() with the reset password template", async () => {
+      class TestProvider extends MailService {
+        async send() {}
+      }
+
+      const provider = new TestProvider();
+      jest.spyOn(provider, "send").mockResolvedValue();
+      MailService.setInstance(provider);
+
+      await provider.sendResetPasswordMail({
+        to: "user@example.com",
+        resetToken: "abc123",
+        hostUri: "https://app.example.com",
+      });
+
+      expect(provider.send).toHaveBeenCalledTimes(1);
+      const call = provider.send.mock.calls[0][0];
+      expect(call.to).toBe("user@example.com");
+      expect(call.subject).toBe("Password Reset Request");
+      expect(call.html).toContain("https://app.example.com/resetPassword?token=abc123");
+    });
   });
 
-  it("sends email correctly", async () => {
-    await MailService.send(mockEmail);
-    expect(SgMail.send).toHaveBeenCalledWith({
-      ...mockEmail,
-      from: mockSender,
+  describe("sendVerificationMail()", () => {
+    it("calls send() with the verification template", async () => {
+      class TestProvider extends MailService {
+        async send() {}
+      }
+
+      const provider = new TestProvider();
+      jest.spyOn(provider, "send").mockResolvedValue();
+      MailService.setInstance(provider);
+
+      await provider.sendVerificationMail({
+        to: "new@example.com",
+        verificationToken: "verify123",
+        hostUri: "https://app.example.com",
+      });
+
+      expect(provider.send).toHaveBeenCalledTimes(1);
+      const call = provider.send.mock.calls[0][0];
+      expect(call.to).toBe("new@example.com");
+      expect(call.subject).toBe("Verify Your Email Address");
+      expect(call.html).toContain("https://app.example.com/verifyEmail?token=verify123");
     });
   });
 });
