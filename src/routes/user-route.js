@@ -64,6 +64,12 @@ class UserNotVerified extends UseCaseError {
   }
 }
 
+class InvalidResetToken extends UseCaseError {
+  constructor() {
+    super("Reset token is invalid, expired, or has already been used.", {}, 400);
+  }
+}
+
 class InvalidVerificationToken extends UseCaseError {
   constructor() {
     super("Verification token is invalid or has already been used.", {}, 400);
@@ -96,6 +102,7 @@ class UserRoute {
     InvalidCsrfToken,
     UserNotFound,
     UserNotVerified,
+    InvalidResetToken,
     InvalidVerificationToken,
     UnauthorizedMetadataUpdate,
   };
@@ -268,10 +275,15 @@ class UserRoute {
 
     // silently return OK even if user does not exist to prevent username enumeration
     const normalizedUsername = this._normalizeUsername(dtoIn.username);
-    const user = await UserService.findByUsername(normalizedUsername).catch(() => null);
-    if (!user) {
-      this.logger.warn(`Password reset requested for non-existent user: ${normalizedUsername}`);
-      return { status: "OK" };
+    let user;
+    try {
+      user = await UserService.findByUsername(normalizedUsername);
+    } catch (e) {
+      if (e instanceof UserService.ERRORS.UserNotFound) {
+        this.logger.warn(`Password reset requested for non-existent user: ${normalizedUsername}`);
+        return { status: "OK" };
+      }
+      throw e;
     }
 
     // generate and save the reset token
@@ -300,11 +312,33 @@ class UserRoute {
       throw new this.ERRORS.MismatchingPasswords();
     }
 
-    // verify token
-    const resetSession = await AuthenticationService.verifyToken(dtoIn.token);
+    // verify token - may be malformed, expired, or tampered with
+    let resetSession;
+    try {
+      resetSession = AuthenticationService.verifyToken(dtoIn.token);
+    } catch (e) {
+      this.logger.warn("Failed to verify reset token.", e.message);
+      throw new this.ERRORS.InvalidResetToken();
+    }
 
-    // set new password
-    const user = await UserService.findByUsername(resetSession.user);
+    // find user - token payload may reference a non-existent user
+    let user;
+    try {
+      user = await UserService.findByUsername(resetSession.user);
+    } catch (e) {
+      if (e instanceof UserService.ERRORS.UserNotFound) {
+        this.logger.warn(`Reset token references non-existent user: ${resetSession.user}`);
+        throw new this.ERRORS.InvalidResetToken();
+      }
+      throw e;
+    }
+
+    // check that the stored reset token matches the one provided (guards against reuse)
+    if (!user.resetToken || user.resetToken !== dtoIn.token) {
+      throw new this.ERRORS.InvalidResetToken();
+    }
+
+    // set new password and clear the reset token
     await user.setPassword(dtoIn.password);
     user.resetToken = undefined;
     await user.save();
