@@ -161,7 +161,7 @@ class TestService {
     try {
       return await axios.request(requestOptions);
     } catch (e) {
-      console.error("Unexpected error when calling TestApp.", e.response.status, e.response.data);
+      console.error("Unexpected error when calling TestApp.", e.response?.status, e.response?.data, e);
       return { error: e, response: e.response };
     }
   }
