@@ -30,6 +30,10 @@ describe("user/resetPassword", () => {
     USER.id = registeredUser.user.id;
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should return success", async () => {
     const resetPassword = {
       username: USER.username,
@@ -50,5 +54,16 @@ describe("user/resetPassword", () => {
       resetToken,
       hostUri: resetPassword.hostUri,
     });
+  });
+
+  it("should return success if username is not found", async () => {
+    const resetPassword = {
+      username: "nonexistent@mail.com",
+      hostUri: "https://test-host.app.com",
+    };
+    const ucEnv = await TestService.getUcEnv("user/resetPassword", resetPassword);
+    const dtoOut = await UserRoute.resetPassword(ucEnv);
+    expect(dtoOut.status).toBe("OK");
+    expect(mockMailProvider.sendResetPasswordMail).not.toHaveBeenCalled();
   });
 });

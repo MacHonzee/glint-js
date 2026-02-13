@@ -266,12 +266,16 @@ class UserRoute {
   async resetPassword({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
-    // generate the reset token
+    // silently return OK even if user does not exist to prevent username enumeration
     const normalizedUsername = this._normalizeUsername(dtoIn.username);
-    const resetToken = this._createResetToken(normalizedUsername);
+    const user = await UserService.findByUsername(normalizedUsername).catch(() => null);
+    if (!user) {
+      this.logger.warn(`Password reset requested for non-existent user: ${normalizedUsername}`);
+      return { status: "OK" };
+    }
 
-    // save the reset token to DB
-    const user = await UserService.findByUsername(normalizedUsername);
+    // generate and save the reset token
+    const resetToken = this._createResetToken(normalizedUsername);
     user.resetToken = resetToken;
     await user.save();
 
