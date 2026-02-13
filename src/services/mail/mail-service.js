@@ -76,7 +76,7 @@ class MailService {
    * @param {string} params.hostUri - Application host URI used to build the verification link.
    * @returns {Promise<void>}
    */
-  async sendVerificationMail({ to, verificationToken, hostUri }) {
+  async sendRegistrationVerificationMail({ to, verificationToken, hostUri }) {
     const verifyLink = `${hostUri}/verifyEmail?token=${verificationToken}`;
 
     await this.send({

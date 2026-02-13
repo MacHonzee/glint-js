@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 import { AbstractModel } from "../services/database/abstract-model.js";
 
-const DEFAULT_PROJECTION = { salt: 0, hash: 0, resetToken: 0 };
+const DEFAULT_PROJECTION = { salt: 0, hash: 0, resetToken: 0, verificationToken: 0 };
 
 class UserModel extends AbstractModel {
   constructor() {
@@ -22,6 +22,11 @@ class UserModel extends AbstractModel {
           default: "cs",
         },
         resetToken: String,
+        verified: {
+          type: Boolean,
+          default: true,
+        },
+        verificationToken: String,
         metadata: {
           type: mongoose.Schema.Types.Mixed,
           default: {},
@@ -38,6 +43,7 @@ class UserModel extends AbstractModel {
         delete ret.salt;
         delete ret.hash;
         delete ret.resetToken;
+        delete ret.verificationToken;
         return ret;
       },
     });

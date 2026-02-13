@@ -89,6 +89,10 @@ class Config {
     return this.get("MONGODB_DISABLED", Boolean);
   }
 
+  get REGISTRATION_FLOW() {
+    return this.get("GLINT_REGISTRATION_FLOW");
+  }
+
   _initAppRoot() {
     // we save root of the server
     this.set("SERVER_ROOT", process.env["DEFAULT_SERVER_ROOT"] || process.cwd());

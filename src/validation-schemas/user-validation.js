@@ -10,6 +10,7 @@ const UserRegisterSchema = {
     lastName: { type: "string" },
     email: { type: "string" },
     language: { enum: Object.keys(Languages) },
+    hostUri: { type: "string" },
   },
   required: ["username", "password", "confirmPassword", "firstName", "lastName"],
   additionalProperties: false,
@@ -54,6 +55,15 @@ const UserChangePasswordByResetSchema = {
     confirmPassword: { type: "string" },
   },
   required: ["token", "password", "confirmPassword"],
+  additionalProperties: false,
+};
+
+const UserVerifyRegistrationSchema = {
+  type: "object",
+  properties: {
+    token: { type: "string" },
+  },
+  required: ["token"],
   additionalProperties: false,
 };
 
@@ -112,6 +122,7 @@ export default {
   UserChangePasswordSchema,
   UserResetPasswordSchema,
   UserChangePasswordByResetSchema,
+  UserVerifyRegistrationSchema,
   UserRefreshTokenSchema,
   UserLogoutSchema,
   UserListSchema,

@@ -60,7 +60,7 @@ describe("MailService", () => {
     });
   });
 
-  describe("sendVerificationMail()", () => {
+  describe("sendRegistrationVerificationMail()", () => {
     it("calls send() with the verification template", async () => {
       class TestProvider extends MailService {
         async send() {}
@@ -70,7 +70,7 @@ describe("MailService", () => {
       jest.spyOn(provider, "send").mockResolvedValue();
       MailService.setInstance(provider);
 
-      await provider.sendVerificationMail({
+      await provider.sendRegistrationVerificationMail({
         to: "new@example.com",
         verificationToken: "verify123",
         hostUri: "https://app.example.com",

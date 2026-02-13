@@ -6,6 +6,7 @@ import LoggerFactory from "../services/logging/logger-factory.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
 import UserService from "../services/authentication/user-service.js";
 import MailService from "../services/mail/mail-service.js";
+import Config from "../services/utils/config.js";
 import DefaultRoles from "../config/default-roles.js";
 import { randomBytes } from "crypto";
 
@@ -57,14 +58,33 @@ class UserNotFound extends UseCaseError {
   }
 }
 
+class UserNotVerified extends UseCaseError {
+  constructor() {
+    super("User email has not been verified. Please check your inbox for the verification email.", {}, 403);
+  }
+}
+
+class InvalidVerificationToken extends UseCaseError {
+  constructor() {
+    super("Verification token is invalid or has already been used.", {}, 400);
+  }
+}
+
 class UnauthorizedMetadataUpdate extends UseCaseError {
   constructor() {
     super("You are not authorized to update metadata for this user.", {}, 403);
   }
 }
 
+const REGISTRATION_FLOWS = {
+  BASIC: "basic",
+  EMAIL: "email",
+};
+
 class UserRoute {
   logger = LoggerFactory.create("Route.UserRoute");
+
+  REGISTRATION_FLOWS = REGISTRATION_FLOWS;
 
   ERRORS = {
     MismatchingPasswords,
@@ -75,11 +95,15 @@ class UserRoute {
     MissingCsrfToken,
     InvalidCsrfToken,
     UserNotFound,
+    UserNotVerified,
+    InvalidVerificationToken,
     UnauthorizedMetadataUpdate,
   };
 
   async register({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
+
+    const registrationFlow = Config.REGISTRATION_FLOW;
 
     // check matching password
     if (dtoIn.password !== dtoIn.confirmPassword) {
@@ -96,6 +120,11 @@ class UserRoute {
       email: dtoIn.email || normalizedUsername,
     });
 
+    // email verification flow: mark user as unverified
+    if (registrationFlow === REGISTRATION_FLOWS.EMAIL) {
+      newUser.verified = false;
+    }
+
     // save user to database to check constraints
     let registeredUser;
     try {
@@ -105,6 +134,22 @@ class UserRoute {
       throw new this.ERRORS.RegistrationFailed(e.name, e.message);
     }
 
+    // email verification flow: send verification email, do not return tokens
+    if (registrationFlow === REGISTRATION_FLOWS.EMAIL) {
+      const verificationToken = this._createVerificationToken(normalizedUsername);
+      registeredUser.verificationToken = verificationToken;
+      await registeredUser.save();
+
+      await MailService.getInstance().sendRegistrationVerificationMail({
+        to: dtoIn.email || normalizedUsername,
+        verificationToken,
+        hostUri: dtoIn.hostUri,
+      });
+
+      return { status: "OK" };
+    }
+
+    // basic flow: issue tokens immediately
     const token = await this._handleUserAndTokens(registeredUser, response);
 
     return {
@@ -123,6 +168,11 @@ class UserRoute {
     // check if authentication was successful and translate it to Http error
     if (error) {
       throw new this.ERRORS.LoginFailed(error);
+    }
+
+    // block unverified users (strict check so undefined/legacy users pass through)
+    if (user.verified === false) {
+      throw new this.ERRORS.UserNotVerified();
     }
 
     const token = await this._handleUserAndTokens(user, response);
@@ -258,6 +308,26 @@ class UserRoute {
     return { status: "OK" };
   }
 
+  async verifyRegistration({ uri, dtoIn }) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    // verify the JWT token
+    const session = await AuthenticationService.verifyToken(dtoIn.token);
+
+    // find user and check that the verification token matches
+    const user = await UserService.findByUsername(session.user);
+    if (!user.verificationToken || user.verificationToken !== dtoIn.token) {
+      throw new this.ERRORS.InvalidVerificationToken();
+    }
+
+    // mark user as verified and clear the token
+    user.verified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    return { status: "OK" };
+  }
+
   async list({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -365,6 +435,10 @@ class UserRoute {
   }
 
   _createResetToken(username) {
+    return AuthenticationService.getToken(username, "24h");
+  }
+
+  _createVerificationToken(username) {
     return AuthenticationService.getToken(username, "24h");
   }
 }
