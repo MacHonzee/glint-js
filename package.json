@@ -24,7 +24,6 @@
     "dotenv": "^16.0.1",
     "express": "^5.1.0",
     "express-fileupload": "^1.4.0",
-    "glint-js": "^0.6.16",
     "google-gax": "^4.3.4",
     "helmet": "^6.0.1",
     "jsonwebtoken": "^9.0.0",
