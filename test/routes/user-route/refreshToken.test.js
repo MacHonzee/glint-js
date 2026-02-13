@@ -65,4 +65,29 @@ describe("user/refreshToken", () => {
       new UserRoute.ERRORS.RefreshTokenMismatch(),
     );
   });
+
+  it("should raise MissingCsrfToken when no CSRF header is provided", async () => {
+    const { refreshToken } = await TestUsers.getRefreshToken(USER.username, USER.password);
+
+    const ucEnv = await TestService.getUcEnv("user/refreshToken");
+    ucEnv.request.signedCookies = {
+      refreshToken: refreshToken,
+    };
+    // Do not set any CSRF header
+
+    await AssertionService.assertThrows(() => UserRoute.refreshToken(ucEnv), new UserRoute.ERRORS.MissingCsrfToken());
+  });
+
+  it("should raise InvalidCsrfToken when CSRF token does not match stored value", async () => {
+    const { refreshToken } = await TestUsers.getRefreshToken(USER.username, USER.password);
+
+    const ucEnv = await TestService.getUcEnv("user/refreshToken");
+    ucEnv.request.signedCookies = {
+      refreshToken: refreshToken,
+    };
+    // Set a wrong CSRF token that won't match the stored one
+    ucEnv.request.headers["x-xsrf-token"] = "wrong-csrf-token-value";
+
+    await AssertionService.assertThrows(() => UserRoute.refreshToken(ucEnv), new UserRoute.ERRORS.InvalidCsrfToken());
+  });
 });

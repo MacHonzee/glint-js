@@ -20,4 +20,22 @@ describe("sys/syncIndexes", () => {
       expect(model.buildIndexes).toHaveBeenCalled();
     });
   });
+
+  it("should skip models without buildIndexes method", async () => {
+    // Add a model without buildIndexes to the warehouse
+    const modelName = "TestModelWithoutBuildIndexes";
+    ModelWarehouse[modelName] = { name: modelName };
+
+    try {
+      const SysRoute = (await import("../../../src/routes/sys-route.js")).default;
+      const dtoOut = await SysRoute.syncIndexes();
+
+      expect(dtoOut.results).toBeInstanceOf(Array);
+      // The model without buildIndexes should not appear in results
+      const resultNames = dtoOut.results.map((r) => r.modelName);
+      expect(resultNames).not.toContain(modelName);
+    } finally {
+      delete ModelWarehouse[modelName];
+    }
+  });
 });
