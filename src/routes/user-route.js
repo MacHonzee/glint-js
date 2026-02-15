@@ -363,6 +363,12 @@ class UserRoute {
     user.verificationToken = undefined;
     await user.save();
 
+    // send optional "registration done" email if the provider implements it
+    const mailService = MailService.getInstance();
+    if (typeof mailService.sendRegistrationDoneMail === "function") {
+      await mailService.sendRegistrationDoneMail({ user });
+    }
+
     return { status: "OK" };
   }
 

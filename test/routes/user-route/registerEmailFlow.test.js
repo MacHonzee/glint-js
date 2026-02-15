@@ -14,7 +14,7 @@ const USER = {
   hostUri: "https://test-app.example.com",
 };
 
-// Create a mock mail provider and register it
+// Create a mock mail provider
 class MockMailProvider extends MailService {
   async send() {}
 }
@@ -79,6 +79,9 @@ describe("user/verifyRegistration", () => {
   });
 
   it("should verify the user and return status OK", async () => {
+    // temporarily add sendRegistrationDoneMail to test it gets called
+    mockMailProvider.sendRegistrationDoneMail = jest.fn();
+
     const ucEnv = await TestService.getUcEnv("user/verifyRegistration", { token: verificationToken });
     const dtoOut = await UserRoute.verifyRegistration(ucEnv);
 
@@ -88,6 +91,13 @@ describe("user/verifyRegistration", () => {
     const user = await UserService.findByUsername(USER.username.toLowerCase());
     expect(user.verified).toBe(true);
     expect(user.verificationToken).toBeUndefined();
+
+    // check sendRegistrationDoneMail was called with the user
+    expect(mockMailProvider.sendRegistrationDoneMail).toHaveBeenCalledTimes(1);
+    expect(mockMailProvider.sendRegistrationDoneMail.mock.calls[0][0].user.username).toBe(USER.username.toLowerCase());
+
+    // clean up so subsequent tests reflect a provider without this method
+    delete mockMailProvider.sendRegistrationDoneMail;
   });
 
   it("should reject a token that has already been used", async () => {
