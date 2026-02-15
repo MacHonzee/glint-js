@@ -479,11 +479,11 @@ class UserRoute {
   }
 
   _createResetToken(username) {
-    return AuthenticationService.getToken(username, "24h");
+    return AuthenticationService.getToken(username, Config.get("GLINT_RESET_TOKEN_EXPIRY") || "60m");
   }
 
   _createVerificationToken(username) {
-    return AuthenticationService.getToken(username, "24h");
+    return AuthenticationService.getToken(username, Config.get("GLINT_VERIFICATION_TOKEN_EXPIRY") || "60m");
   }
 }
 
