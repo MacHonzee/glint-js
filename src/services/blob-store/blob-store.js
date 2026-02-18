@@ -1,4 +1,4 @@
-import GcpStorage from "@google-cloud/storage";
+import { Storage } from "@google-cloud/storage";
 import { v4 as uuidV4 } from "uuid";
 import Config from "../utils/config.js";
 import LoggerFactory from "../logging/logger-factory.js";
@@ -65,7 +65,7 @@ class BlobStore {
     this._logger.debug(`Key path for BlobStore is '${gcpKeyFilename}'`);
     this._logger.debug(`Bucket for BlobStore is '${this.bucketName}'`);
 
-    this.storage = new GcpStorage.Storage({
+    this.storage = new Storage({
       projectId: this.gcpProject,
       keyFilename: gcpKeyFilename,
       apiEndpoint: this.apiEndpoint,
