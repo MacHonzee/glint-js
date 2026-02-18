@@ -31,6 +31,17 @@ class PermissionModel extends AbstractModel {
   static delete(user, role) {
     return this.deleteOne({ user, role });
   }
+
+  /**
+   * Updates all permissions for a user when their username changes.
+   *
+   * @param {string} oldUsername
+   * @param {string} newUsername
+   * @returns {Promise<import('mongoose').UpdateResult>}
+   */
+  static updateUser(oldUsername, newUsername) {
+    return this.updateMany({ user: oldUsername }, { $set: { user: newUsername } });
+  }
 }
 
 const permissionModel = new PermissionModel();

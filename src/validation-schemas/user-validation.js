@@ -116,6 +116,17 @@ const UserUpdateMetadataSchema = {
   additionalProperties: true,
 };
 
+const UserChangeUsernameSchema = {
+  type: "object",
+  properties: {
+    userId: { format: "objectId", type: "string" },
+    username: { format: "identity", type: "string" },
+    email: { format: "identity", type: "string" },
+  },
+  required: ["userId", "username"],
+  additionalProperties: false,
+};
+
 export default {
   UserRegisterSchema,
   UserLoginSchema,
@@ -129,4 +140,5 @@ export default {
   UserGetSchema,
   UserSetPasswordSchema,
   UserUpdateMetadataSchema,
+  UserChangeUsernameSchema,
 };

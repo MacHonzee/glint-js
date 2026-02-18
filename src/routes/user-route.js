@@ -1,6 +1,8 @@
 import UserModel from "../models/user-model.js";
 import RefreshTokenModel from "../models/refresh-token-model.js";
+import PermissionModel from "../models/permission-model.js";
 import ValidationService from "../services/validation/validation-service.js";
+import AuthorizationService from "../services/authorization/authorization-service.js";
 import UseCaseError from "../services/server/use-case-error.js";
 import LoggerFactory from "../services/logging/logger-factory.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
@@ -82,6 +84,12 @@ class UnauthorizedMetadataUpdate extends UseCaseError {
   }
 }
 
+class ChangeUsernameFailed extends UseCaseError {
+  constructor(name, cause) {
+    super("Username change has failed.", { name, cause });
+  }
+}
+
 const REGISTRATION_FLOWS = {
   BASIC: "basic",
   EMAIL: "email",
@@ -105,6 +113,7 @@ class UserRoute {
     InvalidResetToken,
     InvalidVerificationToken,
     UnauthorizedMetadataUpdate,
+    ChangeUsernameFailed,
   };
 
   async register({ dtoIn, uri, response }) {
@@ -428,6 +437,46 @@ class UserRoute {
     await user.save();
 
     // Return updated user (metadata is included, sensitive fields excluded via toJSON transform)
+    return user;
+  }
+
+  async changeUsername({ uri, dtoIn }) {
+    await ValidationService.validate(dtoIn, uri.useCase);
+
+    const user = await UserService.findById(dtoIn.userId);
+    const oldUsername = user.username;
+    const normalizedUsername = this._normalizeUsername(dtoIn.username);
+    const newEmail = dtoIn.email ? this._normalizeUsername(dtoIn.email) : normalizedUsername;
+
+    try {
+      user.username = normalizedUsername;
+      user.email = newEmail;
+      await user.save();
+    } catch (e) {
+      this.logger.error(e);
+      throw new this.ERRORS.ChangeUsernameFailed(e.name, e.message);
+    }
+
+    // If username changed, update related data
+    if (oldUsername !== normalizedUsername) {
+      await PermissionModel.updateUser(oldUsername, normalizedUsername);
+      await RefreshTokenModel.deleteByUsername(oldUsername);
+      AuthorizationService.clearUserCache(oldUsername);
+      AuthorizationService.clearUserCache(normalizedUsername);
+    }
+
+    // send optional username change email if the provider implements it
+    try {
+      const mailService = MailService.getInstance();
+      if (typeof mailService.sendUsernameChangeMail === "function") {
+        await mailService.sendUsernameChangeMail({ user, oldUsername });
+      }
+    } catch {
+      // MailService not initialized - skip optional notification
+    }
+
+    user.hash = undefined;
+    user.salt = undefined;
     return user;
   }
 
