@@ -298,6 +298,12 @@ class UserRoute {
     // generate and save the reset token
     const resetToken = this._createResetToken(normalizedUsername);
     user.resetToken = resetToken;
+
+    // mark user as verified and clear the verification token, in case he did not
+    // verify his email address after his registration
+    user.verified = true;
+    user.verificationToken = undefined;
+
     await user.save();
 
     // perform "global logout" by deleting all refresh tokens
