@@ -96,5 +96,13 @@ describe("RouteRegister", () => {
       expect(typeof route.config).toBe("object");
       expect(route.config.roles).toEqual(["Admin"]);
     });
+
+    it("should allow partial override of usecase via application's mappings.js (roles only)", () => {
+      const route = RouteRegister.getRoute("/user/list");
+      expect(route.url).toBe("/user/list");
+      expect(route.method).toBe("get");
+      expect(typeof route.controller).toBe("function");
+      expect(route.config.roles).toEqual(["Admin", "Authority", "Editor"]);
+    });
   });
 });

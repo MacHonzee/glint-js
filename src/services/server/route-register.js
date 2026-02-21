@@ -52,22 +52,37 @@ class RouteRegister {
 
   /**
    * Method registers route to RouteRegister to be used in ContextMiddleware for route resolution.
+   * 
+   * When a route already exists and config is partial (missing controller or method), the config
+   * is merged with the existing route, allowing applications to override only specific properties
+   * (e.g. roles) via their mappings.js.
    *
    * @param {string} url
-   * @param {RouteConfig} config
+   * @param {Partial<RouteConfig> | RouteConfig} config
    */
   registerRoute(url, config) {
-    this._validateRoute(url, config);
-
+    if (typeof url !== "string") throw new Error(`Url '${url}' is not of string type.`);
     const normalizedUrl = this._normalizeUrl(url);
-    const method = this._normalizeMethod(config.method);
+    const effectiveConfig = this._resolveEffectiveConfig(normalizedUrl, config);
+
+    this._validateRoute(url, effectiveConfig);
+
+    const method = this._normalizeMethod(effectiveConfig.method);
 
     this._routes[normalizedUrl] = {
       url: normalizedUrl,
       method,
-      controller: this._wrapController(config.controller),
-      config,
+      controller: this._wrapController(effectiveConfig.controller),
+      config: effectiveConfig,
     };
+  }
+
+  _resolveEffectiveConfig(normalizedUrl, config) {
+    const existingRoute = this._routes[normalizedUrl];
+    if (existingRoute) {
+      return { ...existingRoute.config, ...config }; // partial override
+    }
+    return config;
   }
 
   _normalizeUrl(url) {

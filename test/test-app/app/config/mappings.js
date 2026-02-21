@@ -1,4 +1,5 @@
 import FileRoute from "../routes/file-route.js";
+import { DefaultRoles } from "glint-js";
 
 const Mappings = {
   "/testcase/hello": {
@@ -30,6 +31,11 @@ const Mappings = {
     method: "post",
     controller: () => ({ hello: "world" }), // TODO finish this to return some file
     roles: ["Public"],
+  },
+
+  // Partial override: only roles are overridden, controller and method come from default mappings
+  "/user/list": {
+    roles: [DefaultRoles.admin, DefaultRoles.authority, "Editor"],
   },
 };
 
