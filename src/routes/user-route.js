@@ -332,7 +332,8 @@ class UserRoute {
     try {
       resetSession = AuthenticationService.verifyToken(dtoIn.token);
     } catch (e) {
-      this.logger.warn("Failed to verify reset token.", e.message);
+      this.logger.warn("Failed to verify reset token.");
+      this.logger.warn(e);
       throw new this.ERRORS.InvalidResetToken();
     }
 
@@ -364,8 +365,15 @@ class UserRoute {
   async verifyRegistration({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
-    // verify the JWT token
-    const session = await AuthenticationService.verifyToken(dtoIn.token);
+    // verify token - may be malformed, expired, or tampered with
+    let session;
+    try {
+      session = AuthenticationService.verifyToken(dtoIn.token);
+    } catch (e) {
+      this.logger.warn("Failed to verify verification token.");
+      this.logger.warn(e);
+      throw new this.ERRORS.InvalidVerificationToken();
+    }
 
     // find user and check that the verification token matches
     const user = await UserService.findByUsername(session.user);
