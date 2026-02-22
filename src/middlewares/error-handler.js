@@ -19,7 +19,7 @@ class ErrorHandler {
       params: err.params,
     };
 
-    this.logger.error(`Request ${req.ucEnv.uri.useCase} has thrown an error:`, err);
+    this.logger.error(`Request ${dtoOut.uri} has thrown an error:`, err);
 
     if (Config.NODE_ENV !== "production") {
       dtoOut.trace = err.stack;
