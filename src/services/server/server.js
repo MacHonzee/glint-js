@@ -72,6 +72,7 @@ class Server {
     this.app.use(fileUpload({}));
     this.app.use(helmet());
     this.app.disable("x-powered-by");
+    this.app.disable("etag");
     this._registerCorsHandler();
     await AuthenticationService.initCookieParser(this.app);
 
