@@ -7,6 +7,54 @@ const loggingWinston = new LoggingWinston();
 
 const DEFAULT_LEVEL = "info";
 
+// 256KB is the GCP Cloud Logging gRPC limit; keep a safe margin
+export const MAX_LOG_ENTRY_SIZE = 200_000;
+const SPLAT = Symbol.for("splat");
+
+/**
+ * Winston format that truncates oversized log entries to prevent
+ * exceeding the 256KB Cloud Logging gRPC limit, which would crash the transport.
+ */
+export const truncateLargeEntries = winston.format((info) => {
+  if (typeof info.message === "string" && info.message.length > MAX_LOG_ENTRY_SIZE) {
+    const originalLength = info.message.length;
+    info.message = info.message.slice(0, MAX_LOG_ENTRY_SIZE) + `... [TRUNCATED from ${originalLength} chars]`;
+  }
+
+  const splat = info[SPLAT];
+  if (Array.isArray(splat)) {
+    for (let i = 0; i < splat.length; i++) {
+      try {
+        const serialized = JSON.stringify(splat[i]);
+        if (serialized && serialized.length > MAX_LOG_ENTRY_SIZE) {
+          if (splat[i] instanceof Error) {
+            const err = splat[i];
+            const safeMessage =
+              err.message?.length > MAX_LOG_ENTRY_SIZE
+                ? err.message.slice(0, MAX_LOG_ENTRY_SIZE) + `... [TRUNCATED from ${err.message.length} chars]`
+                : err.message;
+            const safeError = new Error(safeMessage);
+            safeError.code = err.code;
+            safeError.stack = err.stack;
+            if (err.params) {
+              const paramStr = JSON.stringify(err.params);
+              safeError.params =
+                paramStr.length > MAX_LOG_ENTRY_SIZE ? { _truncated: true, originalSize: paramStr.length } : err.params;
+            }
+            splat[i] = safeError;
+          } else {
+            splat[i] = serialized.slice(0, MAX_LOG_ENTRY_SIZE) + `... [TRUNCATED from ${serialized.length} chars]`;
+          }
+        }
+      } catch {
+        splat[i] = "[Unserializable object]";
+      }
+    }
+  }
+
+  return info;
+});
+
 const consoleFormat = printf((log) => {
   const logLvl = log.level.toUpperCase();
   let msg = `${log.timestamp} [${log.label}] ${logLvl} ${log.message}`;
@@ -48,6 +96,7 @@ class LoggerFactory {
 
     const logger = winston.createLogger({
       level: logLevel,
+      format: truncateLargeEntries(),
       transports: [consoleTransport],
     });
 
