@@ -49,6 +49,25 @@ class UserModel extends AbstractModel {
     });
   }
 
+  /**
+   * Register an extra index on the User schema (e.g. partial unique on metadata fields).
+   * Same arguments as Mongoose schema.index(fields, options). Call before syncIndexes.
+   */
+  static registerMetadataIndex(fields, options) {
+    this.schema.index(fields, options);
+  }
+
+  /**
+   * Advanced: mutate the User Mongoose schema (compound indexes, plugins, etc.).
+   * Call once at application startup, before syncIndexes.
+   */
+  static configureUserSchema(callback) {
+    if (typeof callback !== "function") {
+      throw new TypeError("configureUserSchema(callback): callback must be a function");
+    }
+    callback(this.schema);
+  }
+
   static async buildIndexes() {
     await this.schema.index({ username: 1 }, { unique: true });
     return await this.syncIndexes();
@@ -87,4 +106,6 @@ class UserModel extends AbstractModel {
 }
 
 const userModel = new UserModel();
-export default await userModel.createModel("AUTH", "PRIMARY");
+const User = await userModel.createModel("AUTH", "PRIMARY");
+export { User as UserModel };
+export default User;

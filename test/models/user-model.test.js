@@ -7,6 +7,15 @@ afterAll(async () => {
 });
 
 describe("UserModel", () => {
+  it("should register extra indexes via registerMetadataIndex", () => {
+    UserModel.registerMetadataIndex(
+      { "metadata.__glintTestIndex": 1 },
+      { unique: true, partialFilterExpression: { "metadata.__glintTestIndex": { $exists: true } } },
+    );
+    const indexes = UserModel.schema.indexes();
+    expect(indexes.some((spec) => spec[0] && spec[0]["metadata.__glintTestIndex"] === 1)).toBe(true);
+  });
+
   it("should not return hash and salt in JSON", async () => {
     const newUser = new UserModel({
       username: "testUserFromModel",

@@ -11,6 +11,10 @@ import MailService from "../services/mail/mail-service.js";
 import Config from "../services/utils/config.js";
 import DefaultRoles from "../config/default-roles.js";
 import { randomBytes } from "crypto";
+import { mergeMetadataPatch, findImmutableTopLevelKeyViolation } from "../utils/metadata-patch.js";
+
+/** @type {{ immutableTopLevelKeys?: string[], assertPatchAllowed?: Function } | null} */
+let metadataUpdatePolicy = null;
 
 class MismatchingPasswords extends UseCaseError {
   constructor() {
@@ -84,6 +88,12 @@ class UnauthorizedMetadataUpdate extends UseCaseError {
   }
 }
 
+class ImmutableMetadataViolation extends UseCaseError {
+  constructor(key) {
+    super("This metadata field cannot be changed.", { key }, 403);
+  }
+}
+
 class ChangeUsernameFailed extends UseCaseError {
   constructor(name, cause) {
     super("Username change has failed.", { name, cause });
@@ -113,6 +123,7 @@ class UserRoute {
     InvalidResetToken,
     InvalidVerificationToken,
     UnauthorizedMetadataUpdate,
+    ImmutableMetadataViolation,
     ChangeUsernameFailed,
   };
 
@@ -431,6 +442,36 @@ class UserRoute {
     return { user, status: "OK" };
   }
 
+  /**
+   * Configure metadata merge policy for non-privileged self-updates (immutable keys and/or assertPatchAllowed).
+   * Pass null to clear.
+   */
+  setMetadataUpdatePolicy(policy) {
+    metadataUpdatePolicy = policy && typeof policy === "object" ? policy : null;
+  }
+
+  _enforceMetadataUpdatePolicy({ existingMetadata, patch, session, authorizationResult, uri }) {
+    const policy = metadataUpdatePolicy;
+    if (!policy) return;
+
+    const keys = policy.immutableTopLevelKeys;
+    const violation = findImmutableTopLevelKeyViolation(existingMetadata, patch, keys || []);
+    if (violation) {
+      throw new this.ERRORS.ImmutableMetadataViolation(violation);
+    }
+
+    if (typeof policy.assertPatchAllowed === "function") {
+      policy.assertPatchAllowed({
+        existingMetadata,
+        patch: patch ?? {},
+        session,
+        authorizationResult,
+        isPrivilegedMetadataUpdate: false,
+        uri,
+      });
+    }
+  }
+
   async updateMetadata({ uri, dtoIn, session, authorizationResult }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -443,14 +484,24 @@ class UserRoute {
       throw new this.ERRORS.UnauthorizedMetadataUpdate();
     }
 
-    // Find user by ID
     const user = await UserService.findById(dtoIn.userId);
 
-    // Update metadata (replace entire metadata object)
-    user.metadata = dtoIn.metadata || {};
+    const isPrivilegedMetadataUpdate = hasPrivilegedRole;
+    const patch = dtoIn.metadata;
+
+    if (!isPrivilegedMetadataUpdate && isOwnUser) {
+      this._enforceMetadataUpdatePolicy({
+        existingMetadata: user.metadata,
+        patch,
+        session,
+        authorizationResult,
+        uri,
+      });
+    }
+
+    user.metadata = mergeMetadataPatch(user.metadata || {}, patch ?? {});
     await user.save();
 
-    // Return updated user (metadata is included, sensitive fields excluded via toJSON transform)
     return user;
   }
 

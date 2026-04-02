@@ -43,6 +43,9 @@ import BlobStore from "./services/blob-store/blob-store.js";
 import DefaultRoles from "./config/default-roles.js";
 import Languages from "./config/languages.js";
 
+import UserModel from "./models/user-model.js";
+import UserRoute from "./routes/user-route.js";
+
 // TODO describe everything with proper JSDoc
 export {
   AuthenticationService,
@@ -70,4 +73,6 @@ export {
   Languages,
   mongoose,
   BlobStore,
+  UserModel,
+  UserRoute,
 };
