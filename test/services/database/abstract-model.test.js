@@ -59,5 +59,4 @@ describe("AbstractModel", () => {
     });
   });
 
-  // TODO test to check that it raises DuplicateKeyError
 });

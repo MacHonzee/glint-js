@@ -16,6 +16,20 @@ describe("UserModel", () => {
     expect(indexes.some((spec) => spec[0] && spec[0]["metadata.__glintTestIndex"] === 1)).toBe(true);
   });
 
+  it("should allow schema configuration via configureUserSchema", () => {
+    const callback = (schema) => {
+      schema.index({ email: 1 });
+    };
+    expect(() => UserModel.configureUserSchema(callback)).not.toThrow();
+  });
+
+  it("should throw TypeError when configureUserSchema receives non-function", () => {
+    expect(() => UserModel.configureUserSchema("not a function")).toThrow(TypeError);
+    expect(() => UserModel.configureUserSchema("not a function")).toThrow(
+      "configureUserSchema(callback): callback must be a function",
+    );
+  });
+
   it("should not return hash and salt in JSON", async () => {
     const newUser = new UserModel({
       username: "testUserFromModel",

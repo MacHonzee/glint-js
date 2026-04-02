@@ -95,7 +95,6 @@ class RouteRegister {
   }
 
   _validateRoute(url, config) {
-    if (typeof url !== "string") throw new Error(`Url '${url}' is not of string type.`);
     if (typeof config !== "object") throw new Error(`Route configuration '${config}' is not of object type.`);
     if (!ALLOWED_METHODS.includes(config.method)) {
       throw new Error(`Route method '${config.method}' is not one of allowed methods: ${ALLOWED_METHODS}`);

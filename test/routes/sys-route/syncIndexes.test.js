@@ -21,6 +21,25 @@ describe("sys/syncIndexes", () => {
     });
   });
 
+  it("should report 'updated' state when indexes were dropped", async () => {
+    const modelName = "TestModelWithDroppedIndexes";
+    ModelWarehouse[modelName] = {
+      buildIndexes: jest.fn().mockResolvedValue(["index_1", "index_2"]),
+    };
+
+    try {
+      const SysRoute = (await import("../../../src/routes/sys-route.js")).default;
+      const dtoOut = await SysRoute.syncIndexes();
+
+      const entry = dtoOut.results.find((r) => r.modelName === modelName);
+      expect(entry).toBeDefined();
+      expect(entry.state).toBe("updated");
+      expect(entry.droppedIndexes).toEqual(["index_1", "index_2"]);
+    } finally {
+      delete ModelWarehouse[modelName];
+    }
+  });
+
   it("should skip models without buildIndexes method", async () => {
     // Add a model without buildIndexes to the warehouse
     const modelName = "TestModelWithoutBuildIndexes";

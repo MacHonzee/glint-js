@@ -133,4 +133,40 @@ describe("BlobStore", () => {
       expect(files.length).toBe(0);
     });
   });
+
+  describe("lazy initialization", () => {
+    beforeEach(() => {
+      BlobStore._active = false;
+      jest.spyOn(BlobStore, "_init").mockImplementation(async () => {
+        BlobStore._active = true;
+        BlobStore.bucket = new MockBucket();
+      });
+    });
+
+    afterEach(() => {
+      BlobStore._init.mockRestore();
+    });
+
+    it("should lazy-init on save", async () => {
+      await BlobStore.save(fileData, { id: fileId });
+      expect(BlobStore._init).toHaveBeenCalled();
+    });
+
+    it("should lazy-init on download", async () => {
+      await BlobStore.save(fileData, { id: fileId });
+      BlobStore._active = false;
+      await BlobStore.download(fileId);
+      expect(BlobStore._init).toHaveBeenCalledTimes(2);
+    });
+
+    it("should lazy-init on setMetadata", async () => {
+      await BlobStore.setMetadata(fileId, { foo: "bar" });
+      expect(BlobStore._init).toHaveBeenCalled();
+    });
+
+    it("should lazy-init on delete", async () => {
+      await BlobStore.delete(fileId);
+      expect(BlobStore._init).toHaveBeenCalled();
+    });
+  });
 });

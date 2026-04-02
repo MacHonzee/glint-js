@@ -87,4 +87,67 @@ describe("AuthenticationService", () => {
       expect(result).toEqual(user);
     });
   });
+
+  describe("init - SecretManager fallback and production mode", () => {
+    afterAll(async () => {
+      Config.get.mockImplementation((key) => {
+        switch (key) {
+          case "AUTH_SESSION_EXPIRY":
+            return "1h";
+          case "AUTH_REFRESH_TOKEN_EXPIRY":
+            return "30d";
+          case "AUTH_COOKIE_KEY":
+            return "cookie_key";
+          case "AUTH_JWT_KEY":
+            return "jwt_key";
+          case "AUTH_REFRESH_TOKEN_KEY":
+            return "refresh_token_key";
+          default:
+            return undefined;
+        }
+      });
+      await AuthenticationService.init(true);
+    });
+
+    it("should fall back to SecretManager when Config keys are not set", async () => {
+      SecretManager.get.mockClear();
+      Config.get.mockImplementation((key) => {
+        if (key === "AUTH_SESSION_EXPIRY") return "1h";
+        if (key === "AUTH_REFRESH_TOKEN_EXPIRY") return "30d";
+        return undefined;
+      });
+
+      await AuthenticationService.init(true);
+
+      expect(SecretManager.get).toHaveBeenCalledWith("authCookieKey");
+      expect(SecretManager.get).toHaveBeenCalledWith("authJwtKey");
+      expect(SecretManager.get).toHaveBeenCalledWith("authRefreshTokenKey");
+    });
+
+    it("should set production cookie options when NODE_ENV is production", async () => {
+      Config.get.mockImplementation((key) => {
+        switch (key) {
+          case "AUTH_SESSION_EXPIRY":
+            return "1h";
+          case "AUTH_REFRESH_TOKEN_EXPIRY":
+            return "30d";
+          case "AUTH_COOKIE_KEY":
+            return "cookie_key";
+          case "AUTH_JWT_KEY":
+            return "jwt_key";
+          case "AUTH_REFRESH_TOKEN_KEY":
+            return "refresh_token_key";
+          case "NODE_ENV":
+            return "production";
+          default:
+            return undefined;
+        }
+      });
+
+      await AuthenticationService.init(true);
+
+      expect(AuthenticationService.COOKIE_OPTIONS.secure).toBe(true);
+      expect(AuthenticationService.COOKIE_OPTIONS.sameSite).toBe("none");
+    });
+  });
 });

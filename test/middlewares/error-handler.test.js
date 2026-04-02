@@ -86,4 +86,38 @@ describe("ErrorHandler", () => {
       },
     );
   });
+
+  it("should fall back to originalUrl when ucEnv is not set", async () => {
+    const err = new Error("raw error");
+    const req = {
+      originalUrl: "/fallback/url",
+      get: () => undefined,
+    };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await ErrorHandler.process(err, req, res, () => {});
+
+    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({ uri: "/fallback/url" }));
+  });
+
+  it("should use err.id as traceId when present", async () => {
+    const err = new Error("traced error");
+    err.id = "custom-trace-id";
+    const req = {
+      ucEnv: { uri: "http://test/uri" },
+      originalUrl: "/test/uri",
+      get: () => undefined,
+    };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await ErrorHandler.process(err, req, res, () => {});
+
+    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({ traceId: "custom-trace-id" }));
+  });
 });

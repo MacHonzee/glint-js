@@ -1,7 +1,6 @@
 import deepmerge from "deepmerge";
 
 const metadataDeepmergeOptions = {
-  arrayMerge: (_destinationArray, sourceArray) => sourceArray,
   isMergeableObject: (value) => isPlainObject(value),
 };
 

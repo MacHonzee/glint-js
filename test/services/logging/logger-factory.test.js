@@ -62,6 +62,20 @@ describe("truncateLargeEntries", () => {
     expect(splat).toMatch(/\.\.\. \[TRUNCATED from \d+ chars\]$/);
   });
 
+  it("truncates Error with oversized message when serialization also exceeds limit", () => {
+    const hugeMessage = "x".repeat(MAX_LOG_ENTRY_SIZE + 1000);
+    const err = new Error(hugeMessage);
+    err.code = "ERR_HUGE_MSG";
+    err.hugePayload = "y".repeat(MAX_LOG_ENTRY_SIZE + 1000);
+    const info = { level: "error", message: "test", [Symbol.for("splat")]: [err] };
+    const result = runTruncateFormat(info);
+    const safeErr = result[Symbol.for("splat")][0];
+    expect(safeErr).toBeInstanceOf(Error);
+    expect(safeErr.message).toMatch(/\.\.\. \[TRUNCATED from \d+ chars\]$/);
+    expect(safeErr.message.length).toBeLessThan(MAX_LOG_ENTRY_SIZE + 1000);
+    expect(safeErr.code).toBe("ERR_HUGE_MSG");
+  });
+
   it("truncates Error with oversized serialization, preserving code and stack", () => {
     // Error with large enumerable property - JSON.stringify includes enumerable props, so it exceeds limit
     const err = new Error("short message");
@@ -152,6 +166,20 @@ describe("LoggerFactory", () => {
       Config.get.mockReturnValueOnce(null);
       const logger = LoggerFactory.create("test");
       expect(logger.level).toBe("info");
+    });
+
+    it("adds Google Cloud transport in production mode", () => {
+      Config.get.mockReturnValueOnce(null);
+      Config.get.mockReturnValueOnce(null);
+      jest.spyOn(Config, "NODE_ENV", "get").mockReturnValue("production");
+
+      const logger = LoggerFactory.create("production-mode-test");
+      expect(logger.transports.length).toBe(2);
+    });
+
+    it("uses explicit level parameter over environment config", () => {
+      const logger = LoggerFactory.create("explicit-level-test", "warn");
+      expect(logger.level).toBe("warn");
     });
   });
 });

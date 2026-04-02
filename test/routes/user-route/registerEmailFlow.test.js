@@ -109,6 +109,15 @@ describe("user/verifyRegistration", () => {
     );
   });
 
+  it("should reject a garbled/invalid verification token", async () => {
+    const ucEnv = await TestService.getUcEnv("user/verifyRegistration", { token: "garbled.invalid.token" });
+
+    await AssertionService.assertThrows(
+      () => UserRoute.verifyRegistration(ucEnv),
+      new UserRoute.ERRORS.InvalidVerificationToken(),
+    );
+  });
+
   it("should allow login after verification", async () => {
     const loginData = {
       username: USER.username,

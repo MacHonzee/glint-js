@@ -78,4 +78,42 @@ describe("user/changePasswordByReset", () => {
       new UserRoute.ERRORS.MismatchingPasswords(),
     );
   });
+
+  it("should raise InvalidResetToken for garbled token", async () => {
+    const ucEnv = await TestService.getUcEnv("user/changePasswordByReset", {
+      token: "garbled.invalid.token",
+      password: "newPass1234",
+      confirmPassword: "newPass1234",
+    });
+    await AssertionService.assertThrows(
+      () => UserRoute.changePasswordByReset(ucEnv),
+      new UserRoute.ERRORS.InvalidResetToken(),
+    );
+  });
+
+  it("should raise InvalidResetToken when token references non-existent user", async () => {
+    const token = AuthenticationService.getToken("nonexistent_user@mail.com", "60m");
+    const ucEnv = await TestService.getUcEnv("user/changePasswordByReset", {
+      token,
+      password: "newPass1234",
+      confirmPassword: "newPass1234",
+    });
+    await AssertionService.assertThrows(
+      () => UserRoute.changePasswordByReset(ucEnv),
+      new UserRoute.ERRORS.InvalidResetToken(),
+    );
+  });
+
+  it("should raise InvalidResetToken when stored reset token does not match", async () => {
+    const fakeToken = AuthenticationService.getToken(USER.username.toLowerCase(), "60m");
+    const ucEnv = await TestService.getUcEnv("user/changePasswordByReset", {
+      token: fakeToken,
+      password: "newPass1234",
+      confirmPassword: "newPass1234",
+    });
+    await AssertionService.assertThrows(
+      () => UserRoute.changePasswordByReset(ucEnv),
+      new UserRoute.ERRORS.InvalidResetToken(),
+    );
+  });
 });

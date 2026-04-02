@@ -96,7 +96,19 @@ class Server {
       middlewares.push(middlewareClass);
     }
 
-    // check structure of middlewares and sort them by ORDER
+    const { preprocessMiddlewares, errorMiddlewares } = Server._validateAndSortMiddlewares(middlewares);
+
+    // then register them to app
+    for (const middleware of preprocessMiddlewares) {
+      const boundMiddleware = middleware.process.bind(middleware);
+      this.app.use(boundMiddleware);
+      this.logger.info(`Registered middleware [${middleware.ORDER}] ${middleware.constructor.name}`);
+    }
+
+    return errorMiddlewares;
+  }
+
+  static _validateAndSortMiddlewares(middlewares) {
     for (const middlewareClass of middlewares) {
       const middlewareName = middlewareClass.constructor.name;
       if (middlewareClass.ORDER == null) {
@@ -109,7 +121,6 @@ class Server {
     }
     middlewares.sort((a, b) => a.ORDER - b.ORDER);
 
-    // check that no middlewares have same order and sort them to "normal" and "error" middlewares
     const preprocessMiddlewares = [];
     const errorMiddlewares = [];
     middlewares.forEach((middleware, i) => {
@@ -134,14 +145,7 @@ class Server {
       }
     });
 
-    // then register them to app
-    for (const middleware of preprocessMiddlewares) {
-      const boundMiddleware = middleware.process.bind(middleware);
-      this.app.use(boundMiddleware);
-      this.logger.info(`Registered middleware [${middleware.ORDER}] ${middleware.constructor.name}`);
-    }
-
-    return errorMiddlewares;
+    return { preprocessMiddlewares, errorMiddlewares };
   }
 
   async _registerErrorMiddlewares(errorMiddlewares) {
@@ -171,7 +175,6 @@ class Server {
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     };
 
-    this.app.use(cors(corsOptions));
     this.app.use((req, res, next) => {
       if (req.method === "OPTIONS") {
         res.setHeader("Cache-Control", "public, max-age=86400");
@@ -181,6 +184,7 @@ class Server {
         next();
       }
     });
+    this.app.use(cors(corsOptions));
   }
 
   async _onAfterStart() {

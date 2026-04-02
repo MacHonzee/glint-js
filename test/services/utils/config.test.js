@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "@jest/globals";
+import { jest, describe, it, expect, beforeAll } from "@jest/globals";
 import { Config } from "../../../src/index";
 
 describe("Config class", () => {
@@ -59,5 +59,72 @@ describe("Config class", () => {
   it("should get the PORT configuration value", () => {
     process.env.PORT = "3000";
     expect(Config.PORT).toEqual(3000);
+  });
+
+  it("should get MONGODB_DISABLED as boolean", () => {
+    process.env.MONGODB_DISABLED = "true";
+    expect(Config.MONGODB_DISABLED).toBe(true);
+  });
+
+  it("should get REGISTRATION_FLOW from GLINT_REGISTRATION_FLOW", () => {
+    process.env.GLINT_REGISTRATION_FLOW = "email";
+    expect(Config.REGISTRATION_FLOW).toBe("email");
+    delete process.env.GLINT_REGISTRATION_FLOW;
+  });
+
+  it("should return undefined for null env value", () => {
+    expect(Config.get("COMPLETELY_NONEXISTENT_KEY")).toBeUndefined();
+  });
+
+  it("should return undefined when getting a non-existent key with Number type", () => {
+    delete process.env.UNDEFINED_ENV_VALUE;
+    expect(Config.get("UNDEFINED_ENV_VALUE", Number)).toBeUndefined();
+  });
+
+  it("should return undefined when getting a non-existent key with Boolean type", () => {
+    delete process.env.UNDEFINED_BOOL_VALUE;
+    expect(Config.get("UNDEFINED_BOOL_VALUE", Boolean)).toBeUndefined();
+  });
+
+  it("should warn when env file is not found during dotenv init", () => {
+    const originalServerRoot = process.env.SERVER_ROOT;
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    Config.set("SERVER_ROOT", "/nonexistent/path");
+
+    Config._initDotenv();
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Unable to load .env file"));
+    warnSpy.mockRestore();
+    Config.set("SERVER_ROOT", originalServerRoot);
+  });
+
+  it("should use DEFAULT_SERVER_ROOT when set", () => {
+    const originalDefault = process.env.DEFAULT_SERVER_ROOT;
+    const originalRoot = process.env.SERVER_ROOT;
+    process.env.DEFAULT_SERVER_ROOT = "/custom/default/root";
+
+    Config._initAppRoot();
+
+    expect(Config.SERVER_ROOT).toBe("/custom/default/root");
+    if (originalDefault) {
+      process.env.DEFAULT_SERVER_ROOT = originalDefault;
+    } else {
+      delete process.env.DEFAULT_SERVER_ROOT;
+    }
+    Config.set("SERVER_ROOT", originalRoot);
+  });
+
+  it("should handle CLOUD_ENV in dotenv file naming", () => {
+    const originalServerRoot = process.env.SERVER_ROOT;
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    process.env.CLOUD_ENV = "staging";
+    Config.set("SERVER_ROOT", "/nonexistent/path");
+
+    Config._initDotenv();
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("test-staging.env"));
+    warnSpy.mockRestore();
+    delete process.env.CLOUD_ENV;
+    Config.set("SERVER_ROOT", originalServerRoot);
   });
 });

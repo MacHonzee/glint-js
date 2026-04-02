@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { jest, describe, beforeAll, it, expect } from "@jest/globals";
 import { RouteRegister } from "../../../src/index";
 import { AssertionService } from "../../../src/test-utils/index.js";
 
@@ -75,6 +75,39 @@ describe("RouteRegister", () => {
         expect(typeof route.controller).toBe("function");
         expect(typeof route.config).toBe("object");
       });
+    });
+  });
+
+  describe("_wrapController", () => {
+    it("should catch controller errors and pass them to next", async () => {
+      const error = new Error("controller error");
+      const errorController = () => {
+        throw error;
+      };
+      const wrappedController = RouteRegister._wrapController(errorController);
+
+      const mockReq = { ucEnv: {} };
+      const mockRes = { send: jest.fn() };
+      const mockNext = jest.fn();
+
+      await wrappedController(mockReq, mockRes, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(error);
+      expect(mockRes.send).not.toHaveBeenCalled();
+    });
+
+    it("should send result on success", async () => {
+      const successController = () => ({ ok: true });
+      const wrappedController = RouteRegister._wrapController(successController);
+
+      const mockReq = { ucEnv: {} };
+      const mockRes = { send: jest.fn() };
+      const mockNext = jest.fn();
+
+      await wrappedController(mockReq, mockRes, mockNext);
+
+      expect(mockRes.send).toHaveBeenCalledWith({ ok: true });
+      expect(mockNext).not.toHaveBeenCalled();
     });
   });
 

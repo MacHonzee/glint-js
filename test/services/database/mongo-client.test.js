@@ -93,5 +93,54 @@ describe("MongoClient", () => {
     });
   });
 
-  // TODO test fallbacks
+  describe("fallback connections", () => {
+    afterEach(() => {
+      MongoClient.connections = {};
+    });
+
+    it("should use fallback env key when primary URI is not available", async () => {
+      const fallbackUri = "mongodb://localhost:27017/fallback";
+      Config.set("FALLBACK_MONGODB_URI", fallbackUri);
+      SecretManager.get.mockResolvedValue(undefined);
+
+      const mockConn = new mongoose.Connection();
+      const createConnectionSpy = jest.spyOn(mongoose, "createConnection").mockResolvedValue(mockConn);
+
+      const client = new MongoClient("PRIMARY", "FALLBACK");
+      await client.init();
+
+      expect(createConnectionSpy).toHaveBeenCalledWith(fallbackUri, { autoIndex: false });
+      expect(MongoClient.connections.FALLBACK).toBeDefined();
+      expect(MongoClient.connections.PRIMARY).toBeUndefined();
+    });
+
+    it("should throw error when no URI is available and no fallback", async () => {
+      SecretManager.get.mockResolvedValue(undefined);
+
+      const client = new MongoClient("UNKNOWN");
+      await expect(client.init()).rejects.toThrow("MongoDB connection not specified");
+    });
+
+    it("should return existing fallback connection via getConnection", async () => {
+      const mockConn = { close: jest.fn() };
+      MongoClient.connections.FALLBACK = { connection: mockConn, uri: "mongodb://localhost:27017/fallback" };
+
+      const result = await MongoClient.getConnection("NONEXISTENT", "FALLBACK");
+      expect(result).toBe(mockConn);
+    });
+
+    it("should lazy-init and resolve via fallback key in getConnection", async () => {
+      const fallbackUri = "mongodb://localhost:27017/lazy-fallback";
+      Config.set("LAZYFB_MONGODB_URI", fallbackUri);
+      SecretManager.get.mockResolvedValue(undefined);
+
+      const mockConn = new mongoose.Connection();
+      jest.spyOn(mongoose, "createConnection").mockResolvedValue(mockConn);
+
+      const result = await MongoClient.getConnection("NOPRIMARY", "LAZYFB");
+      expect(result).toBe(mockConn);
+      expect(MongoClient.connections.LAZYFB).toBeDefined();
+      expect(MongoClient.connections.NOPRIMARY).toBeUndefined();
+    });
+  });
 });

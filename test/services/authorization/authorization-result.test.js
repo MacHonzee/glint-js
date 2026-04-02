@@ -15,5 +15,17 @@ describe("AuthorizationResult", () => {
     expect(result).toHaveProperty("username", "test@example.com");
     expect(result).toHaveProperty("useCaseRoles", ["admin", "editor"]);
     expect(result).toHaveProperty("userRoles", ["admin", "author"]);
+    expect(result).toHaveProperty("useCase", "/");
+  });
+
+  it("should default useCaseRoles and userRoles to empty arrays", () => {
+    const minimal = new AuthorizationResult({
+      authorized: false,
+      username: "default@test.com",
+      useCase: "/test",
+    });
+    expect(minimal.useCaseRoles).toEqual([]);
+    expect(minimal.userRoles).toEqual([]);
+    expect(minimal.useCase).toBe("/test");
   });
 });

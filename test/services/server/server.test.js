@@ -1,6 +1,7 @@
 import { describe, beforeAll, it, expect, afterAll } from "@jest/globals";
 import { FormData, fileFromSync } from "node-fetch";
 import { TestService, AssertionService } from "../../../src/test-utils/index.js";
+import Server from "../../../src/services/server/server.js";
 
 describe("Server", () => {
   beforeAll(async () => {
@@ -144,17 +145,84 @@ describe("Server", () => {
     });
   });
 
-  it.todo("should return file");
+  it("should handle OPTIONS request with Cache-Control header", async () => {
+    const response = await TestService.call("OPTIONS", "testcase/public");
+    expect(response.headers["cache-control"]).toBe("public, max-age=86400");
+  });
 
-  it.todo("should throw CORS error");
+  it("should throw CORS error for non-whitelisted origin", async () => {
+    await AssertionService.assertCallThrows(
+      () =>
+        TestService.callPost("testcase/public", null, null, {
+          headers: { Origin: "http://evil.com" },
+        }),
+      (response) => {
+        expect(response.status).toBe(400);
+        expect(response.data.message).toBe("Request was blocked by CORS policy.");
+        expect(response.data.code).toBe("glint-js/blockedByCors");
+      },
+    );
+  });
+});
 
-  it.todo("should register custom middleware");
+describe("Server._validateAndSortMiddlewares", () => {
+  class ValidPreprocess {
+    ORDER = 1;
+    process(req, res, next) {}
+  }
+  class ValidErrorHandler {
+    ORDER = 100;
+    process(err, req, res, next) {}
+  }
 
-  it.todo("should not register middleware because it does not have ORDER");
+  it("should sort valid middlewares into preprocess and error", () => {
+    const middlewares = [new ValidErrorHandler(), new ValidPreprocess()];
+    const { preprocessMiddlewares, errorMiddlewares } = Server._validateAndSortMiddlewares(middlewares);
+    expect(preprocessMiddlewares).toHaveLength(1);
+    expect(errorMiddlewares).toHaveLength(1);
+    expect(preprocessMiddlewares[0]).toBeInstanceOf(ValidPreprocess);
+    expect(errorMiddlewares[0]).toBeInstanceOf(ValidErrorHandler);
+  });
 
-  it.todo("should not register middleware because it has duplicit ORDER");
+  it("should throw when middleware has no ORDER", () => {
+    class NoOrder {
+      process(req, res, next) {}
+    }
+    expect(() => Server._validateAndSortMiddlewares([new NoOrder()])).toThrow(
+      "ORDER attribute is not set for middleware NoOrder",
+    );
+  });
 
-  it.todo("should not register middleware because it wrong parameter count");
+  it("should throw when middleware has no process method", () => {
+    class NoProcess {
+      ORDER = 1;
+    }
+    expect(() => Server._validateAndSortMiddlewares([new NoProcess()])).toThrow(
+      'Middleware NoProcess does not have "process" method defined.',
+    );
+  });
 
-  it.todo("should not register middleware because it does not have process method");
+  it("should throw when two middlewares have the same ORDER", () => {
+    class MdlA {
+      ORDER = 5;
+      process(req, res, next) {}
+    }
+    class MdlB {
+      ORDER = 5;
+      process(req, res, next) {}
+    }
+    expect(() => Server._validateAndSortMiddlewares([new MdlA(), new MdlB()])).toThrow(
+      "Found middlewares with same ORDER attribute: MdlA, MdlB",
+    );
+  });
+
+  it("should throw when process has invalid argument count", () => {
+    class BadArgs {
+      ORDER = 1;
+      process(a, b) {}
+    }
+    expect(() => Server._validateAndSortMiddlewares([new BadArgs()])).toThrow(
+      "Invalid length of arguments in middleware BadArgs",
+    );
+  });
 });

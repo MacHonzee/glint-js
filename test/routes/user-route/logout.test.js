@@ -98,8 +98,6 @@ describe("user/logout", () => {
     await UserRoute.refreshToken(refreshUcEnv);
   });
 
-  it.todo("should check that the Bearer authentication token is invalid");
-
   it("should raise InvalidRefreshToken error", async () => {
     const ucEnv = await TestService.getUcEnv("user/logout");
 
