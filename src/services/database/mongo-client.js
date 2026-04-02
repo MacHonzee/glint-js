@@ -4,10 +4,19 @@ import LoggerFactory from "../logging/logger-factory.js";
 import Config from "../utils/config.js";
 import SecretManager from "../secret-manager/secret-manager.js";
 
+/**
+ * Manages Mongoose connections keyed by environment name. Each connection is
+ * established once (guarded by a mutex) and then cached for reuse.
+ * The connection URI is resolved from environment variables or Google Cloud Secret Manager.
+ */
 class MongoClient {
   static connections = {};
   static mutex = new Mutex();
 
+  /**
+   * @param {string} [envKey="PRIMARY"] - Logical name for this connection (e.g. `"PRIMARY"`, `"AUTH"`).
+   * @param {string} [fallbackEnvKey] - Optional fallback key tried when the primary URI is not set.
+   */
   constructor(envKey = "PRIMARY", fallbackEnvKey) {
     this.envKey = envKey;
     this.fallbackEnvKey = fallbackEnvKey;
@@ -16,6 +25,13 @@ class MongoClient {
     this.logger = LoggerFactory.create("Service.MongoClient");
   }
 
+  /**
+   * Returns an existing connection or lazily creates one.
+   *
+   * @param {string} envKey
+   * @param {string} [fallbackEnvKey]
+   * @returns {Promise<import('mongoose').Connection|undefined>} Mongoose connection, or `undefined` when MongoDB is disabled.
+   */
   static async getConnection(envKey, fallbackEnvKey) {
     if (Config.MONGODB_DISABLED) return;
     let connection = this.connections[envKey] || this.connections[fallbackEnvKey];
@@ -29,6 +45,11 @@ class MongoClient {
     return connection.connection;
   }
 
+  /**
+   * Establishes the database connection (mutex-guarded to prevent duplicates).
+   *
+   * @returns {Promise<void>}
+   */
   async init() {
     if (Config.MONGODB_DISABLED) return;
     await MongoClient.mutex.runExclusive(this._init.bind(this));

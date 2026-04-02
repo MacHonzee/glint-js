@@ -1,3 +1,8 @@
+/**
+ * AJV custom format that validates email-style identity strings.
+ *
+ * @type {{ name: string, format: { validate: (value: string) => boolean } }}
+ */
 const IdentityFormat = {
   name: "identity",
   format: {

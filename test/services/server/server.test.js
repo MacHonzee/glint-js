@@ -168,11 +168,11 @@ describe("Server", () => {
 describe("Server._validateAndSortMiddlewares", () => {
   class ValidPreprocess {
     ORDER = 1;
-    process(req, res, next) {}
+    process(req, res, next) {} // eslint-disable-line no-unused-vars
   }
   class ValidErrorHandler {
     ORDER = 100;
-    process(err, req, res, next) {}
+    process(err, req, res, next) {} // eslint-disable-line no-unused-vars
   }
 
   it("should sort valid middlewares into preprocess and error", () => {
@@ -186,7 +186,7 @@ describe("Server._validateAndSortMiddlewares", () => {
 
   it("should throw when middleware has no ORDER", () => {
     class NoOrder {
-      process(req, res, next) {}
+      process(req, res, next) {} // eslint-disable-line no-unused-vars
     }
     expect(() => Server._validateAndSortMiddlewares([new NoOrder()])).toThrow(
       "ORDER attribute is not set for middleware NoOrder",
@@ -205,11 +205,11 @@ describe("Server._validateAndSortMiddlewares", () => {
   it("should throw when two middlewares have the same ORDER", () => {
     class MdlA {
       ORDER = 5;
-      process(req, res, next) {}
+      process(req, res, next) {} // eslint-disable-line no-unused-vars
     }
     class MdlB {
       ORDER = 5;
-      process(req, res, next) {}
+      process(req, res, next) {} // eslint-disable-line no-unused-vars
     }
     expect(() => Server._validateAndSortMiddlewares([new MdlA(), new MdlB()])).toThrow(
       "Found middlewares with same ORDER attribute: MdlA, MdlB",
@@ -219,7 +219,7 @@ describe("Server._validateAndSortMiddlewares", () => {
   it("should throw when process has invalid argument count", () => {
     class BadArgs {
       ORDER = 1;
-      process(a, b) {}
+      process(a, b) {} // eslint-disable-line no-unused-vars
     }
     expect(() => Server._validateAndSortMiddlewares([new BadArgs()])).toThrow(
       "Invalid length of arguments in middleware BadArgs",

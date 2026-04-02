@@ -65,6 +65,14 @@ function isFilledMetadataValue(value) {
   return true;
 }
 
+/**
+ * Shallow equality check for metadata values. Falls back to `JSON.stringify`
+ * comparison for objects/arrays.
+ *
+ * @param {*} a
+ * @param {*} b
+ * @returns {boolean}
+ */
 function shallowMetadataValuesEqual(a, b) {
   if (Object.is(a, b)) return true;
   if (typeof a === "object" && a !== null && typeof b === "object" && b !== null) {

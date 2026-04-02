@@ -6,6 +6,10 @@
  * @property {string} lastName
  */
 
+/**
+ * Represents the authenticated session of a user, created when a JWT is
+ * successfully verified. Carried through the request lifecycle via `req.ucEnv.session`.
+ */
 class Session {
   /**
    * Creates an instance of session.

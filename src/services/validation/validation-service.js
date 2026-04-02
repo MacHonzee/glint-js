@@ -6,18 +6,24 @@ import UseCaseError from "../server/use-case-error.js";
 import Config from "../utils/config.js";
 import LoggerFactory from "../logging/logger-factory.js";
 
+/** Error thrown when no AJV schema matches the requested use case. */
 class SchemaNotFoundError extends UseCaseError {
   constructor(useCase, schemaName) {
     super("Schema not found for given use case.", { useCase, schemaName });
   }
 }
 
+/** Error thrown when the input DTO fails AJV validation. */
 class InvalidDtoIn extends UseCaseError {
   constructor(useCase, schemaName, errors) {
     super("Invalid dtoIn.", { useCase, schemaName, errors });
   }
 }
 
+/**
+ * Singleton AJV-based validation service. Auto-discovers validation schemas
+ * and custom formats from the library and application directories at init time.
+ */
 class ValidationService {
   constructor() {
     this._logger = LoggerFactory.create("Service.ValidationService");
@@ -34,6 +40,12 @@ class ValidationService {
   /**
    * Method initializes ValidationService by registering validation formats and schemas from app and GlintJs
    *
+   * @returns {Promise<void>}
+   */
+  /**
+   * Method initializes ValidationService by registering validation formats and schemas from app and GlintJs.
+   *
+   * @param {boolean} [forceReload=false] - When `true`, re-registers all formats and schemas even if already initialized.
    * @returns {Promise<void>}
    */
   async init(forceReload = false) {

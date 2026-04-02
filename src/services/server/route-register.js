@@ -9,9 +9,19 @@ const ALLOWED_METHODS = ["get", "post", "patch", "put", "delete", "head"];
  * @property {Array<string>} roles
  */
 
+/**
+ * Singleton registry for all application routes. Discovers and registers routes
+ * from both the library's built-in mappings and the consuming application's mappings.
+ */
 class RouteRegister {
   _routes = {};
 
+  /**
+   * Loads route mappings from the library and the application's `app/config/mappings.js`.
+   * Must be called after the database connection is established, as route modules may import models.
+   *
+   * @returns {Promise<void>}
+   */
   async init() {
     // initialize all common routes -> it MUST be loaded dynamically, because the database connection
     // must be established first in order to properly create models
@@ -41,10 +51,21 @@ class RouteRegister {
     };
   }
 
+  /**
+   * Returns all registered route objects.
+   *
+   * @returns {Array<{url: string, method: string, controller: Function, config: RouteConfig}>}
+   */
   getRoutes() {
     return Object.values(this._routes);
   }
 
+  /**
+   * Looks up a single registered route by its URL.
+   *
+   * @param {string} routeUrl - The route URL (with or without leading `/`).
+   * @returns {{url: string, method: string, controller: Function, config: RouteConfig}|undefined}
+   */
   getRoute(routeUrl) {
     const normalizedUrl = this._normalizeUrl(routeUrl);
     return this._routes[normalizedUrl];

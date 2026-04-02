@@ -26,13 +26,26 @@ function stringToNumber(value, key) {
   return parseFloat(value);
 }
 
-// synchronous one-time initialization of most basic configurations -> roots + dotEnv
+/**
+ * Singleton configuration service. Resolves application and library root paths,
+ * loads `.env` files for the current runtime mode, and provides typed access
+ * to environment variables.
+ *
+ * Initialization is synchronous and happens once at import time.
+ */
 class Config {
   constructor() {
     this._initAppRoot();
     this._initDotenv();
   }
 
+  /**
+   * Retrieves an environment variable, optionally coerced to the given type.
+   *
+   * @param {string} key - Environment variable name.
+   * @param {BooleanConstructor|NumberConstructor} [dataType] - Target type (`Boolean` or `Number`).
+   * @returns {string|boolean|number|undefined} The coerced value, or `undefined` when not set.
+   */
   get(key, dataType) {
     const value = process.env[key];
     if (value == null) return value;
@@ -47,6 +60,14 @@ class Config {
     }
   }
 
+  /**
+   * Same as {@link Config.get}, but throws when the key is missing.
+   *
+   * @param {string} key - Environment variable name.
+   * @param {BooleanConstructor|NumberConstructor} [dataType] - Target type.
+   * @returns {string|boolean|number}
+   * @throws {Error} If the variable is not set.
+   */
   mustGet(key, dataType) {
     const value = this.get(key, dataType);
     if (value === undefined) {
@@ -55,39 +76,52 @@ class Config {
     return value;
   }
 
+  /**
+   * Sets an environment variable.
+   *
+   * @param {string} key
+   * @param {string} value
+   */
   set(key, value) {
     process.env[key] = value;
   }
 
-  // some keys have pre-defined getters for ease of use
+  /** @returns {string} Current `NODE_ENV` value (e.g. `"development"`, `"production"`). */
   get NODE_ENV() {
     return this.mustGet("NODE_ENV");
   }
 
+  /** @returns {string|undefined} Optional cloud environment identifier (e.g. `"gcp"`, `"aws"`). */
   get CLOUD_ENV() {
     return this.get("CLOUD_ENV");
   }
 
+  /** @returns {string|undefined} Build timestamp injected during CI/CD. */
   get BUILD_TS() {
     return this.get("BUILD_TS");
   }
 
+  /** @returns {number|undefined} HTTP server port. */
   get PORT() {
     return this.get("PORT", Number);
   }
 
+  /** @returns {string} Absolute path to the consuming application's root directory. */
   get SERVER_ROOT() {
     return this.mustGet("SERVER_ROOT");
   }
 
+  /** @returns {string} Absolute path to the glint-js library root. */
   get GLINT_ROOT() {
     return this.mustGet("GLINT_ROOT");
   }
 
+  /** @returns {boolean|undefined} When `true`, MongoDB connections are skipped entirely. */
   get MONGODB_DISABLED() {
     return this.get("MONGODB_DISABLED", Boolean);
   }
 
+  /** @returns {string|undefined} Registration flow variant (`"basic"` or `"email"`). */
   get REGISTRATION_FLOW() {
     return this.get("GLINT_REGISTRATION_FLOW");
   }

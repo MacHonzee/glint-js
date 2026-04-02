@@ -14,23 +14,38 @@ import ValidationService from "../validation/validation-service.js";
 import AuthenticationService from "../authentication/authentication-service.js";
 import UseCaseError from "./use-case-error.js";
 
+/** Error thrown when a request origin is not in the CORS whitelist. */
 class BlockedByCors extends UseCaseError {
   constructor() {
     super("Request was blocked by CORS policy.");
   }
 }
 
+/**
+ * Express-based HTTP server that bootstraps all middleware, routes,
+ * database connections, and validation schemas during startup.
+ */
 class Server {
   app = express();
   logger = LoggerFactory.create("Server.Startup");
   port = Config.PORT || 56123;
 
+  /**
+   * Initializes all services and begins listening for incoming HTTP requests.
+   *
+   * @returns {Promise<Server>} The running server instance.
+   */
   async start() {
     await this._onBeforeStart();
     this.server = this.app.listen(this.port, () => this._onAfterStart());
     return this;
   }
 
+  /**
+   * Gracefully shuts down the HTTP server.
+   *
+   * @returns {Promise<void>}
+   */
   async stop() {
     await this.server.close();
   }
@@ -108,6 +123,14 @@ class Server {
     return errorMiddlewares;
   }
 
+  /**
+   * Validates that each middleware has an `ORDER` attribute and a `process` method,
+   * sorts them by ORDER, and splits them into pre-process (arity 3) and error (arity 4) groups.
+   *
+   * @param {Array<object>} middlewares - Middleware instances to validate and sort.
+   * @returns {{ preprocessMiddlewares: object[], errorMiddlewares: object[] }}
+   * @throws {Error} If any middleware is misconfigured.
+   */
   static _validateAndSortMiddlewares(middlewares) {
     for (const middlewareClass of middlewares) {
       const middlewareName = middlewareClass.constructor.name;

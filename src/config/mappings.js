@@ -7,11 +7,14 @@ import UserRoute from "../routes/user-route.js";
 const Get = "get";
 const Post = "post";
 
-// TODO add the dto validation middleware to requests which need it (maybe by negative option, since most of the routes
-// will have some dto validation)
-
-// TODO add OpenAPI specifications somewhere (maybe generate them from Ajv?) and add the JsDocs
-
+/**
+ * Built-in route mapping table for glint-js. Each key is a URL path and
+ * each value is a {@link RouteConfig} object (`method`, `controller`, `roles`).
+ *
+ * Applications extend these mappings via their own `app/config/mappings.js`.
+ *
+ * @type {Object<string, import('../services/server/route-register.js').RouteConfig>}
+ */
 const Mappings = {
   // sys
   "/sys/ping": {

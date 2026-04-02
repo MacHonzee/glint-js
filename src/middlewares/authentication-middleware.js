@@ -2,15 +2,27 @@ import DefaultRoles from "../config/default-roles.js";
 import AuthenticationService from "../services/authentication/authentication-service.js";
 import UseCaseError from "../services/server/use-case-error.js";
 
+/** Error thrown when a valid JWT is not present on a protected route. */
 class UserNotAuthenticated extends UseCaseError {
   constructor(cause) {
     super("User is not authenticated.", { cause }, 401);
   }
 }
 
+/**
+ * Middleware that extracts and verifies the JWT `Bearer` token from the
+ * `Authorization` header. Creates a {@link Session} on `req.ucEnv.session`.
+ * Public routes are skipped automatically.
+ */
 class AuthenticationMiddleware {
   ORDER = -400;
 
+  /**
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
+   * @returns {Promise<void>}
+   */
   async process(req, res, next) {
     if (!this._shouldBeAuthenticated(req)) {
       return next();

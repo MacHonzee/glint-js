@@ -7,7 +7,11 @@ const loggingWinston = new LoggingWinston();
 
 const DEFAULT_LEVEL = "info";
 
-// 256KB is the GCP Cloud Logging gRPC limit; keep a safe margin
+/**
+ * Maximum character length for a single log entry before truncation.
+ * 256 KB is the GCP Cloud Logging gRPC limit; we keep a safe margin.
+ * @type {number}
+ */
 export const MAX_LOG_ENTRY_SIZE = 200_000;
 const SPLAT = Symbol.for("splat");
 
@@ -80,10 +84,20 @@ function getEnvLogLevelKey(loggerName) {
   return "LOG_LEVEL_" + loggerName.replace(/\./g, "_").toUpperCase();
 }
 
+/**
+ * Singleton factory for Winston loggers. Each logger is created once and cached
+ * by name. In production, a Google Cloud Logging transport is added automatically.
+ */
 class LoggerFactory {
-  // cache for reusing loggers with same name
   _loggers = {};
 
+  /**
+   * Returns (or creates) a named Winston logger instance.
+   *
+   * @param {string} name - Logger name shown in log output (e.g. `"Service.MongoClient"`).
+   * @param {string} [level] - Override log level; defaults to the env-specific or global level.
+   * @returns {import('winston').Logger}
+   */
   create(name, level) {
     if (this._loggers[name]) return this._loggers[name];
 

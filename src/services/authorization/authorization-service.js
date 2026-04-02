@@ -7,6 +7,11 @@ import AuthorizationResult from "./authorization-result.js";
 
 const DEFAULT_CACHE = 1000 * 60 * 5;
 
+/**
+ * Singleton service that checks whether a user is authorized to execute a
+ * given use case. User roles are fetched from the database and cached in an
+ * LRU cache with configurable TTL.
+ */
 class AuthorizationService {
   _cache = new LruCache({
     ttl: Config.get("AUTHORIZATION_CACHE_TTL") ?? DEFAULT_CACHE,
@@ -52,7 +57,9 @@ class AuthorizationService {
   }
 
   /**
-   * @param username
+   * Invalidates the cached roles for a user (e.g. after a permission change).
+   *
+   * @param {string} username
    */
   clearUserCache(username) {
     this._cache.delete(username);

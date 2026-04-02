@@ -2,12 +2,24 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import Config from "../utils/config.js";
 import LoggerFactory from "../logging/logger-factory.js";
 
+/**
+ * Singleton wrapper around the Google Cloud Secret Manager API. Lazily
+ * initializes the client on first access and caches retrieved secrets
+ * in-memory for the lifetime of the process.
+ */
 class SecretManager {
   constructor() {
     this._logger = LoggerFactory.create("Service.SecretManager");
     this._active = false;
   }
 
+  /**
+   * Retrieves a secret's value, returning a cached copy when available.
+   *
+   * @param {string} secretName - Logical secret name (e.g. `"mongoDbUri_PRIMARY"`).
+   * @param {string} [version="latest"] - Secret version.
+   * @returns {Promise<string|undefined>}
+   */
   async get(secretName, version = "latest") {
     if (!this._active) await this._init(); // lazy initialization during first call
 
@@ -27,6 +39,14 @@ class SecretManager {
     return secretContent;
   }
 
+  /**
+   * Same as {@link SecretManager.get}, but throws if the secret is not found.
+   *
+   * @param {string} secretName
+   * @param {string} [version="latest"]
+   * @returns {Promise<string>}
+   * @throws {Error} If the secret does not exist.
+   */
   async mustGet(secretName, version = "latest") {
     const secret = await this.get(secretName, version);
     if (secret === undefined) {
@@ -35,6 +55,13 @@ class SecretManager {
     return secret;
   }
 
+  /**
+   * Builds the fully-qualified GCP resource path for a secret version.
+   *
+   * @param {string} secretName
+   * @param {string} [version="latest"]
+   * @returns {Promise<string>} e.g. `projects/my-project/secrets/foo/versions/latest`
+   */
   async getSecretPath(secretName, version = "latest") {
     if (!this._active) await this._init(); // lazy initialization during first call
 

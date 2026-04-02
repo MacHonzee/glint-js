@@ -1,3 +1,10 @@
+/**
+ * @module glint-js
+ *
+ * Public API surface of the glint-js library. Re-exports all services,
+ * models, configs, and utilities intended for consumption by applications.
+ */
+
 // services - authentication
 import AuthenticationService from "./services/authentication/authentication-service.js";
 import UserService from "./services/authentication/user-service.js";
@@ -46,7 +53,6 @@ import Languages from "./config/languages.js";
 import UserModel from "./models/user-model.js";
 import UserRoute from "./routes/user-route.js";
 
-// TODO describe everything with proper JSDoc
 export {
   AuthenticationService,
   Session,

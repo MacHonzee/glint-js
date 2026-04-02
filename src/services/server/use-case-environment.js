@@ -2,10 +2,15 @@ import { parse as parseUrl } from "url";
 import qs from "qs";
 import Uri from "./uri.js";
 
+/**
+ * Per-request context object created by the ContextMiddleware and accessible
+ * as `req.ucEnv`. Holds the parsed URI, merged dtoIn, session, mapping,
+ * authorization result, and raw Express request/response references.
+ */
 class UseCaseEnvironment {
   /**
-   * @param {e.Request} req
-   * @param {e.Response} res
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
    */
   constructor(req, res) {
     this._req = req;

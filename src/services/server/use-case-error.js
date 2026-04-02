@@ -1,3 +1,7 @@
+/**
+ * Base error class for all use-case / business-logic errors in glint-js.
+ * The `code` is auto-derived from the subclass name (e.g. `"glint-js/loginFailed"`).
+ */
 class UseCaseError extends Error {
   /**
    * @param {string} message

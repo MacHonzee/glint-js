@@ -1,3 +1,7 @@
+/**
+ * Immutable value object representing the outcome of an authorization check.
+ * Attached to `req.ucEnv.authorizationResult` by the AuthorizationMiddleware.
+ */
 class AuthorizationResult {
   /**
    * Object represents state of the user's authorization against given useCase.

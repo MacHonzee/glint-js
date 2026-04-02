@@ -16,12 +16,14 @@ import { mergeMetadataPatch, findImmutableTopLevelKeyViolation } from "../utils/
 /** @type {{ immutableTopLevelKeys?: string[], assertPatchAllowed?: Function } | null} */
 let metadataUpdatePolicy = null;
 
+/** @throws When `password` and `confirmPassword` do not match. */
 class MismatchingPasswords extends UseCaseError {
   constructor() {
     super("Password is not repeated properly and is not matching.", {}, 401);
   }
 }
 
+/** @throws When `passport-local-mongoose` rejects the registration (e.g. duplicate username). */
 class RegistrationFailed extends UseCaseError {
   constructor(name, cause) {
     super("Registration has failed.", { name, cause });
@@ -105,6 +107,10 @@ const REGISTRATION_FLOWS = {
   EMAIL: "email",
 };
 
+/**
+ * Route handler for all user-related operations: registration, login,
+ * token refresh, logout, password management, metadata updates, and username changes.
+ */
 class UserRoute {
   logger = LoggerFactory.create("Route.UserRoute");
 
@@ -127,6 +133,13 @@ class UserRoute {
     ChangeUsernameFailed,
   };
 
+  /**
+   * Registers a new user. Supports both "basic" (immediate token) and "email"
+   * (verification email) registration flows.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{token?: string, user?: object, status?: string}>}
+   */
   async register({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -185,6 +198,12 @@ class UserRoute {
     };
   }
 
+  /**
+   * Authenticates a user by username and password, returning session + refresh tokens.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{user: object, token: string}>}
+   */
   async login({ dtoIn, uri, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -210,6 +229,13 @@ class UserRoute {
     };
   }
 
+  /**
+   * Issues a new session token using a valid refresh token cookie.
+   * Performs CSRF validation against the stored token.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{user: object, token: string}>}
+   */
   async refreshToken({ request, response }) {
     // Check refreshToken cookie exists first
     const refreshToken = request.signedCookies?.refreshToken;
@@ -244,6 +270,12 @@ class UserRoute {
     };
   }
 
+  /**
+   * Logs out the user by deleting the refresh token (single or global) and clearing the cookie.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{}>}
+   */
   async logout({ request, response, dtoIn }) {
     const refreshToken = request.signedCookies?.refreshToken;
     if (!refreshToken) throw new this.ERRORS.InvalidRefreshToken();
@@ -265,6 +297,13 @@ class UserRoute {
     return {};
   }
 
+  /**
+   * Changes the authenticated user's password and performs a global logout
+   * of all other sessions.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{user: object, token: string}>}
+   */
   async changePassword({ uri, dtoIn, session, response }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -290,6 +329,13 @@ class UserRoute {
     };
   }
 
+  /**
+   * Initiates a password-reset flow by emailing a time-limited reset token.
+   * Returns `{status: "OK"}` even for non-existent users to prevent enumeration.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{status: string}>}
+   */
   async resetPassword({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -330,6 +376,13 @@ class UserRoute {
     return { status: "OK" };
   }
 
+  /**
+   * Completes the password-reset flow by verifying the reset token and
+   * setting the new password.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{status: string}>}
+   */
   async changePasswordByReset({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -373,6 +426,12 @@ class UserRoute {
     return { status: "OK" };
   }
 
+  /**
+   * Verifies a user's email address using the verification token sent during registration.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{status: string}>}
+   */
   async verifyRegistration({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -406,6 +465,12 @@ class UserRoute {
     return { status: "OK" };
   }
 
+  /**
+   * Lists all users, optionally including their permissions via aggregation.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{users: Array}>}
+   */
   async list({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -421,6 +486,12 @@ class UserRoute {
     };
   }
 
+  /**
+   * Retrieves a single user by username (sensitive fields excluded).
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<object>}
+   */
   async get({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -432,6 +503,12 @@ class UserRoute {
     return user;
   }
 
+  /**
+   * Admin-only: forcefully sets a user's password without requiring the old one.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<{user: object, status: string}>}
+   */
   async setPassword({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -443,8 +520,10 @@ class UserRoute {
   }
 
   /**
-   * Configure metadata merge policy for non-privileged self-updates (immutable keys and/or assertPatchAllowed).
-   * Pass null to clear.
+   * Configure metadata merge policy for non-privileged self-updates.
+   * Pass `null` to clear.
+   *
+   * @param {{ immutableTopLevelKeys?: string[], assertPatchAllowed?: Function }|null} policy
    */
   setMetadataUpdatePolicy(policy) {
     metadataUpdatePolicy = policy && typeof policy === "object" ? policy : null;
@@ -472,6 +551,14 @@ class UserRoute {
     }
   }
 
+  /**
+   * Deep-merges a metadata patch into the user document. Admins may update any
+   * user; regular users may only update their own, subject to the configured
+   * metadata update policy.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<object>} Updated user document.
+   */
   async updateMetadata({ uri, dtoIn, session, authorizationResult }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
@@ -505,6 +592,13 @@ class UserRoute {
     return user;
   }
 
+  /**
+   * Changes a user's username (and optionally email). Updates permissions
+   * and invalidates all existing refresh tokens for the old username.
+   *
+   * @param {UseCaseEnvironment} ucEnv
+   * @returns {Promise<object>} Updated user document (without hash/salt).
+   */
   async changeUsername({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 

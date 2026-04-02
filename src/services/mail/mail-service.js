@@ -103,6 +103,7 @@ class MailService {
    * Register a concrete MailService provider instance.
    *
    * @param {MailService} instance
+   * @returns {void}
    */
   static setInstance(instance) {
     if (!(instance instanceof MailService)) {

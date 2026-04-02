@@ -1,5 +1,12 @@
+/**
+ * Registry of supported application languages. Defaults include Czech (`cs`)
+ * and English (`en`). Use {@link Languages.add} to register additional languages
+ * at application startup.
+ *
+ * @type {Object<string, object> & { all: string[], add: (language: string) => void }}
+ */
 const Languages = {
-  cs: {}, // object just in case we need some configuration later
+  cs: {},
   en: {},
 };
 

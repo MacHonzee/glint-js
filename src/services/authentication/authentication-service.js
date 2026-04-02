@@ -13,6 +13,11 @@ const CFG_DEFAULTS = {
   refreshTokenExpiry: "30d",
 };
 
+/**
+ * Singleton service responsible for JWT token issuance, verification, and
+ * cookie-based refresh-token management. Secrets are loaded from environment
+ * variables or Google Cloud Secret Manager on first initialization.
+ */
 class AuthenticationService {
   _initialized = false;
 
@@ -50,16 +55,35 @@ class AuthenticationService {
     this._initialized = true;
   }
 
+  /**
+   * Registers `cookie-parser` middleware on the Express app using the stored cookie key.
+   *
+   * @param {import('express').Application} app
+   * @returns {Promise<void>}
+   */
   async initCookieParser(app) {
     app.use(cookieParser(this._cookieKey));
   }
 
+  /**
+   * Creates a short-lived JWT session token.
+   *
+   * @param {object|string} userPayload - User data or username to embed in the token.
+   * @param {number} [sessionExpiry] - Override for token TTL in seconds.
+   * @returns {string} Signed JWT.
+   */
   getToken(userPayload, sessionExpiry) {
     return jwt.sign({ id: userPayload.id, user: userPayload }, this._tokenKey, {
       expiresIn: sessionExpiry || this._sessionExpiry,
     });
   }
 
+  /**
+   * Creates a long-lived refresh token with a unique ID and expiration.
+   *
+   * @param {object} userPayload - User data to embed.
+   * @returns {{ refreshToken: string, refreshTokenTtl: Date, refreshTokenId: import('mongoose').Types.ObjectId }}
+   */
   getRefreshToken(userPayload) {
     // create token id
     // TODO remove dependency on mongoose here and generate it via "crypto" or something
@@ -100,14 +124,34 @@ class AuthenticationService {
     });
   }
 
+  /**
+   * Verifies a refresh token's signature and returns its decoded payload.
+   *
+   * @param {string} refreshToken - Signed refresh JWT.
+   * @returns {object} Decoded payload.
+   * @throws {import('jsonwebtoken').JsonWebTokenError} If the token is invalid.
+   */
   verifyRefreshToken(refreshToken) {
     return jwt.verify(refreshToken, this._refreshTokenKey);
   }
 
+  /**
+   * Decodes a JWT without verifying its signature.
+   *
+   * @param {string} token
+   * @returns {object|null} Decoded payload, or `null` if malformed.
+   */
   decodeToken(token) {
     return jwt.decode(token);
   }
 
+  /**
+   * Authenticates a user via `passport-local-mongoose`.
+   *
+   * @param {string} username
+   * @param {string} password
+   * @returns {Promise<{user: object, error: *}>}
+   */
   async login(username, password) {
     return await UserModel.authenticate()(username, password);
   }

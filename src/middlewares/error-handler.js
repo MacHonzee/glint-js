@@ -3,11 +3,22 @@ import Config from "../services/utils/config.js";
 
 const TRACE_ID_HEADER = "X-Cloud-Trace-Context";
 
+/**
+ * Express error-handling middleware (arity 4). Catches any error that
+ * propagated through the middleware chain and returns a structured JSON
+ * error response. Stack traces are included only in non-production environments.
+ */
 class ErrorHandler {
   ORDER = 100;
   logger = LoggerFactory.create("Middleware.ErrorHandler", "error");
 
-  // don't remove unused "next", otherwise it will stop being an error middleware
+  /**
+   * @param {Error} err
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
+   * @returns {Promise<void>}
+   */
   // eslint-disable-next-line no-unused-vars
   async process(err, req, res, next) {
     const dtoOut = {

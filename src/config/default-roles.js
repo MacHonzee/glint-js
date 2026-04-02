@@ -1,3 +1,10 @@
+/**
+ * Registry of authorization roles used across glint-js route mappings.
+ * Built-in roles: `admin`, `public`, `authenticated`, `authority`.
+ * Applications can add custom roles via {@link DefaultRoles.add}.
+ *
+ * @type {Object<string, string|string[]> & { all: string[], privileged: string[], protected: string[], application: string[], add: (role: string, roleType?: string) => void }}
+ */
 const DefaultRoles = {
   admin: "Admin",
   public: "Public",

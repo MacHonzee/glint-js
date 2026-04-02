@@ -61,9 +61,9 @@ describe("AssertionService", () => {
 
   describe("assertThrows", () => {
     it("should throw when the asserted function does not throw", async () => {
-      await expect(
-        AssertionService.assertThrows(() => Promise.resolve(), new Error("expected")),
-      ).rejects.toThrow("Should have raised error but did not.");
+      await expect(AssertionService.assertThrows(() => Promise.resolve(), new Error("expected"))).rejects.toThrow(
+        "Should have raised error but did not.",
+      );
     });
   });
 

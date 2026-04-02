@@ -58,5 +58,4 @@ describe("AbstractModel", () => {
       });
     });
   });
-
 });

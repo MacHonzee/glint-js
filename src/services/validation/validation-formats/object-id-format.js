@@ -1,3 +1,8 @@
+/**
+ * AJV custom format that validates 24-character hex strings (MongoDB ObjectId).
+ *
+ * @type {{ name: string, format: { validate: (value: string) => boolean } }}
+ */
 const ObjectIdFormat = {
   name: "objectId",
   format: {

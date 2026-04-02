@@ -5,6 +5,11 @@ import { AbstractModel } from "../services/database/abstract-model.js";
 
 const DEFAULT_PROJECTION = { salt: 0, hash: 0, resetToken: 0, verificationToken: 0 };
 
+/**
+ * User model backed by `passport-local-mongoose`. Stores authentication credentials,
+ * profile fields, and extensible metadata. Sensitive fields (`salt`, `hash`, tokens)
+ * are stripped from JSON output and default projections.
+ */
 class UserModel extends AbstractModel {
   constructor() {
     super(
@@ -68,15 +73,30 @@ class UserModel extends AbstractModel {
     callback(this.schema);
   }
 
+  /**
+   * Creates a unique index on `username` and synchronizes all schema indexes.
+   *
+   * @returns {Promise<Array>} Dropped indexes, if any.
+   */
   static async buildIndexes() {
     await this.schema.index({ username: 1 }, { unique: true });
     return await this.syncIndexes();
   }
 
+  /**
+   * Lists all users with sensitive fields excluded.
+   *
+   * @returns {Promise<Array<import('mongoose').Document>>}
+   */
   static async list() {
     return await this.find({}, DEFAULT_PROJECTION);
   }
 
+  /**
+   * Lists all users with their permissions joined via `$lookup` aggregation.
+   *
+   * @returns {Promise<Array<object>>}
+   */
   static async listWithPermissions() {
     return await this.aggregate([
       {
@@ -100,6 +120,12 @@ class UserModel extends AbstractModel {
     ]);
   }
 
+  /**
+   * Finds a single user by username with sensitive fields excluded.
+   *
+   * @param {string} username
+   * @returns {Promise<import('mongoose').Document|null>}
+   */
   static async safeFindByUsername(username) {
     return await this.findOne({ username }, DEFAULT_PROJECTION);
   }
