@@ -52,7 +52,7 @@ class RouteRegister {
 
   /**
    * Method registers route to RouteRegister to be used in ContextMiddleware for route resolution.
-   * 
+   *
    * When a route already exists and config is partial (missing controller or method), the config
    * is merged with the existing route, allowing applications to override only specific properties
    * (e.g. roles) via their mappings.js.
