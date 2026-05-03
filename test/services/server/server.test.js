@@ -145,11 +145,6 @@ describe("Server", () => {
     });
   });
 
-  it("should handle OPTIONS request with Cache-Control header", async () => {
-    const response = await TestService.call("OPTIONS", "testcase/public");
-    expect(response.headers["cache-control"]).toBe("public, max-age=86400");
-  });
-
   it("should throw CORS error for non-whitelisted origin", async () => {
     await AssertionService.assertCallThrows(
       () =>

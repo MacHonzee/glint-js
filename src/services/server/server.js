@@ -198,15 +198,7 @@ class Server {
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     };
 
-    this.app.use((req, res, next) => {
-      if (req.method === "OPTIONS") {
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        // No Vary required: cors sets it already set automatically
-        res.end();
-      } else {
-        next();
-      }
-    });
+    // cors must handle OPTIONS itself; terminating OPTIONS here skips Access-Control-* headers.
     this.app.use(cors(corsOptions));
   }
 
