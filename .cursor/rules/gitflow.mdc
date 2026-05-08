@@ -1,0 +1,31 @@
+---
+description: Git flow, releases, and version tags for glint-js
+alwaysApply: true
+---
+
+# Git flow (glint-js)
+
+## Branching
+
+- Default line of work is **`main`**. Ship release commits on `main` unless a maintainer asks for a feature branch.
+
+## Version bumps
+
+1. Edit **`package.json`** `version` using semver (`x.y.z`: major / minor / patch or hotfix).
+2. Run **`npm install`** (or `npm i`) so **`package-lock.json`** root and `packages[""].version` match `package.json`. Commit both files together.
+3. Release commit message convention: **`Bump version to x.y.z`** (or equivalent clear one-liner).
+
+## Tags (mandatory convention)
+
+- Tag the **version-bump commit** with exactly: **`version/x.y.z`** (example: `version/0.12.2`).
+- Do **not** use `vX.Y.Z`, `Vx.y.z`, or bare `x.y.z` as the tag name.
+
+```bash
+git tag -a version/0.12.2 -m "0.12.2"
+git push origin main
+git push origin version/0.12.2
+```
+
+## Publish
+
+- Push **`main`** and the **`version/x.y.z`** tag to **`origin`** after the bump commit is ready.
