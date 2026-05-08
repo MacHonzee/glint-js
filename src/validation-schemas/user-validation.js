@@ -11,6 +11,7 @@ const UserRegisterSchema = {
     email: { type: "string" },
     language: { enum: Object.keys(Languages) },
     hostUri: { type: "string" },
+    metadata: { type: "object" },
   },
   required: ["username", "password", "confirmPassword", "firstName", "lastName"],
   additionalProperties: false,

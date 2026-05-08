@@ -3,6 +3,8 @@ import { AuthenticationService, UserService, MailService, Config } from "../../.
 import { TestService, AssertionService } from "../../../src/test-utils/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
 
+const REGISTER_METADATA = { registrationExtras: ["a"], profile: { theme: "dark" } };
+
 const USER = {
   username: "emailFlowUser@mail.com",
   password: "securePassword123",
@@ -12,6 +14,7 @@ const USER = {
   email: "emailFlowUser@mail.com",
   language: "en",
   hostUri: "https://test-app.example.com",
+  metadata: REGISTER_METADATA,
 };
 
 // Create a mock mail provider
@@ -48,6 +51,7 @@ describe("user/register (email flow)", () => {
     const user = await UserService.findByUsername(USER.username.toLowerCase());
     expect(user.verified).toBe(false);
     expect(user.verificationToken).toBeTruthy();
+    expect(user.metadata).toEqual(REGISTER_METADATA);
   });
 
   it("should send the registration verification email", async () => {

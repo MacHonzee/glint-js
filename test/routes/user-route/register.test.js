@@ -10,6 +10,7 @@ describe("user/register", () => {
   });
 
   it("should return success", async () => {
+    const metadata = { extra: "value", nested: { k: 1 } };
     const data = {
       username: "ownuser@mail.com",
       password: "ultraStrongPass123",
@@ -18,11 +19,13 @@ describe("user/register", () => {
       lastName: "Malkovich",
       email: "ownUser@mail.com",
       language: "en",
+      metadata,
     };
     const dtoOut = await TestUsers.registerUser(data);
 
     AssertionService.assertToken(dtoOut.token);
     AssertionService.assertUser(dtoOut.user, data);
+    expect(dtoOut.user.metadata).toEqual(metadata);
   });
 
   it("should raise error MismatchingPasswords", async () => {

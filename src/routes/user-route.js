@@ -135,7 +135,8 @@ class UserRoute {
 
   /**
    * Registers a new user. Supports both "basic" (immediate token) and "email"
-   * (verification email) registration flows.
+   * (verification email) registration flows. Optional `metadata`, if sent, is stored
+   * as the initial metadata object (no merge or metadata policy checks).
    *
    * @param {UseCaseEnvironment} ucEnv
    * @returns {Promise<{token?: string, user?: object, status?: string}>}
@@ -158,6 +159,7 @@ class UserRoute {
       lastName: dtoIn.lastName,
       language: dtoIn.language,
       email: dtoIn.email || normalizedUsername,
+      metadata: dtoIn.metadata,
     });
 
     // email verification flow: mark user as unverified
