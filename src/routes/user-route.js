@@ -528,6 +528,7 @@ class UserRoute {
    * @param {{ immutableTopLevelKeys?: string[], assertPatchAllowed?: Function }|null} policy
    */
   setMetadataUpdatePolicy(policy) {
+    this.logger.info(`Setting user metadata update policy to ${JSON.stringify(policy)}`);
     metadataUpdatePolicy = policy && typeof policy === "object" ? policy : null;
   }
 
