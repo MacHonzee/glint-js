@@ -62,6 +62,7 @@ describe("user/register", () => {
       new UserRoute.ERRORS.RegistrationFailed(
         "UserExistsError",
         "A user with the given username is already registered",
+        {},
       ),
     );
   });
