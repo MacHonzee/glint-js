@@ -25,8 +25,8 @@ class MismatchingPasswords extends UseCaseError {
 
 /** @throws When `passport-local-mongoose` rejects the registration (e.g. duplicate username). */
 class RegistrationFailed extends UseCaseError {
-  constructor(name, cause) {
-    super("Registration has failed.", { name, cause });
+  constructor(name, cause, params = {}) {
+    super("Registration has failed.", { name, cause, params });
   }
 }
 
@@ -173,7 +173,7 @@ class UserRoute {
       registeredUser = await UserModel.register(newUser, dtoIn.password);
     } catch (e) {
       this.logger.error(e);
-      throw new this.ERRORS.RegistrationFailed(e.name, e.message);
+      throw new this.ERRORS.RegistrationFailed(e.name, e.message, e.params);
     }
 
     // email verification flow: send verification email, do not return tokens
