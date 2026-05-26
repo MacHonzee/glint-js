@@ -106,4 +106,70 @@ function findImmutableTopLevelKeyViolation(existingMetadata, patch, immutableTop
   return null;
 }
 
-export { mergeMetadataPatch, isFilledMetadataValue, findImmutableTopLevelKeyViolation, shallowMetadataValuesEqual };
+/**
+ * Builds a safe metadata patch from raw DTO fields: only {@link options.allowedKeys}
+ * are considered; everything else is reported in `strippedKeys`. Immutable top-level
+ * keys that already have a filled value and would change are stripped (no throw).
+ *
+ * Does not mutate `existingMetadata` or `rawPatch`.
+ *
+ * @param {object} existingMetadata - Current user.metadata
+ * @param {object} rawPatch - Incoming fields (may contain disallowed keys)
+ * @param {object} options
+ * @param {string[]} options.allowedKeys - Top-level keys that may be applied
+ * @param {string[]} [options.immutableTopLevelKeys=[]] - Keys locked after first non-empty value (same semantics as updateMetadata)
+ * @returns {{ patch: object, strippedKeys: string[] }}
+ */
+function pickMetadataPatch(existingMetadata, rawPatch, { allowedKeys, immutableTopLevelKeys = [] }) {
+  const existing =
+    existingMetadata != null && typeof existingMetadata === "object" && !Array.isArray(existingMetadata)
+      ? existingMetadata
+      : {};
+  const rp = rawPatch != null && typeof rawPatch === "object" && !Array.isArray(rawPatch) ? rawPatch : {};
+  const allowedSet = new Set(allowedKeys ?? []);
+
+  const strippedSeen = new Set();
+  /** @type {string[]} */
+  const strippedKeys = [];
+
+  const pushStripped = (key) => {
+    if (!strippedSeen.has(key)) {
+      strippedSeen.add(key);
+      strippedKeys.push(key);
+    }
+  };
+
+  for (const key of Object.keys(rp)) {
+    if (!allowedSet.has(key)) {
+      pushStripped(key);
+    }
+  }
+
+  /** @type {Record<string, unknown>} */
+  const patch = {};
+  for (const key of allowedKeys ?? []) {
+    if (!Object.prototype.hasOwnProperty.call(rp, key)) continue;
+    const value = rp[key];
+    if (value === undefined) continue;
+    patch[key] = value;
+  }
+
+  const keysToApply = Object.keys(patch);
+  for (const key of keysToApply) {
+    const violation = findImmutableTopLevelKeyViolation(existing, { [key]: patch[key] }, immutableTopLevelKeys);
+    if (violation != null) {
+      delete patch[key];
+      pushStripped(key);
+    }
+  }
+
+  return { patch, strippedKeys };
+}
+
+export {
+  mergeMetadataPatch,
+  isFilledMetadataValue,
+  findImmutableTopLevelKeyViolation,
+  pickMetadataPatch,
+  shallowMetadataValuesEqual,
+};

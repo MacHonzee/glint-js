@@ -3,6 +3,9 @@
  *
  * Public API surface of the glint-js library. Re-exports all services,
  * models, configs, and utilities intended for consumption by applications.
+ *
+ * User metadata merging and validation: {@link UserMetadataService}. Route policy:
+ * {@link UserRoute#setMetadataUpdatePolicy}, {@link UserRoute#getMetadataUpdatePolicy}.
  */
 
 // services - authentication
@@ -52,6 +55,7 @@ import Languages from "./config/languages.js";
 
 import UserModel from "./models/user-model.js";
 import UserRoute from "./routes/user-route.js";
+import UserMetadataService from "./services/user-metadata/user-metadata-service.js";
 
 export {
   AuthenticationService,
@@ -81,4 +85,5 @@ export {
   BlobStore,
   UserModel,
   UserRoute,
+  UserMetadataService,
 };

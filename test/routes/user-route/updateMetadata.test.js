@@ -47,6 +47,22 @@ describe("user/updateMetadata", () => {
     UserRoute.setMetadataUpdatePolicy(null);
   });
 
+  describe("getMetadataUpdatePolicy", () => {
+    it("returns null when policy is cleared", () => {
+      UserRoute.setMetadataUpdatePolicy(null);
+      expect(UserRoute.getMetadataUpdatePolicy()).toBe(null);
+    });
+
+    it("returns a shallow clone so mutating immutableTopLevelKeys does not alter stored policy", () => {
+      const immutableTopLevelKeys = ["sex"];
+      UserRoute.setMetadataUpdatePolicy({ immutableTopLevelKeys });
+      const snapshot = UserRoute.getMetadataUpdatePolicy();
+      snapshot.immutableTopLevelKeys.push("tampered");
+      const again = UserRoute.getMetadataUpdatePolicy();
+      expect(again.immutableTopLevelKeys).toEqual(["sex"]);
+    });
+  });
+
   beforeEach(async () => {
     await UserModel.updateOne({ _id: USER.id }, { $set: { metadata: {} } });
     await UserModel.updateOne({ _id: OTHER_USER.id }, { $set: { metadata: {} } });

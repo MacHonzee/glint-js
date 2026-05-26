@@ -1,45 +1,40 @@
 # Glint.js
-Core NPM framework-kinda server library built upon Express, Mongoose, ajv, passport and various other services with integration and easy deployment to Google Cloud App Engine.
 
-// TODO fill README with:
-1) what it is about, some basic architectural decisions etc
-2) describe all auto-loading self-discovery mechanisms
-3) how it can be used in web apps
-4) how to create production build
-5) deployment to App Engine, prerequisites etc
+Core server-side library (Express, Mongoose, validation, auth, and related services) with deployment patterns for Google Cloud App Engine.
+
+## Documentation
+
+- **[Design & feature specifications](docs/README.md)** — growing index of specs (e.g. user metadata, merge rules). Start there for integrator-facing detail.
+
+This file is intentionally short: contributor workflow, essentials, and links. Deeper behaviour belongs in `/docs`.
+
+## Repository
+
+Source: [github.com/MacHonzee/glint-js](https://github.com/MacHonzee/glint-js)
+
+---
+
+## Contributing (local checks)
+
+```bash
+npm test
+npm run analyze
+```
+
+---
 
 ## Deployment to Google App Engine
 
-There are several prerequisites that need to be handled manually
+Prerequisites:
 
-1) *Create project in Google Cloud Console*
+1. **Google Cloud project** — [App Engine | Google Cloud](https://cloud.google.com/appengine)
+2. **MongoDB** (e.g. Atlas) — [MongoDB Atlas](https://www.mongodb.com/atlas/database)
+3. **Secrets in Secret Manager** — [Secret Manager | Google Cloud](https://cloud.google.com/secret-manager)
 
-General documentation is available on: [App Engine Application Platform | Google Cloud](https://cloud.google.com/appengine)
+Expected secret (among others):
 
-2) *Get connection string from MongoDB Atlas*
+| Secret name               | Typical use        |
+|---------------------------|---------------------|
+| `permissionGrantSecret`   | `user/secretGrant` |
 
-General documentation is available on: [MongoDB Atlas Database](https://www.mongodb.com/atlas/database)
-
-3) *Create all the necessary secrets in Google's Secret Manager*
-
-General documentation is here: [Secret Manager | Google Cloud](https://cloud.google.com/secret-manager)
-These secrets are expected to exist and to be filled with values:
-
-<table>
-    <thead>
-        <tr>
-            <th>Secret name</th>
-            <th>Expected value</th>
-            <th>Required for</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><em>permissionGrantSecret</em></td>
-            <td>any safe string</td>
-            <td>for <em>user/secretGrant</em></td>
-        </tr>
-    </tbody>
-</table>
-
-> TODO Vytvořit všechny potřebný secrety (mongo + autentikace + secretGrant autorizace)
+> TODO: document the full secret list (Mongo, auth, grant flows) for production.

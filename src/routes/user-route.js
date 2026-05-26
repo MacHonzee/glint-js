@@ -532,6 +532,22 @@ class UserRoute {
     metadataUpdatePolicy = policy && typeof policy === "object" ? policy : null;
   }
 
+  /**
+   * Returns the policy last set via {@link UserRoute#setMetadataUpdatePolicy}, or `null`.
+   * Object is a shallow clone (including a copy of `immutableTopLevelKeys` when present)
+   * so callers can read it without mutating the stored policy.
+   *
+   * @returns {{ immutableTopLevelKeys?: string[], assertPatchAllowed?: Function } | null}
+   */
+  getMetadataUpdatePolicy() {
+    if (!metadataUpdatePolicy) return null;
+    const p = metadataUpdatePolicy;
+    return {
+      ...p,
+      immutableTopLevelKeys: p.immutableTopLevelKeys ? [...p.immutableTopLevelKeys] : undefined,
+    };
+  }
+
   _enforceMetadataUpdatePolicy({ existingMetadata, patch, session, authorizationResult, uri }) {
     const policy = metadataUpdatePolicy;
     if (!policy) return;

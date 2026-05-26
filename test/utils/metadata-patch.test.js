@@ -3,6 +3,7 @@ import {
   mergeMetadataPatch,
   findImmutableTopLevelKeyViolation,
   isFilledMetadataValue,
+  pickMetadataPatch,
   shallowMetadataValuesEqual,
 } from "../../src/utils/metadata-patch.js";
 
@@ -114,6 +115,69 @@ describe("isFilledMetadataValue", () => {
 
   it("should treat zero as filled", () => {
     expect(isFilledMetadataValue(0)).toBe(true);
+  });
+});
+
+describe("pickMetadataPatch", () => {
+  it("picks only allowed keys", () => {
+    const { patch, strippedKeys } = pickMetadataPatch({}, { a: 1, b: 2, extra: true }, { allowedKeys: ["a", "b"] });
+    expect(patch).toEqual({ a: 1, b: 2 });
+    expect(strippedKeys).toEqual(["extra"]);
+  });
+
+  it("strips disallowed keys and lists them in stable order", () => {
+    const { patch, strippedKeys } = pickMetadataPatch({}, { z: 1, a: 2, hidden: true }, { allowedKeys: ["a"] });
+    expect(patch).toEqual({ a: 2 });
+    expect(strippedKeys).toEqual(["z", "hidden"]);
+  });
+
+  it("strips immutable violations without throwing", () => {
+    const { patch, strippedKeys } = pickMetadataPatch(
+      { birthNumber: "x" },
+      { birthNumber: "y", ok: "v" },
+      { allowedKeys: ["birthNumber", "ok"], immutableTopLevelKeys: ["birthNumber"] },
+    );
+    expect(patch).toEqual({ ok: "v" });
+    expect(strippedKeys).toEqual(["birthNumber"]);
+  });
+
+  it("allows first write of immutable keys", () => {
+    const { patch, strippedKeys } = pickMetadataPatch(
+      {},
+      { birthNumber: "first" },
+      { allowedKeys: ["birthNumber"], immutableTopLevelKeys: ["birthNumber"] },
+    );
+    expect(patch).toEqual({ birthNumber: "first" });
+    expect(strippedKeys).toEqual([]);
+  });
+
+  it("allows no-op update of immutable keys when value is unchanged", () => {
+    const { patch, strippedKeys } = pickMetadataPatch(
+      { sex: "M" },
+      { sex: "M" },
+      { allowedKeys: ["sex"], immutableTopLevelKeys: ["sex"] },
+    );
+    expect(patch).toEqual({ sex: "M" });
+    expect(strippedKeys).toEqual([]);
+  });
+
+  it("handles null removal (key stays in patch for merge)", () => {
+    const { patch } = pickMetadataPatch({ phone: "+1" }, { phone: null }, { allowedKeys: ["phone"] });
+    expect(patch).toEqual({ phone: null });
+    expect(mergeMetadataPatch({ phone: "+1" }, patch)).toEqual({});
+  });
+
+  it("omits allowed keys supplied as undefined in rawPatch", () => {
+    const { patch } = pickMetadataPatch({ a: 1 }, { a: undefined, b: 2 }, { allowedKeys: ["a", "b"] });
+    expect(patch).toEqual({ b: 2 });
+  });
+
+  it("does not mutate existingMetadata or rawPatch", () => {
+    const existing = { k: { n: 1 } };
+    const raw = { k: { n: 2 }, other: true };
+    pickMetadataPatch(existing, raw, { allowedKeys: ["k"], immutableTopLevelKeys: [] });
+    expect(existing).toEqual({ k: { n: 1 } });
+    expect(raw).toEqual({ k: { n: 2 }, other: true });
   });
 });
 
