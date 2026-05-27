@@ -21,7 +21,7 @@ describe("user/get", () => {
     USER.id = registeredUser.user.id;
   });
 
-  it("should return user", async () => {
+  it("should return user by username", async () => {
     const ucEnv = await TestService.getUcEnv("user/get", { username: USER.username }, { user: USER });
 
     const foundUser = await UserRoute.get(ucEnv);
@@ -40,13 +40,40 @@ describe("user/get", () => {
     expect(foundUser.resetToken).not.toBeDefined();
   });
 
-  it("should raise error MismatchingPasswords", async () => {
+  it("should return user by userId", async () => {
+    const ucEnv = await TestService.getUcEnv("user/get", { userId: USER.id }, { user: USER });
+
+    const foundUser = await UserRoute.get(ucEnv);
+
+    AssertionService.assertBaseData(foundUser);
+    expect(foundUser).toMatchObject({
+      id: USER.id,
+      username: USER.username,
+      firstName: USER.firstName,
+      lastName: USER.lastName,
+    });
+    expect(foundUser).not.toHaveProperty("password");
+    expect(foundUser.salt).not.toBeDefined();
+    expect(foundUser.hash).not.toBeDefined();
+  });
+
+  it("should raise error UserNotFound for username", async () => {
     const userGetDtoIn = { username: "notexistinguser@email.com" };
     const ucEnv = await TestService.getUcEnv("user/get", userGetDtoIn, { user: USER });
 
     await AssertionService.assertThrows(
       () => UserRoute.get(ucEnv),
       new UserRoute.ERRORS.UserNotFound(userGetDtoIn.username),
+    );
+  });
+
+  it("should raise error UserNotFound for userId", async () => {
+    const userGetDtoIn = { userId: "507f1f77bcf86cd799439011" };
+    const ucEnv = await TestService.getUcEnv("user/get", userGetDtoIn, { user: USER });
+
+    await AssertionService.assertThrows(
+      () => UserRoute.get(ucEnv),
+      new UserRoute.ERRORS.UserNotFound(userGetDtoIn.userId, "userId"),
     );
   });
 });

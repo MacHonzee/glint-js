@@ -129,6 +129,16 @@ class UserModel extends AbstractModel {
   static async safeFindByUsername(username) {
     return await this.findOne({ username }, DEFAULT_PROJECTION);
   }
+
+  /**
+   * Finds a single user by id with sensitive fields excluded.
+   *
+   * @param {string} id
+   * @returns {Promise<import('mongoose').Document|null>}
+   */
+  static async safeFindById(id) {
+    return await this.findById(id, DEFAULT_PROJECTION);
+  }
 }
 
 const userModel = new UserModel();

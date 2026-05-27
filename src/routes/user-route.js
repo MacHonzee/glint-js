@@ -61,8 +61,8 @@ class InvalidCsrfToken extends UseCaseError {
 }
 
 class UserNotFound extends UseCaseError {
-  constructor(username) {
-    super("User not found.", { username }, 404);
+  constructor(identifier, field = "username") {
+    super("User not found.", { [field]: identifier }, 404);
   }
 }
 
@@ -489,7 +489,7 @@ class UserRoute {
   }
 
   /**
-   * Retrieves a single user by username (sensitive fields excluded).
+   * Retrieves a single user by username or userId (sensitive fields excluded).
    *
    * @param {UseCaseEnvironment} ucEnv
    * @returns {Promise<object>}
@@ -497,9 +497,17 @@ class UserRoute {
   async get({ uri, dtoIn }) {
     await ValidationService.validate(dtoIn, uri.useCase);
 
-    const user = await UserModel.safeFindByUsername(dtoIn.username);
-    if (!user) {
-      throw new UserNotFound(dtoIn.username);
+    let user;
+    if (dtoIn.userId) {
+      user = await UserModel.safeFindById(dtoIn.userId);
+      if (!user) {
+        throw new UserNotFound(dtoIn.userId, "userId");
+      }
+    } else {
+      user = await UserModel.safeFindByUsername(dtoIn.username);
+      if (!user) {
+        throw new UserNotFound(dtoIn.username);
+      }
     }
 
     return user;

@@ -92,8 +92,9 @@ const UserGetSchema = {
   type: "object",
   properties: {
     username: { format: "identity", type: "string" },
+    userId: { format: "objectId", type: "string" },
   },
-  required: ["username"],
+  oneOf: [{ required: ["username"] }, { required: ["userId"] }],
   additionalProperties: false,
 };
 
