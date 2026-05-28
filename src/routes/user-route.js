@@ -176,6 +176,8 @@ class UserRoute {
       throw new this.ERRORS.RegistrationFailed(e.name, e.message, e.params);
     }
 
+    registeredUser = await UserModel.recordLastLogin(registeredUser._id);
+
     // email verification flow: send verification email, do not return tokens
     if (registrationFlow === REGISTRATION_FLOWS.EMAIL) {
       const verificationToken = this._createVerificationToken(normalizedUsername);
@@ -223,10 +225,11 @@ class UserRoute {
       throw new this.ERRORS.UserNotVerified();
     }
 
-    const token = await this._handleUserAndTokens(user, response);
+    const userWithLastLogin = await UserModel.recordLastLogin(user._id || user.id);
+    const token = await this._handleUserAndTokens(userWithLastLogin, response);
 
     return {
-      user,
+      user: userWithLastLogin,
       token,
     };
   }
@@ -264,10 +267,11 @@ class UserRoute {
       throw new this.ERRORS.InvalidCsrfToken();
     }
 
-    const token = await this._handleUserAndTokens(refreshTokenModel.user, response, refreshTokenModel);
+    const userWithLastLogin = await UserModel.recordLastLogin(refreshTokenModel.user.id);
+    const token = await this._handleUserAndTokens(userWithLastLogin, response, refreshTokenModel);
 
     return {
-      user: refreshTokenModel.user,
+      user: userWithLastLogin,
       token,
     };
   }

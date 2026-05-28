@@ -32,6 +32,7 @@ class UserModel extends AbstractModel {
           default: true,
         },
         verificationToken: String,
+        lastLoginTs: Date,
         metadata: {
           type: mongoose.Schema.Types.Mixed,
           default: {},
@@ -138,6 +139,20 @@ class UserModel extends AbstractModel {
    */
   static async safeFindById(id) {
     return await this.findById(id, DEFAULT_PROJECTION);
+  }
+
+  /**
+   * Records the current time as the user's last login timestamp.
+   *
+   * @param {string} userId - Mongoose ObjectId as string.
+   * @returns {Promise<import('mongoose').Document|null>}
+   */
+  static async recordLastLogin(userId) {
+    return await this.findByIdAndUpdate(
+      userId,
+      { lastLoginTs: new Date() },
+      { new: true, projection: DEFAULT_PROJECTION },
+    );
   }
 }
 

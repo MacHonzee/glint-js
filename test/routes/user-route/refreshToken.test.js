@@ -39,6 +39,7 @@ describe("user/refreshToken", () => {
       firstName: USER.firstName,
       lastName: USER.lastName,
     });
+    expect(dtoOut.user.lastLoginTs).toBeInstanceOf(Date);
     expect(ucEnv.response.cookie).toHaveBeenCalled();
   });
 

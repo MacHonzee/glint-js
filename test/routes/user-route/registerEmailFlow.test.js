@@ -52,6 +52,8 @@ describe("user/register (email flow)", () => {
     expect(user.verified).toBe(false);
     expect(user.verificationToken).toBeTruthy();
     expect(user.metadata).toEqual(REGISTER_METADATA);
+    expect(user.lastLoginTs).toBeInstanceOf(Date);
+    expect(Date.now() - user.lastLoginTs.getTime()).toBeLessThan(5000);
   });
 
   it("should send the registration verification email", async () => {

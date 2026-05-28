@@ -30,6 +30,8 @@ describe("user/login", () => {
 
     AssertionService.assertToken(dtoOut.token);
     AssertionService.assertUser(dtoOut.user, USER);
+    expect(dtoOut.user.lastLoginTs).toBeInstanceOf(Date);
+    expect(Date.now() - dtoOut.user.lastLoginTs.getTime()).toBeLessThan(5000);
   });
 
   it("should raise error LoginFailed", async () => {

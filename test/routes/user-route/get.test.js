@@ -38,6 +38,7 @@ describe("user/get", () => {
     expect(foundUser.salt).not.toBeDefined();
     expect(foundUser.hash).not.toBeDefined();
     expect(foundUser.resetToken).not.toBeDefined();
+    expect(foundUser.lastLoginTs).toBeInstanceOf(Date);
   });
 
   it("should return user by userId", async () => {

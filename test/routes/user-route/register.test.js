@@ -1,4 +1,4 @@
-import { describe, it, beforeAll } from "@jest/globals";
+import { describe, it, beforeAll, expect } from "@jest/globals";
 import { TestUsers } from "../../test-utils/index.js";
 import { AuthenticationService } from "../../../src/index.js";
 import { TestService, AssertionService } from "../../../src/test-utils/index.js";
@@ -26,6 +26,8 @@ describe("user/register", () => {
     AssertionService.assertToken(dtoOut.token);
     AssertionService.assertUser(dtoOut.user, data);
     expect(dtoOut.user.metadata).toEqual(metadata);
+    expect(dtoOut.user.lastLoginTs).toBeInstanceOf(Date);
+    expect(Date.now() - dtoOut.user.lastLoginTs.getTime()).toBeLessThan(5000);
   });
 
   it("should raise error MismatchingPasswords", async () => {
