@@ -5,10 +5,13 @@ import { Config, BlobStore } from "../../../src/index.js";
 Config.set("GOOGLE_CLOUD_PROJECT", "projectId");
 class MockBucket {
   files = [];
+  _handles = new Map();
 
   file(fileId) {
-    const foundFile = this.files.find((file) => file.id === fileId);
-    return foundFile || new MockFile(this, fileId);
+    if (!this._handles.has(fileId)) {
+      this._handles.set(fileId, new MockFile(this, fileId));
+    }
+    return this._handles.get(fileId);
   }
 
   getFiles() {
@@ -52,6 +55,11 @@ class MockFile {
 
   exists() {
     return this._saved;
+  }
+
+  getSignedUrl(config) {
+    this.lastSignedUrlConfig = config;
+    return [`https://signed.example/${this.id}`];
   }
 }
 jest.spyOn(MockBucket.prototype, "getFiles");
@@ -134,6 +142,62 @@ describe("BlobStore", () => {
     });
   });
 
+  describe("getSignedUrl", () => {
+    it("should return a signed URL with default action read", async () => {
+      const expires = new Date(Date.now() + 60_000);
+      const url = await BlobStore.getSignedUrl(fileId, { expires });
+
+      expect(url).toBe(`https://signed.example/${fileId}`);
+      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      expect(config.version).toBe("v4");
+      expect(config.action).toBe("read");
+      expect(config.expires).toEqual(expires);
+    });
+
+    it("should sign a write URL with contentType", async () => {
+      const expires = new Date(Date.now() + 60_000);
+      const url = await BlobStore.getSignedUrl(fileId, {
+        action: "write",
+        expires,
+        contentType: "image/jpeg",
+      });
+
+      expect(url).toBe(`https://signed.example/${fileId}`);
+      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      expect(config.action).toBe("write");
+      expect(config.contentType).toBe("image/jpeg");
+    });
+
+    it("should normalize duration string expires via ms", async () => {
+      const before = Date.now();
+      await BlobStore.getSignedUrl(fileId, { expires: "15m" });
+      const after = Date.now();
+
+      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      expect(config.expires).toBeInstanceOf(Date);
+      expect(config.expires.getTime()).toBeGreaterThanOrEqual(before + 15 * 60_000);
+      expect(config.expires.getTime()).toBeLessThanOrEqual(after + 15 * 60_000);
+    });
+
+    it("should accept absolute number expires (ms epoch)", async () => {
+      const expires = Date.now() + 120_000;
+      await BlobStore.getSignedUrl(fileId, { expires });
+
+      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      expect(config.expires).toBe(expires);
+    });
+
+    it("should reject missing expires", async () => {
+      await expect(BlobStore.getSignedUrl(fileId, {})).rejects.toThrow(/expires/i);
+    });
+
+    it("should reject invalid action", async () => {
+      await expect(
+        BlobStore.getSignedUrl(fileId, { action: "delete", expires: new Date(Date.now() + 60_000) }),
+      ).rejects.toThrow(/action/i);
+    });
+  });
+
   describe("lazy initialization", () => {
     beforeEach(() => {
       BlobStore._active = false;
@@ -166,6 +230,11 @@ describe("BlobStore", () => {
 
     it("should lazy-init on delete", async () => {
       await BlobStore.delete(fileId);
+      expect(BlobStore._init).toHaveBeenCalled();
+    });
+
+    it("should lazy-init on getSignedUrl", async () => {
+      await BlobStore.getSignedUrl(fileId, { expires: new Date(Date.now() + 60_000) });
       expect(BlobStore._init).toHaveBeenCalled();
     });
   });

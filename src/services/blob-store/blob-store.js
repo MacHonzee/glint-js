@@ -1,7 +1,10 @@
 import { Storage } from "@google-cloud/storage";
 import { v4 as uuidV4 } from "uuid";
+import ms from "ms";
 import Config from "../utils/config.js";
 import LoggerFactory from "../logging/logger-factory.js";
+
+const SIGNED_URL_ACTIONS = new Set(["read", "write"]);
 
 /**
  * Singleton wrapper around Google Cloud Storage. Provides lazy initialization
@@ -98,6 +101,63 @@ class BlobStore {
    */
   async deleteMany(query) {
     return await this.bucket.deleteFiles(query);
+  }
+
+  /**
+   * Creates a V4 signed URL for reading or writing an object.
+   *
+   * @param {string} fileId - Object name in the configured bucket.
+   * @param {object} options
+   * @param {'read'|'write'} [options.action='read']
+   * @param {string|number|Date} options.expires - Duration (`'15m'`), absolute `Date`, or ms-epoch `number`.
+   * @param {string} [options.contentType] - Recommended for write (PUT) URLs.
+   * @returns {Promise<string>} Signed URL.
+   */
+  async getSignedUrl(fileId, options = {}) {
+    if (!this._active) await this._init();
+
+    const action = options.action ?? "read";
+    if (!SIGNED_URL_ACTIONS.has(action)) {
+      throw new Error(`Invalid signed URL action '${action}'. Supported actions are 'read' and 'write'.`);
+    }
+
+    if (options.expires == null) {
+      throw new Error("Signed URL requires options.expires (duration string, Date, or ms-epoch number).");
+    }
+
+    const expires = this._normalizeExpires(options.expires);
+    const signedUrlOptions = {
+      version: "v4",
+      action,
+      expires,
+    };
+
+    if (options.contentType != null) {
+      signedUrlOptions.contentType = options.contentType;
+    }
+
+    const [url] = await this.bucket.file(fileId).getSignedUrl(signedUrlOptions);
+    return url;
+  }
+
+  /**
+   * @param {string|number|Date} expires
+   * @returns {number|Date}
+   */
+  _normalizeExpires(expires) {
+    if (expires instanceof Date || typeof expires === "number") {
+      return expires;
+    }
+
+    if (typeof expires === "string") {
+      const durationMs = ms(expires);
+      if (typeof durationMs !== "number" || !Number.isFinite(durationMs)) {
+        throw new Error(`Invalid signed URL expires duration '${expires}'.`);
+      }
+      return new Date(Date.now() + durationMs);
+    }
+
+    throw new Error("Signed URL expires must be a duration string, Date, or ms-epoch number.");
   }
 
   async _init() {
