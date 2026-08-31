@@ -1,4 +1,4 @@
-import { jest, beforeEach, describe, it, expect } from "@jest/globals";
+import { jest, beforeEach, afterEach, describe, it, expect } from "@jest/globals";
 import { Config, BlobStore } from "../../../src/index.js";
 
 // mock dependencies
@@ -64,24 +64,68 @@ class MockFile {
 }
 jest.spyOn(MockBucket.prototype, "getFiles");
 
+describe("BlobStore.create", () => {
+  beforeEach(() => {
+    BlobStore._instances.clear();
+  });
+
+  it("returns the same instance for identical explicit options", () => {
+    const a = BlobStore.create({ bucketName: "photos" });
+    const b = BlobStore.create({ bucketName: "photos" });
+    expect(a).toBe(b);
+  });
+
+  it("returns the same instance for create() and create({})", () => {
+    expect(BlobStore.create()).toBe(BlobStore.create({}));
+  });
+
+  it("returns different instances for different bucket names", () => {
+    expect(BlobStore.create({ bucketName: "photos" })).not.toBe(BlobStore.create({ bucketName: "pdfs" }));
+  });
+
+  it("interns regardless of option key order", () => {
+    const a = BlobStore.create({ bucketName: "photos", apiEndpoint: "http://localhost:4443" });
+    const b = BlobStore.create({ apiEndpoint: "http://localhost:4443", bucketName: "photos" });
+    expect(a).toBe(b);
+  });
+
+  it("treats null option values as omitted", () => {
+    expect(BlobStore.create({ bucketName: null })).toBe(BlobStore.create());
+  });
+
+  it("ignores unknown option keys in the fingerprint", () => {
+    expect(BlobStore.create({ bucketName: "photos", extra: 1 })).toBe(BlobStore.create({ bucketName: "photos" }));
+  });
+
+  it("uses explicit options on init and Config for omitted fields", async () => {
+    const store = BlobStore.create({ bucketName: "photos" });
+    await store._init();
+    expect(store.bucketName).toBe("photos");
+    expect(store.gcpProject).toBe("projectId");
+  });
+});
+
 describe("BlobStore", () => {
   const fileId = "test-file";
   const fileData = "Hello, world!";
+  let store;
 
   beforeEach(async () => {
-    // Make sure the BlobStore is initialized before running the tests
-    await BlobStore._init();
-    BlobStore.bucket = new MockBucket();
+    BlobStore._instances.clear();
+    store = BlobStore.create();
+    await store._init();
+    store.bucket = new MockBucket();
+    MockBucket.prototype.getFiles.mockClear();
   });
 
   describe("save", () => {
     it("should save a file", async () => {
-      const result = await BlobStore.save(fileData, { id: fileId });
+      const result = await store.save(fileData, { id: fileId });
       expect(result).toBe(fileId);
     });
 
     it("should save a file with random id", async () => {
-      const result = await BlobStore.save(fileData);
+      const result = await store.save(fileData);
       expect(typeof result).toBe("string");
       expect(result.length).toBeTruthy();
     });
@@ -89,45 +133,45 @@ describe("BlobStore", () => {
 
   describe("download", () => {
     it("should download a file", async () => {
-      await BlobStore.save(fileData, { id: fileId });
-      const result = await BlobStore.download(fileId);
+      await store.save(fileData, { id: fileId });
+      const result = await store.download(fileId);
       expect(result.toString()).toBe(fileData);
     });
   });
 
   describe("list", () => {
     it("should list no files", async () => {
-      const files = await BlobStore.list("query");
+      const files = await store.list("query");
       expect(files.length).toBe(0);
-      expect(BlobStore.bucket.getFiles).toBeCalledTimes(1);
-      expect(BlobStore.bucket.getFiles).toBeCalledWith("query");
+      expect(store.bucket.getFiles).toBeCalledTimes(1);
+      expect(store.bucket.getFiles).toBeCalledWith("query");
     });
 
     it("should list files", async () => {
-      await BlobStore.save(fileData, { id: fileId });
-      await BlobStore.save(fileData, { id: fileId });
-      const files = await BlobStore.list("query");
+      await store.save(fileData, { id: fileId });
+      await store.save(fileData, { id: fileId });
+      const files = await store.list("query");
       expect(files.length).toBe(2);
-      expect(BlobStore.bucket.getFiles).toBeCalledTimes(2);
-      expect(BlobStore.bucket.getFiles).toBeCalledWith("query");
+      expect(store.bucket.getFiles).toBeCalledTimes(1);
+      expect(store.bucket.getFiles).toBeCalledWith("query");
     });
   });
 
   describe("setMetadata", () => {
     it("should set metadata for a file", async () => {
-      await BlobStore.save(fileData, { id: fileId });
+      await store.save(fileData, { id: fileId });
       const metadata = { foo: "bar" };
-      await BlobStore.setMetadata(fileId, metadata);
-      const fileMetadata = await BlobStore.bucket.file(fileId).getMetadata();
+      await store.setMetadata(fileId, metadata);
+      const fileMetadata = await store.bucket.file(fileId).getMetadata();
       expect(fileMetadata).toEqual(metadata);
     });
   });
 
   describe("delete", () => {
     it("should delete a file", async () => {
-      await BlobStore.save(fileData, { id: fileId });
-      await BlobStore.delete(fileId);
-      const exists = await BlobStore.bucket.file(fileId).exists();
+      await store.save(fileData, { id: fileId });
+      await store.delete(fileId);
+      const exists = await store.bucket.file(fileId).exists();
       expect(exists).toBe(false);
     });
   });
@@ -135,9 +179,9 @@ describe("BlobStore", () => {
   describe("deleteMany", () => {
     it("should delete multiple files", async () => {
       const fileIds = ["test-file1", "test-file2"];
-      await Promise.all(fileIds.map((id) => BlobStore.save(fileData, { id })));
-      await BlobStore.deleteMany({ prefix: "test-file" });
-      const files = await BlobStore.list({ prefix: "test-file" });
+      await Promise.all(fileIds.map((id) => store.save(fileData, { id })));
+      await store.deleteMany({ prefix: "test-file" });
+      const files = await store.list({ prefix: "test-file" });
       expect(files.length).toBe(0);
     });
   });
@@ -145,10 +189,10 @@ describe("BlobStore", () => {
   describe("getSignedUrl", () => {
     it("should return a signed URL with default action read", async () => {
       const expires = new Date(Date.now() + 60_000);
-      const url = await BlobStore.getSignedUrl(fileId, { expires });
+      const url = await store.getSignedUrl(fileId, { expires });
 
       expect(url).toBe(`https://signed.example/${fileId}`);
-      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      const config = store.bucket.file(fileId).lastSignedUrlConfig;
       expect(config.version).toBe("v4");
       expect(config.action).toBe("read");
       expect(config.expires).toEqual(expires);
@@ -156,24 +200,24 @@ describe("BlobStore", () => {
 
     it("should sign a write URL with contentType", async () => {
       const expires = new Date(Date.now() + 60_000);
-      const url = await BlobStore.getSignedUrl(fileId, {
+      const url = await store.getSignedUrl(fileId, {
         action: "write",
         expires,
         contentType: "image/jpeg",
       });
 
       expect(url).toBe(`https://signed.example/${fileId}`);
-      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      const config = store.bucket.file(fileId).lastSignedUrlConfig;
       expect(config.action).toBe("write");
       expect(config.contentType).toBe("image/jpeg");
     });
 
     it("should normalize duration string expires via ms", async () => {
       const before = Date.now();
-      await BlobStore.getSignedUrl(fileId, { expires: "15m" });
+      await store.getSignedUrl(fileId, { expires: "15m" });
       const after = Date.now();
 
-      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      const config = store.bucket.file(fileId).lastSignedUrlConfig;
       expect(config.expires).toBeInstanceOf(Date);
       expect(config.expires.getTime()).toBeGreaterThanOrEqual(before + 15 * 60_000);
       expect(config.expires.getTime()).toBeLessThanOrEqual(after + 15 * 60_000);
@@ -181,61 +225,71 @@ describe("BlobStore", () => {
 
     it("should accept absolute number expires (ms epoch)", async () => {
       const expires = Date.now() + 120_000;
-      await BlobStore.getSignedUrl(fileId, { expires });
+      await store.getSignedUrl(fileId, { expires });
 
-      const config = BlobStore.bucket.file(fileId).lastSignedUrlConfig;
+      const config = store.bucket.file(fileId).lastSignedUrlConfig;
       expect(config.expires).toBe(expires);
     });
 
     it("should reject missing expires", async () => {
-      await expect(BlobStore.getSignedUrl(fileId, {})).rejects.toThrow(/expires/i);
+      await expect(store.getSignedUrl(fileId, {})).rejects.toThrow(/expires/i);
     });
 
     it("should reject invalid action", async () => {
       await expect(
-        BlobStore.getSignedUrl(fileId, { action: "delete", expires: new Date(Date.now() + 60_000) }),
+        store.getSignedUrl(fileId, { action: "delete", expires: new Date(Date.now() + 60_000) }),
       ).rejects.toThrow(/action/i);
     });
   });
 
   describe("lazy initialization", () => {
     beforeEach(() => {
-      BlobStore._active = false;
-      jest.spyOn(BlobStore, "_init").mockImplementation(async () => {
-        BlobStore._active = true;
-        BlobStore.bucket = new MockBucket();
+      store._active = false;
+      jest.spyOn(store, "_init").mockImplementation(async () => {
+        store._active = true;
+        store.bucket = new MockBucket();
       });
     });
 
     afterEach(() => {
-      BlobStore._init.mockRestore();
+      store._init.mockRestore();
     });
 
     it("should lazy-init on save", async () => {
-      await BlobStore.save(fileData, { id: fileId });
-      expect(BlobStore._init).toHaveBeenCalled();
+      await store.save(fileData, { id: fileId });
+      expect(store._init).toHaveBeenCalled();
     });
 
     it("should lazy-init on download", async () => {
-      await BlobStore.save(fileData, { id: fileId });
-      BlobStore._active = false;
-      await BlobStore.download(fileId);
-      expect(BlobStore._init).toHaveBeenCalledTimes(2);
+      await store.save(fileData, { id: fileId });
+      store._active = false;
+      await store.download(fileId);
+      expect(store._init).toHaveBeenCalledTimes(2);
     });
 
     it("should lazy-init on setMetadata", async () => {
-      await BlobStore.setMetadata(fileId, { foo: "bar" });
-      expect(BlobStore._init).toHaveBeenCalled();
+      await store.setMetadata(fileId, { foo: "bar" });
+      expect(store._init).toHaveBeenCalled();
     });
 
     it("should lazy-init on delete", async () => {
-      await BlobStore.delete(fileId);
-      expect(BlobStore._init).toHaveBeenCalled();
+      await store.delete(fileId);
+      expect(store._init).toHaveBeenCalled();
+    });
+
+    it("should lazy-init on list", async () => {
+      await store.list("query");
+      expect(store._init).toHaveBeenCalled();
+    });
+
+    it("should lazy-init on deleteMany", async () => {
+      await store.deleteMany({ prefix: "test-file" });
+      expect(store._init).toHaveBeenCalled();
     });
 
     it("should lazy-init on getSignedUrl", async () => {
-      await BlobStore.getSignedUrl(fileId, { expires: new Date(Date.now() + 60_000) });
-      expect(BlobStore._init).toHaveBeenCalled();
+      await store.getSignedUrl(fileId, { expires: new Date(Date.now() + 60_000) });
+      expect(store._init).toHaveBeenCalled();
     });
   });
 });
