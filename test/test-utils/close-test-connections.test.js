@@ -25,4 +25,21 @@ describe("closeTestConnections", () => {
     expect(MongoClient.connections).toEqual({});
     expect(mongoose.connections.every((connection) => connection.readyState === 0)).toBe(true);
   });
+
+  it("clears MongoClient.connections even when handles were never opened", async () => {
+    Config.set("MONGODB_DISABLED", false);
+    await closeTestConnections();
+    MongoClient.ensureHandle("AUTH", "PRIMARY");
+    expect(MongoClient.connections.AUTH).toBeDefined();
+    expect(MongoClient.connections.AUTH.connection.readyState).toBe(0);
+
+    const openUriSpy = jest.spyOn(mongoose.Connection.prototype, "openUri");
+    try {
+      await closeTestConnections();
+      expect(openUriSpy).not.toHaveBeenCalled();
+      expect(MongoClient.connections).toEqual({});
+    } finally {
+      openUriSpy.mockRestore();
+    }
+  });
 });

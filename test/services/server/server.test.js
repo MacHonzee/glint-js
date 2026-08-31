@@ -2,6 +2,7 @@ import { describe, beforeAll, it, expect, afterAll } from "@jest/globals";
 import { FormData, fileFromSync } from "node-fetch";
 import { TestService, AssertionService } from "../../../src/test-utils/index.js";
 import Server from "../../../src/services/server/server.js";
+import MongoClient from "../../../src/services/database/mongo-client.js";
 
 describe("Server", () => {
   beforeAll(async () => {
@@ -10,6 +11,11 @@ describe("Server", () => {
 
   afterAll(async () => {
     await TestService.stopServer();
+  });
+
+  it("opens PRIMARY and AUTH connections on start", () => {
+    expect(MongoClient.connections.PRIMARY.connection.readyState).toBe(1);
+    expect(MongoClient.connections.AUTH.connection.readyState).toBe(1);
   });
 
   it("should return success for sys/ping", async () => {

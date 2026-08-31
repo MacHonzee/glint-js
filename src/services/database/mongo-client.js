@@ -34,15 +34,32 @@ class MongoClient {
    */
   static async getConnection(envKey, fallbackEnvKey) {
     if (Config.MONGODB_DISABLED) return;
-    let connection = this.connections[envKey] || this.connections[fallbackEnvKey];
+    this.ensureHandle(envKey, fallbackEnvKey);
+    await new MongoClient(envKey, fallbackEnvKey).init();
+    return this.connections[envKey].connection;
+  }
 
-    // lazy initialization of connection (only PRIMARY is explicitly connected)
-    if (!connection) {
-      await new MongoClient(envKey, fallbackEnvKey).init();
-      connection = this.connections[envKey] || this.connections[fallbackEnvKey];
+  /**
+   * Returns a per-key Mongoose connection handle without opening a socket.
+   *
+   * @param {string} envKey
+   * @param {string} [fallbackEnvKey]
+   * @returns {import('mongoose').Connection}
+   */
+  static ensureHandle(envKey, fallbackEnvKey) {
+    const existing = this.connections[envKey];
+    if (existing) {
+      if (fallbackEnvKey && !existing.fallbackKey) {
+        existing.fallbackKey = fallbackEnvKey;
+      }
+      return existing.connection;
     }
 
-    return connection.connection;
+    const connection = mongoose.createConnection();
+    connection.set("autoIndex", false);
+    connection.set("bufferCommands", false);
+    this.connections[envKey] = { connection, uri: null, fallbackKey: fallbackEnvKey };
+    return connection;
   }
 
   /**
@@ -56,15 +73,20 @@ class MongoClient {
   }
 
   async _init() {
-    // no need to initialize the connection multiple times, the pooling is handled by Mongoose
-    const alreadyConnected = this._handleExistingConnection();
-    if (alreadyConnected) return;
+    const connection = MongoClient.ensureHandle(this.envKey, this.fallbackEnvKey);
+    const entry = MongoClient.connections[this.envKey];
+    this.connection = connection;
+
+    if (connection.readyState === 1) {
+      this.mongoUri = entry.uri;
+      return;
+    }
 
     let mongoUri = await this._getMongoUri(this.envKey);
-
     let usedFallback = false;
-    if (!mongoUri && this.fallbackEnvKey) {
-      mongoUri = await this._getMongoUri(this.fallbackEnvKey);
+    const fallbackKey = this.fallbackEnvKey || entry.fallbackKey;
+    if (!mongoUri && fallbackKey) {
+      mongoUri = await this._getMongoUri(fallbackKey);
       usedFallback = true;
     }
 
@@ -79,18 +101,18 @@ class MongoClient {
     this.mongoUri = mongoUri;
 
     try {
-      this.connection = await mongoose.createConnection(mongoUri, { autoIndex: false });
+      await connection.openUri(mongoUri, { autoIndex: false });
     } catch (e) {
       this.logger.error("Error when connecting to database:", e);
       throw e;
     }
 
+    entry.uri = mongoUri;
+
     if (usedFallback) {
-      this.logger.info(`Successfully connected to database: ${this.fallbackEnvKey} as a fallback from: ${this.envKey}`);
-      MongoClient.connections[this.fallbackEnvKey] = { connection: this.connection, uri: this.mongoUri };
+      this.logger.info(`Successfully connected to database: ${fallbackKey} as a fallback from: ${this.envKey}`);
     } else {
       this.logger.info(`Successfully connected to database: ${this.envKey}`);
-      MongoClient.connections[this.envKey] = { connection: this.connection, uri: this.mongoUri };
     }
   }
 
@@ -99,13 +121,26 @@ class MongoClient {
     return Config.get(envConfigKey) || (await SecretManager.get("mongoDbUri_" + envKey));
   }
 
-  _handleExistingConnection() {
-    const connectionParams = MongoClient.connections[this.envKey] || MongoClient.connections[this.fallbackEnvKey];
-    if (connectionParams) {
-      this.mongoUri = connectionParams.mongoUri;
-      this.connection = connectionParams.connection;
+  /**
+   * Opens PRIMARY, then AUTH with PRIMARY as URI fallback.
+   *
+   * @returns {Promise<void>}
+   */
+  static async initPrimaryAndAuth() {
+    await new MongoClient("PRIMARY").init();
+    await new MongoClient("AUTH", "PRIMARY").init();
+  }
+
+  /**
+   * Opens every cached handle that is not yet connected.
+   *
+   * @returns {Promise<void>}
+   */
+  static async initRegistered() {
+    for (const [key, entry] of Object.entries(this.connections)) {
+      if (entry?.connection?.readyState === 1) continue;
+      await new MongoClient(key, entry.fallbackKey).init();
     }
-    return connectionParams;
   }
 }
 

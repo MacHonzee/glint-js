@@ -43,12 +43,9 @@ class AbstractModel {
    * @returns {Promise<import('mongoose').Model>}
    */
   async createModel(connectionKey = "PRIMARY", fallbackKey) {
-    let connection;
-    if (Config.MONGODB_DISABLED) {
-      connection = mongoose;
-    } else {
-      connection = await MongoClient.getConnection(connectionKey, fallbackKey);
-    }
+    const connection = Config.MONGODB_DISABLED
+      ? mongoose
+      : MongoClient.ensureHandle(connectionKey, fallbackKey);
 
     this.schema.loadClass(this.constructor);
 

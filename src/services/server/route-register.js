@@ -18,13 +18,12 @@ class RouteRegister {
 
   /**
    * Loads route mappings from the library and the application's `app/config/mappings.js`.
-   * Must be called after the database connection is established, as route modules may import models.
+   * Route modules may call `createModel`, which only binds schemas to connection handles.
+   * Extra connection keys are opened by `MongoClient.initRegistered()` after this returns.
    *
    * @returns {Promise<void>}
    */
   async init() {
-    // initialize all common routes -> it MUST be loaded dynamically, because the database connection
-    // must be established first in order to properly create models
     const Mappings = await import("../../config/mappings.js");
     this._registerRoutesFromMappings(Mappings.default);
 

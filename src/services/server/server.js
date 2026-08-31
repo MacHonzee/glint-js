@@ -55,10 +55,11 @@ class Server {
     await ValidationService.init();
     await AuthenticationService.init(true);
 
-    await new MongoClient().init();
+    await MongoClient.initPrimaryAndAuth();
 
     const errorMiddlewares = await this._registerMiddlewares();
     await this._registerRoutes();
+    await MongoClient.initRegistered();
     await this._registerErrorMiddlewares(errorMiddlewares);
   }
 

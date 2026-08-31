@@ -1,8 +1,6 @@
 import { jest, beforeAll, afterAll, describe, it, expect } from "@jest/globals";
 import { AbstractModel, ModelWarehouse, MongoClient, Config, mongoose } from "../../../src/index.js";
 
-MongoClient.getConnection = jest.fn();
-
 describe("AbstractModel", () => {
   let connection;
   let model;
@@ -11,10 +9,13 @@ describe("AbstractModel", () => {
     connection = mongoose.createConnection();
     jest.spyOn(connection, "model");
     jest.spyOn(mongoose, "model");
-    MongoClient.getConnection.mockResolvedValue(connection);
+    jest.spyOn(MongoClient, "ensureHandle").mockReturnValue(connection);
+    jest.spyOn(MongoClient, "getConnection");
   });
 
   afterAll(async () => {
+    MongoClient.ensureHandle.mockRestore();
+    MongoClient.getConnection.mockRestore();
     await connection.close();
   });
 
@@ -45,14 +46,17 @@ describe("AbstractModel", () => {
     describe("when MONGODB_DISABLED is false", () => {
       beforeAll(async () => {
         Config.set("MONGODB_DISABLED", false);
-        await model.createModel();
+        MongoClient.getConnection.mockClear();
+        MongoClient.ensureHandle.mockClear();
+        await model.createModel("AUTH", "PRIMARY");
       });
 
-      it("gets a connection from the MongoClient", () => {
-        expect(MongoClient.getConnection).toHaveBeenCalledWith("PRIMARY", undefined);
+      it("does not call getConnection", () => {
+        expect(MongoClient.getConnection).not.toHaveBeenCalled();
       });
 
-      it("creates the model with the connection", () => {
+      it("binds the model via ensureHandle", () => {
+        expect(MongoClient.ensureHandle).toHaveBeenCalledWith("AUTH", "PRIMARY");
         expect(connection.model).toHaveBeenCalledWith("Test", model.schema);
         expect(ModelWarehouse.Test).toBeDefined();
       });

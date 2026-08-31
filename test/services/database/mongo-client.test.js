@@ -1,15 +1,39 @@
 import { jest, beforeEach, describe, it, expect, afterAll } from "@jest/globals";
 import { MongoClient, Config, SecretManager, mongoose } from "../../../src/index.js";
 
-jest.spyOn(SecretManager, "get");
+async function closeCachedConnections() {
+  for (const entry of Object.values(MongoClient.connections)) {
+    if (typeof entry?.connection?.close === "function") {
+      await entry.connection.close().catch(() => {});
+    }
+  }
+  MongoClient.connections = {};
+}
+
+function mockConnection({ readyState = 0 } = {}) {
+  const connection = {
+    _readyState: readyState,
+    get readyState() {
+      return this._readyState;
+    },
+    set: jest.fn(),
+    close: jest.fn().mockResolvedValue(undefined),
+    openUri: jest.fn().mockImplementation(async function openUri() {
+      this._readyState = 1;
+      return this;
+    }),
+  };
+  return connection;
+}
 
 describe("MongoClient", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  beforeEach(async () => {
+    jest.restoreAllMocks();
+    jest.spyOn(SecretManager, "get");
     Config.set("MONGODB_DISABLED", false);
     Config.set("PRIMARY_MONGODB_URI", "");
     Config.set("AUTH_MONGODB_URI", "");
-    MongoClient.connections = {};
+    await closeCachedConnections();
   });
 
   afterAll(async () => {
@@ -23,25 +47,21 @@ describe("MongoClient", () => {
       expect(connection).toBeUndefined();
     });
 
-    it("returns the connection if already established", async () => {
-      const connection = mongoose.createConnection();
-      MongoClient.connections.PRIMARY = { connection, uri: "mongodb://localhost:27017/primary" };
-      const getConnectionSpy = jest.spyOn(mongoose, "createConnection");
-      const connectionFromCache = await MongoClient.getConnection("PRIMARY", "FALLBACK");
-      expect(connectionFromCache).toBe(connection);
-      expect(getConnectionSpy).not.toHaveBeenCalled();
-    });
+    it("returns this key's handle after init, not the fallback object", async () => {
+      const fallbackConn = mockConnection({ readyState: 1 });
+      MongoClient.connections.FALLBACK = {
+        connection: fallbackConn,
+        uri: "mongodb://localhost:27017/fallback",
+        fallbackKey: undefined,
+      };
 
-    it("creates a new connection and caches it if not already established", async () => {
-      const createConnectionSpy = jest.spyOn(mongoose, "createConnection").mockResolvedValue(new mongoose.Connection());
-      const mongoUri = "mongodb://localhost:27017/primary";
-      SecretManager.get.mockResolvedValue(mongoUri);
-      await MongoClient.getConnection("PRIMARY", "FALLBACK");
-      expect(createConnectionSpy).toHaveBeenCalledWith(mongoUri, { autoIndex: false });
-      expect(MongoClient.connections.PRIMARY).toMatchObject({
-        connection: expect.any(mongoose.Connection),
-        uri: mongoUri,
-      });
+      const primaryConn = mockConnection();
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(primaryConn);
+      SecretManager.get.mockResolvedValue("mongodb://localhost:27017/primary");
+
+      const result = await MongoClient.getConnection("PRIMARY", "FALLBACK");
+      expect(result).toBe(primaryConn);
+      expect(result).not.toBe(fallbackConn);
     });
   });
 
@@ -56,91 +76,193 @@ describe("MongoClient", () => {
 
     it("calls _init under exclusive mutex", async () => {
       const runExclusiveSpy = jest.spyOn(MongoClient.mutex, "runExclusive");
+      const connection = mockConnection();
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(connection);
+      SecretManager.get.mockResolvedValue("mongodb://localhost:27017/primary");
+
       const client = new MongoClient();
       await client.init();
       expect(runExclusiveSpy).toHaveBeenCalledWith(expect.any(Function));
     });
 
-    it("caches the connection if already established", async () => {
-      const connection = mongoose.createConnection();
-      MongoClient.connections.PRIMARY = { connection, uri: "mongodb://localhost:27017/primary" };
+    it("does not openUri when this key is already connected", async () => {
+      const connection = mockConnection({ readyState: 1 });
+      MongoClient.connections.PRIMARY = {
+        connection,
+        uri: "mongodb://localhost:27017/primary",
+        fallbackKey: undefined,
+      };
       const client = new MongoClient();
       await client.init();
+      expect(connection.openUri).not.toHaveBeenCalled();
       expect(client.connection).toBe(connection);
     });
 
-    it("establishes a new connection and caches it if not already established", async () => {
-      const createConnectionSpy = jest.spyOn(mongoose, "createConnection").mockResolvedValue(new mongoose.Connection());
+    it("opens this key's handle with openUri", async () => {
+      const connection = mockConnection();
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(connection);
       const mongoUri = "mongodb://localhost:27017/primary";
       SecretManager.get.mockResolvedValue(mongoUri);
+
       const client = new MongoClient();
       await client.init();
-      expect(createConnectionSpy).toHaveBeenCalledWith(mongoUri, { autoIndex: false });
-      expect(client.connection).toBeInstanceOf(mongoose.Connection);
+
+      expect(connection.openUri).toHaveBeenCalledWith(mongoUri, { autoIndex: false });
       expect(MongoClient.connections.PRIMARY).toMatchObject({
-        connection: expect.any(mongoose.Connection),
+        connection,
         uri: mongoUri,
       });
+      expect(client.connection).toBe(connection);
     });
 
-    it("throws an error if unable to establish a connection", async () => {
-      const createConnectionSpy = jest
-        .spyOn(mongoose, "createConnection")
-        .mockRejectedValue(new Error("connection error"));
+    it("throws when openUri fails", async () => {
+      const connection = mockConnection();
+      connection.openUri.mockRejectedValue(new Error("connection error"));
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(connection);
+      SecretManager.get.mockResolvedValue("mongodb://localhost:27017/primary");
+
       const client = new MongoClient();
-      await expect(() => client.init()).rejects.toThrowError("connection error");
-      expect(createConnectionSpy).toHaveBeenCalled();
+      await expect(client.init()).rejects.toThrow("connection error");
     });
   });
 
   describe("fallback connections", () => {
-    afterEach(() => {
-      MongoClient.connections = {};
-    });
-
-    it("should use fallback env key when primary URI is not available", async () => {
+    it("opens the requested key with the fallback URI", async () => {
       const fallbackUri = "mongodb://localhost:27017/fallback";
       Config.set("FALLBACK_MONGODB_URI", fallbackUri);
       SecretManager.get.mockResolvedValue(undefined);
 
-      const mockConn = new mongoose.Connection();
-      const createConnectionSpy = jest.spyOn(mongoose, "createConnection").mockResolvedValue(mockConn);
+      const connection = mockConnection();
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(connection);
 
       const client = new MongoClient("PRIMARY", "FALLBACK");
       await client.init();
 
-      expect(createConnectionSpy).toHaveBeenCalledWith(fallbackUri, { autoIndex: false });
-      expect(MongoClient.connections.FALLBACK).toBeDefined();
-      expect(MongoClient.connections.PRIMARY).toBeUndefined();
+      expect(connection.openUri).toHaveBeenCalledWith(fallbackUri, { autoIndex: false });
+      expect(MongoClient.connections.PRIMARY).toBeDefined();
+      expect(MongoClient.connections.PRIMARY.connection).toBe(connection);
+      expect(MongoClient.connections.PRIMARY.uri).toBe(fallbackUri);
     });
 
-    it("should throw error when no URI is available and no fallback", async () => {
+    it("does not skip AUTH init just because PRIMARY is already open", async () => {
+      const primaryConn = mockConnection({ readyState: 1 });
+      MongoClient.connections.PRIMARY = {
+        connection: primaryConn,
+        uri: "mongodb://localhost:27017/primary",
+        fallbackKey: undefined,
+      };
+
+      const authConn = mockConnection();
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(authConn);
+      Config.set("AUTH_MONGODB_URI", "");
+      Config.set("PRIMARY_MONGODB_URI", "mongodb://localhost:27017/primary");
       SecretManager.get.mockResolvedValue(undefined);
+
+      await new MongoClient("AUTH", "PRIMARY").init();
+
+      expect(authConn.openUri).toHaveBeenCalledWith("mongodb://localhost:27017/primary", { autoIndex: false });
+      expect(MongoClient.connections.AUTH.connection).toBe(authConn);
+      expect(MongoClient.connections.AUTH.connection).not.toBe(primaryConn);
+    });
+
+    it("throws when no URI is available and no fallback", async () => {
+      SecretManager.get.mockResolvedValue(undefined);
+      const connection = mockConnection();
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(connection);
 
       const client = new MongoClient("UNKNOWN");
       await expect(client.init()).rejects.toThrow("MongoDB connection not specified");
     });
 
-    it("should return existing fallback connection via getConnection", async () => {
-      const mockConn = { close: jest.fn() };
-      MongoClient.connections.FALLBACK = { connection: mockConn, uri: "mongodb://localhost:27017/fallback" };
-
-      const result = await MongoClient.getConnection("NONEXISTENT", "FALLBACK");
-      expect(result).toBe(mockConn);
-    });
-
-    it("should lazy-init and resolve via fallback key in getConnection", async () => {
+    it("getConnection opens NONEXISTENT with FALLBACK URI instead of returning FALLBACK's object", async () => {
       const fallbackUri = "mongodb://localhost:27017/lazy-fallback";
       Config.set("LAZYFB_MONGODB_URI", fallbackUri);
       SecretManager.get.mockResolvedValue(undefined);
 
-      const mockConn = new mongoose.Connection();
-      jest.spyOn(mongoose, "createConnection").mockResolvedValue(mockConn);
+      const existingFallback = mockConnection({ readyState: 1 });
+      MongoClient.connections.LAZYFB = {
+        connection: existingFallback,
+        uri: fallbackUri,
+        fallbackKey: undefined,
+      };
+
+      const newConn = mockConnection();
+      jest.spyOn(mongoose, "createConnection").mockReturnValue(newConn);
 
       const result = await MongoClient.getConnection("NOPRIMARY", "LAZYFB");
-      expect(result).toBe(mockConn);
-      expect(MongoClient.connections.LAZYFB).toBeDefined();
-      expect(MongoClient.connections.NOPRIMARY).toBeUndefined();
+      expect(result).toBe(newConn);
+      expect(result).not.toBe(existingFallback);
+      expect(MongoClient.connections.NOPRIMARY.connection).toBe(newConn);
+    });
+  });
+
+  describe("ensureHandle", () => {
+    it("returns a disconnected connection without resolving a URI", () => {
+      const secretSpy = jest.spyOn(SecretManager, "get");
+      const connection = MongoClient.ensureHandle("PRIMARY", "FALLBACK");
+
+      expect(connection).toBeInstanceOf(mongoose.Connection);
+      expect(connection.readyState).toBe(0);
+      expect(MongoClient.connections.PRIMARY).toMatchObject({
+        connection,
+        uri: null,
+        fallbackKey: "FALLBACK",
+      });
+      expect(secretSpy).not.toHaveBeenCalled();
+    });
+
+    it("reuses the same handle for the same key", () => {
+      const first = MongoClient.ensureHandle("AUTH", "PRIMARY");
+      const second = MongoClient.ensureHandle("AUTH", "PRIMARY");
+      expect(second).toBe(first);
+    });
+
+    it("records fallbackKey later if it was unset", () => {
+      MongoClient.ensureHandle("ORDERS");
+      MongoClient.ensureHandle("ORDERS", "PRIMARY");
+      expect(MongoClient.connections.ORDERS.fallbackKey).toBe("PRIMARY");
+    });
+
+    it("does not call openUri", () => {
+      const openUriSpy = jest.spyOn(mongoose.Connection.prototype, "openUri");
+      MongoClient.ensureHandle("PRIMARY");
+      expect(openUriSpy).not.toHaveBeenCalled();
+      openUriSpy.mockRestore();
+    });
+  });
+
+  describe("initPrimaryAndAuth", () => {
+    it("inits PRIMARY then AUTH with PRIMARY fallback", async () => {
+      const order = [];
+      jest.spyOn(MongoClient.prototype, "init").mockImplementation(async function mockInit() {
+        order.push({ envKey: this.envKey, fallbackEnvKey: this.fallbackEnvKey });
+      });
+
+      await MongoClient.initPrimaryAndAuth();
+
+      expect(order).toEqual([
+        { envKey: "PRIMARY", fallbackEnvKey: undefined },
+        { envKey: "AUTH", fallbackEnvKey: "PRIMARY" },
+      ]);
+    });
+  });
+
+  describe("initRegistered", () => {
+    it("opens only keys that are not yet connected", async () => {
+      const primary = mockConnection({ readyState: 1 });
+      MongoClient.connections.PRIMARY = { connection: primary, uri: "mongodb://x", fallbackKey: undefined };
+
+      const orders = mockConnection({ readyState: 0 });
+      MongoClient.connections.ORDERS = { connection: orders, uri: null, fallbackKey: "PRIMARY" };
+
+      const inited = [];
+      jest.spyOn(MongoClient.prototype, "init").mockImplementation(async function mockInit() {
+        inited.push({ envKey: this.envKey, fallbackEnvKey: this.fallbackEnvKey });
+      });
+
+      await MongoClient.initRegistered();
+
+      expect(inited).toEqual([{ envKey: "ORDERS", fallbackEnvKey: "PRIMARY" }]);
     });
   });
 });

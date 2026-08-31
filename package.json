@@ -80,6 +80,7 @@
     "globalSetup": "./src/test-utils/globals/global-setup.js",
     "globalTeardown": "./src/test-utils/globals/global-teardown.js",
     "setupFilesAfterEnv": [
+      "./src/test-utils/globals/connect-to-db.js",
       "./src/test-utils/globals/disconnect-from-db.js"
     ],
     "collectCoverage": true,
