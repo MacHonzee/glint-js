@@ -9,6 +9,23 @@ alwaysApply: true
 
 - Default line of work is **`main`**. Ship release commits on `main` unless a maintainer asks for a feature branch.
 
+## Commit messages (Conventional Commits)
+
+Work commits use [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
+
+**Breaking changes must be labeled on the commit**, not only in the changelog:
+
+- Put `!` after the type (and optional scope): `feat!:`, `fix!:`, `feat(blob-store)!:`.
+- Add a `BREAKING CHANGE: <what callers must change>` footer.
+
+```
+feat!: intern BlobStore instances via create()
+
+BREAKING CHANGE: BlobStore is a class; call BlobStore.create() instead of using the singleton.
+```
+
+Version-bump commits stay **`Bump version to x.y.z`** (no `feat!`). The changelog for that release must still state the break and the migration.
+
 ## Version bumps
 
 1. Edit **`package.json`** `version` using semver (`x.y.z`: major / minor / patch or hotfix).
