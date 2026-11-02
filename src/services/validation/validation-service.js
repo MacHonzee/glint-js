@@ -27,6 +27,10 @@ class InvalidDtoIn extends UseCaseError {
 class ValidationService {
   constructor() {
     this._logger = LoggerFactory.create("Service.ValidationService");
+    // removeAdditional: true only strips when additionalProperties is false.
+    // Schemas that omit the keyword get it defaulted to false on register (see _registerFromPath).
+    // Do NOT use removeAdditional: "all" — it strips siblings while evaluating allOf/if/then
+    // branches that declare only a subset of properties (AJV behaviour).
     this._ajv = new Ajv({ allErrors: true, coerceTypes: true, removeAdditional: true });
     addFormats(this._ajv);
     this._initialized = false;
@@ -124,7 +128,13 @@ class ValidationService {
       for (const [schemaName, schema] of Object.entries(schemas.default)) {
         this._logger.debug(`Adding schema with name '${schemaName}' from path '${schemaPath}'`);
         try {
-          this._ajv.addSchema(schema, schemaName);
+          // Default-deny undeclared root properties so removeAdditional: true can strip them.
+          // Explicit additionalProperties: true|false|schema is left unchanged.
+          const schemaToAdd =
+            schema && typeof schema === "object" && schema.additionalProperties === undefined
+              ? { ...schema, additionalProperties: false }
+              : schema;
+          this._ajv.addSchema(schemaToAdd, schemaName);
         } catch (e) {
           this._logger.error(`Cannot add schema with name '${schemaName}' from path '${schemaPath}'`);
           throw e;

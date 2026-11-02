@@ -8,7 +8,7 @@ import ObjectIdFormat from "../../../src/services/validation/validation-formats/
 
 describe("ValidationService", () => {
   beforeEach(() => {
-    ValidationService._ajv = new Ajv({ allErrors: false, coerceTypes: true });
+    ValidationService._ajv = new Ajv({ allErrors: true, coerceTypes: true, removeAdditional: true });
     jest.restoreAllMocks();
   });
 
@@ -74,6 +74,71 @@ describe("ValidationService", () => {
             },
           ],
         },
+      });
+    });
+
+    it("strips undeclared properties even when schema omits additionalProperties: false", async () => {
+      const data = { id: "123", name: "Ada", role: "admin", state: "onStartList" };
+
+      const result = await ValidationService.validate(data, "/users/looseUpdate");
+
+      expect(result).toEqual({ valid: true });
+      expect(data).toEqual({ id: "123", name: "Ada" });
+      expect(data).not.toHaveProperty("role");
+      expect(data).not.toHaveProperty("state");
+    });
+
+    it("does not strip siblings when allOf/then declares only a subset of properties", async () => {
+      const data = {
+        id: "123",
+        name: "Ada",
+        categories: [{ label: "M", sex: "male", ageRange: [18, 30] }],
+      };
+      ValidationService._ajv.addSchema(
+        {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            name: { type: "string" },
+            categories: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  label: { type: "string" },
+                  sex: { type: "string" },
+                  ageRange: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 },
+                },
+                required: ["label", "sex", "ageRange"],
+              },
+            },
+          },
+          required: ["id", "name", "categories"],
+          additionalProperties: false,
+          allOf: [
+            {
+              if: { properties: { id: { type: "string" } } },
+              then: {
+                properties: {
+                  categories: {
+                    type: "array",
+                    items: { type: "object", properties: { sex: { enum: ["male", "female"] } } },
+                  },
+                },
+              },
+            },
+          ],
+        },
+        "UsersAllOfPartialSchema",
+      );
+
+      const result = await ValidationService.validate(data, "/users/allOfPartial");
+
+      expect(result).toEqual({ valid: true });
+      expect(data).toEqual({
+        id: "123",
+        name: "Ada",
+        categories: [{ label: "M", sex: "male", ageRange: [18, 30] }],
       });
     });
   });

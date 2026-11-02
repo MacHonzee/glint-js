@@ -10,7 +10,18 @@ const UsersCreateSchema = {
   additionalProperties: false,
 };
 
-export { UsersCreateSchema };
+/** Intentionally omits additionalProperties — used to assert removeAdditional: "all". */
+const UsersLooseUpdateSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+  },
+  required: ["id"],
+};
+
+export { UsersCreateSchema, UsersLooseUpdateSchema };
 export default {
   UsersCreateSchema,
+  UsersLooseUpdateSchema,
 };
