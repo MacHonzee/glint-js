@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, expect } from "@jest/globals";
 import { TestUsers } from "../../test-utils/index.js";
-import { AuthenticationService } from "../../../src/index.js";
+import { AuthenticationService, UserService } from "../../../src/index.js";
 import { TestService, AssertionService } from "../../../src/test-utils/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
 
@@ -44,6 +44,28 @@ describe("user/register", () => {
     await AssertionService.assertThrows(
       () => TestUsers.registerUser(data),
       new UserRoute.ERRORS.MismatchingPasswords(),
+    );
+  });
+
+  it("should reject registration when email does not match username", async () => {
+    const data = {
+      username: "victim@mail.com",
+      password: "ultraStrongPass123",
+      confirmPassword: "ultraStrongPass123",
+      firstName: "John",
+      lastName: "Malkovich",
+      email: "attacker@mail.com",
+      language: "en",
+    };
+    const ucEnv = await TestService.getUcEnv("user/register", data);
+
+    await AssertionService.assertThrows(
+      () => UserRoute.register(ucEnv),
+      new UserRoute.ERRORS.RegistrationEmailMismatch(),
+    );
+    await AssertionService.assertThrows(
+      () => UserService.findByUsername("victim@mail.com"),
+      new UserService.ERRORS.UserNotFound("victim@mail.com"),
     );
   });
 

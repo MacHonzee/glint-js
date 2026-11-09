@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+Registration rejects `email` that is not the same identity as `username`, and the verification link is sent to that username. `POST /user/resetPassword` no longer marks the account verified or signs the user out; both happen in `changePasswordByReset`, after the reset link is used.
+
 ## 0.14.1
 
 `ValidationService` defaults omitted root `additionalProperties` to `false` when registering schemas, so AJV `removeAdditional: true` strips undeclared dtoIn fields. That closes mass-assignment holes in app routes that `Object.assign` the validated dtoIn onto a document.

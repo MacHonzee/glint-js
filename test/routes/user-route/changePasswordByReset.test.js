@@ -3,6 +3,7 @@ import { TestUsers } from "../../test-utils/index.js";
 import { AuthenticationService, UserService, MailService } from "../../../src/index.js";
 import { TestService, AssertionService } from "../../../src/test-utils/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
+import RefreshTokenModel from "../../../src/models/refresh-token-model.js";
 
 const USER = {
   username: "userForResetPasswordTwo@mail.com",
@@ -62,6 +63,62 @@ describe("user/changePasswordByReset", () => {
 
     // check that we could log in correctly
     expect(dtoOut.status).toBe("OK");
+    AssertionService.assertToken(loginDtoOut.token);
+  });
+
+  it("should verify the user and sign out existing sessions only after the reset link is used", async () => {
+    const userData = {
+      username: "unverifiedReset@mail.com",
+      password: "oldPassword1",
+      confirmPassword: "oldPassword1",
+      firstName: "Una",
+      lastName: "Verified",
+      email: "unverifiedReset@mail.com",
+      language: "cs",
+    };
+    await TestUsers.registerUser(userData);
+
+    const user = await UserService.findByUsername(userData.username.toLowerCase());
+    user.verified = false;
+    user.verificationToken = "still-pending";
+    await user.save();
+
+    const resetUcEnv = await TestService.getUcEnv("user/resetPassword", {
+      username: userData.username,
+      hostUri: "https://test-host.app.com",
+    });
+    await UserRoute.resetPassword(resetUcEnv);
+
+    const pending = await UserService.findByUsername(userData.username.toLowerCase());
+    const sessionsWhilePending = await RefreshTokenModel.find({
+      "user.username": userData.username.toLowerCase(),
+    });
+    expect(pending.verified).toBe(false);
+    expect(pending.verificationToken).toBe("still-pending");
+    expect(sessionsWhilePending.length).toBeGreaterThan(0);
+
+    const ucEnv = await TestService.getUcEnv("user/changePasswordByReset", {
+      token: pending.resetToken,
+      password: "newPass1234",
+      confirmPassword: "newPass1234",
+    });
+    const dtoOut = await UserRoute.changePasswordByReset(ucEnv);
+
+    const completed = await UserService.findByUsername(userData.username.toLowerCase());
+    const sessionsAfter = await RefreshTokenModel.find({
+      "user.username": userData.username.toLowerCase(),
+    });
+    expect(dtoOut.status).toBe("OK");
+    expect(completed.verified).toBe(true);
+    expect(completed.verificationToken).toBeUndefined();
+    expect(completed.resetToken).toBeUndefined();
+    expect(sessionsAfter).toHaveLength(0);
+
+    const loginUcEnv = await TestService.getUcEnv("user/login", {
+      username: userData.username,
+      password: "newPass1234",
+    });
+    const loginDtoOut = await UserRoute.login(loginUcEnv);
     AssertionService.assertToken(loginDtoOut.token);
   });
 

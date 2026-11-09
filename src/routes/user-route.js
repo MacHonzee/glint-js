@@ -30,6 +30,13 @@ class RegistrationFailed extends UseCaseError {
   }
 }
 
+/** @throws When `email` is present and is not the same identity as `username`. */
+class RegistrationEmailMismatch extends UseCaseError {
+  constructor() {
+    super("Registration email must match the username.", {}, 400);
+  }
+}
+
 class LoginFailed extends UseCaseError {
   constructor(cause) {
     super("Login has failed.", { cause }, 401);
@@ -119,6 +126,7 @@ class UserRoute {
   ERRORS = {
     MismatchingPasswords,
     RegistrationFailed,
+    RegistrationEmailMismatch,
     LoginFailed,
     RefreshTokenMismatch,
     InvalidRefreshToken,
@@ -135,8 +143,10 @@ class UserRoute {
 
   /**
    * Registers a new user. Supports both "basic" (immediate token) and "email"
-   * (verification email) registration flows. Optional `metadata`, if sent, is stored
-   * as the initial metadata object (no merge or metadata policy checks).
+   * (verification email) registration flows. Optional `email` must be the same
+   * identity as `username`; the verification link is sent to that username.
+   * Optional `metadata`, if sent, is stored as the initial metadata object
+   * (no merge or metadata policy checks).
    *
    * @param {UseCaseEnvironment} ucEnv
    * @returns {Promise<{token?: string, user?: object, status?: string}>}
@@ -151,8 +161,14 @@ class UserRoute {
       throw new this.ERRORS.MismatchingPasswords();
     }
 
-    // create model for user
+    // Login identity is the mailbox that must receive the verification link.
+    // A different `email` would deliver that link to someone who does not own the username.
     const normalizedUsername = this._normalizeUsername(dtoIn.username);
+    if (dtoIn.email && this._normalizeUsername(dtoIn.email) !== normalizedUsername) {
+      throw new this.ERRORS.RegistrationEmailMismatch();
+    }
+
+    // create model for user
     const newUser = new UserModel({
       username: normalizedUsername,
       firstName: dtoIn.firstName,
@@ -185,7 +201,7 @@ class UserRoute {
       await registeredUser.save();
 
       await MailService.getInstance().sendRegistrationVerificationMail({
-        to: dtoIn.email || normalizedUsername,
+        to: normalizedUsername,
         verificationToken,
         hostUri: dtoIn.hostUri,
       });
@@ -337,6 +353,7 @@ class UserRoute {
 
   /**
    * Initiates a password-reset flow by emailing a time-limited reset token.
+   * Does not verify the account or sign the user out; both happen when the link is used.
    * Returns `{status: "OK"}` even for non-existent users to prevent enumeration.
    *
    * @param {UseCaseEnvironment} ucEnv
@@ -359,18 +376,11 @@ class UserRoute {
     }
 
     // generate and save the reset token
+    // verification and session invalidation wait until changePasswordByReset,
+    // which is the step that proves access to the mailbox
     const resetToken = this._createResetToken(normalizedUsername);
     user.resetToken = resetToken;
-
-    // mark user as verified and clear the verification token, in case he did not
-    // verify his email address after his registration
-    user.verified = true;
-    user.verificationToken = undefined;
-
     await user.save();
-
-    // perform "global logout" by deleting all refresh tokens
-    await RefreshTokenModel.deleteByUsername(normalizedUsername);
 
     // send reset password email via the registered mail provider
     await MailService.getInstance().sendResetPasswordMail({
@@ -424,10 +434,15 @@ class UserRoute {
       throw new this.ERRORS.InvalidResetToken();
     }
 
-    // set new password and clear the reset token
+    // set new password, clear the reset token, and treat the used link as mailbox proof
     await user.setPassword(dtoIn.password);
     user.resetToken = undefined;
+    user.verified = true;
+    user.verificationToken = undefined;
     await user.save();
+
+    // password change signs the user out everywhere, including sessions opened after the request
+    await RefreshTokenModel.deleteByUsername(user.username);
 
     return { status: "OK" };
   }

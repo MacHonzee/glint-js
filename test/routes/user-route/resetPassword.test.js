@@ -3,6 +3,7 @@ import { TestUsers } from "../../test-utils/index.js";
 import { AuthenticationService, UserService, MailService } from "../../../src/index.js";
 import { TestService } from "../../../src/test-utils/index.js";
 import UserRoute from "../../../src/routes/user-route.js";
+import RefreshTokenModel from "../../../src/models/refresh-token-model.js";
 
 const USER = {
   username: "userForResetPassword@mail.com",
@@ -54,6 +55,37 @@ describe("user/resetPassword", () => {
       resetToken,
       hostUri: resetPassword.hostUri,
     });
+  });
+
+  it("should not verify the user or sign out existing sessions", async () => {
+    const loginUcEnv = await TestService.getUcEnv("user/login", {
+      username: USER.username,
+      password: USER.password,
+    });
+    await UserRoute.login(loginUcEnv);
+
+    const user = await UserService.findByUsername(USER.username.toLowerCase());
+    user.verified = false;
+    user.verificationToken = "still-pending";
+    await user.save();
+
+    const sessionsBefore = await RefreshTokenModel.find({ "user.username": USER.username.toLowerCase() });
+    expect(sessionsBefore.length).toBeGreaterThan(0);
+
+    const ucEnv = await TestService.getUcEnv("user/resetPassword", {
+      username: USER.username,
+      hostUri: "https://test-host.app.com",
+    });
+    const dtoOut = await UserRoute.resetPassword(ucEnv);
+
+    const updatedUser = await UserService.findByUsername(USER.username.toLowerCase());
+    const sessionsAfter = await RefreshTokenModel.find({ "user.username": USER.username.toLowerCase() });
+
+    expect(dtoOut.status).toBe("OK");
+    expect(updatedUser.verified).toBe(false);
+    expect(updatedUser.verificationToken).toBe("still-pending");
+    expect(updatedUser.resetToken).toBeTruthy();
+    expect(sessionsAfter).toHaveLength(sessionsBefore.length);
   });
 
   it("should return success if username is not found", async () => {

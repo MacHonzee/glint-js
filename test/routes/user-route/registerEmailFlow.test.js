@@ -56,10 +56,36 @@ describe("user/register (email flow)", () => {
     expect(Date.now() - user.lastLoginTs.getTime()).toBeLessThan(5000);
   });
 
+  it("should reject a verification address that is not the username", async () => {
+    const data = {
+      username: "victim@mail.com",
+      password: "securePassword123",
+      confirmPassword: "securePassword123",
+      firstName: "Jane",
+      lastName: "Doe",
+      email: "attacker@mail.com",
+      language: "en",
+      hostUri: "https://test-app.example.com",
+    };
+    const ucEnv = await TestService.getUcEnv("user/register", data);
+
+    await AssertionService.assertThrows(
+      () => UserRoute.register(ucEnv),
+      new UserRoute.ERRORS.RegistrationEmailMismatch(),
+    );
+    expect(mockMailProvider.sendRegistrationVerificationMail).not.toHaveBeenCalledWith(
+      expect.objectContaining({ to: "attacker@mail.com" }),
+    );
+    await AssertionService.assertThrows(
+      () => UserService.findByUsername("victim@mail.com"),
+      new UserService.ERRORS.UserNotFound("victim@mail.com"),
+    );
+  });
+
   it("should send the registration verification email", async () => {
     const user = await UserService.findByUsername(USER.username.toLowerCase());
     expect(mockMailProvider.sendRegistrationVerificationMail).toHaveBeenCalledWith({
-      to: USER.email,
+      to: USER.username.toLowerCase(),
       verificationToken: user.verificationToken,
       hostUri: USER.hostUri,
     });
